@@ -564,7 +564,8 @@ pub fn import_xmind_with_report(bytes: &[u8]) -> Result<(Document, ImportReport)
         ));
     };
     let mut doc = build_document(drafts, rels)?;
-    // 图片/附件字节进资源表；节点上的 `topic.image.src` 引用尚未映射（见下面的 warn）。
+    // 图片/附件字节进资源表；`walk_topic_json` 已把 `topic.image.src` 还原成 `asset:<hash>`，
+    // 两路合上后图片引用与字节都能往返。
     attach_resources(&mut doc, bytes);
 
     let mut counts = crate::ImportCounts::default();

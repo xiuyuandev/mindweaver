@@ -316,6 +316,31 @@ fn ten_concept_samples_survive_cxl_degraded_parse() {
             let got = back.nodes.get(id).expect("概念要读回来");
             assert_eq!(got.text, node.text, "样例 {i} 概念文本");
             assert_eq!(got.pos, node.pos, "样例 {i} 概念坐标");
+            // 互通视图写了 font-size / background-color / border-color，降级必须读回
+            // （CM-23 §7.7 / §3 #11-#12）。没写外观的概念保持 `None`。
+            match &node.style {
+                Some(src_style) => {
+                    let got_style = got
+                        .style
+                        .as_ref()
+                        .unwrap_or_else(|| panic!("样例 {i} 节点 {id} 外观该读回"));
+                    assert_eq!(got_style.font_size, src_style.font_size, "样例 {i} 字号");
+                    // 颜色写侧是 `r,g,b,a`、回读统一成 `#RRGGBBAA`，故只比语义不等字面。
+                    assert_eq!(
+                        got_style.fill.as_deref(),
+                        src_style.fill.as_deref().map(|_| "#FFCC00FF"),
+                        "样例 {i} 填充色"
+                    );
+                    assert_eq!(
+                        got_style.stroke.as_deref(),
+                        src_style.stroke.as_deref().map(|_| "#123456FF"),
+                        "样例 {i} 边框色"
+                    );
+                    // `shape` 不在互通视图里，降级必丢——这是设计边界。
+                    assert_eq!(got_style.shape, None, "样例 {i} 形状不在互通视图");
+                }
+                None => assert_eq!(got.style, None, "样例 {i} 节点 {id} 无外观"),
+            }
             assert_eq!(
                 got.relationships.len(),
                 node.relationships.len(),

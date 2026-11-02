@@ -661,6 +661,6 @@ XMind 看不到图；导入侧也不读 `image.src`，导进来的图是悬空�
 去掉多余 `mut`（上一轮 `attach_resources` 收口后 `report` 不再被改）。
 
 **机器证据（本机 Linux）**：`cargo fmt --all -- --check` 绿；便携 crate 测试
-**564 passed / 0 failed / 0 ignored**（`mw-core` 384+7、`mw-format` 39+2、`mw-io` 37+6、
-`mw-markdown` 15+59、`mw-ui` 15）。`mw-io` 自身 clippy 0 新增（剩余警告全在 `mw-core`
+**549 passed / 0 failed / 0 ignored**（`mw-core` 384+7、`mw-format` 39+2、`mw-io` 37+6、
+`mw-markdown` 15、`mw-ui` 59）。`mw-io` 自身 clippy 0 新增（剩余警告全在 `mw-core`
 基线内：`type_complexity` / `needless_range_loop`）。
