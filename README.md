@@ -3,9 +3,7 @@
 > 仅面向 Windows 的**纯 Rust 原生**思维导图工具。免费开源、本地优先、中文优先。
 > 不使用 WebView / HTML / CSS / JS / Electron / Tauri —— 从数据模型到界面与排版，整条栈都是 Rust。
 
-![织思开始页](shots/final/start-snow/shell-ppp1.50.png)
-
-*当前界面：开始页（`shots/final/start-snow/shell-ppp1.50.png`，1620×1080 @150% 实拍）。更多实拍见 `shots/final/`。*
+*界面截图与验收证据不随仓库分发（体积考虑）；本地 `cargo run -p mw-shell --release` 可查看实机界面。*
 
 ## 为什么做这个
 
@@ -36,14 +34,14 @@
 | --- | --- |
 | 版本 | **v0.1.0 开发版 · X100 Stage C（X21/X21b）进行中**；阶段、门与断点只看 [docs/STATUS.md](docs/STATUS.md) §1–§5，本文不复制会过期的状态明细 |
 | 测试 | 串行全量 **见 [docs/STATUS.md](docs/STATUS.md) §1**（本文不复制会过期的数字）。**裸跑前先把 `TEMP`/`TMP` 指到 `target/tmp`**，否则写盘用例会因 `os error 5` 假红 |
-| 视觉基线 | X20 完成 25 场景外壳矩阵（四主题 × 四档 DPI × 五种窗口 + 开始页/菜单/弹窗/标签/大纲/检查器），`shots/x100/X20/actual/contact-sheet.png`；**只证明外壳稳定，不证明内容界面好看** |
+| 视觉基线 | X20 完成 25 场景外壳矩阵（四主题 × 四档 DPI × 五种窗口 + 开始页/菜单/弹窗/标签/大纲/检查器）；**只证明外壳稳定，不证明内容界面好看**。截图证据不随仓库分发 |
 | Clippy | `cargo fmt` 干净；`cargo clippy --workspace --all-targets` 新增 0（与 `scripts/clippy-baseline.txt` 指纹比对） |
 | CI | `scripts/x100-stage-b-gate.ps1`（Stage B/B2）与 `scripts/x100-stage-cm-gate.ps1`（概念图）；两道门必须顺序跑（并发会互踩 `actual/` `diff/` 目录），场次与结论只看 [docs/STATUS.md](docs/STATUS.md) §1 |
 | 构建 | 最近一次 release `target/release/mw-shell.exe` 见 `HANDOFF.md`；换机后运行 `cargo build -p mw-shell --release` |
-| 发布包 | 冻结包 `dist/zhisi-v0.1.0-win64.zip`（**不要动**）；打包/安装/签名说明见 `docs/archive/20-签名与发布.md` |
+| 发布包 | 发布 zip 不随仓库分发；打包/安装/签名说明见 `docs/archive/20-签名与发布.md` |
 | 性能门 | 预算口径见 [docs/08-性能与兼容性要求.md](docs/08-性能与兼容性要求.md)，实测数字只看 [docs/STATUS.md](docs/STATUS.md) §1；`scripts/perf.ps1` 是预算门（本文不复制实测值） |
-| 仓库体积 | 约 **604MB**（2026-10-30 实测，不含 `target/`：`shots/` 证据图 227MB、`.git` 157MB、`crates/` 源码 3.7MB） |
-| Git | **当前目录已是 git 仓库**；是否提交按维护者指令执行 |
+| 仓库体积 | 入库约 **10.4MB / 876 个文件**（不含 `target/`、golden 基线图与截图证据，规则见 `.gitignore`） |
+| Git | `master` 单提交；仓库只含源码、文档、脚本与测试 |
 
 **已经能做的事**：新建/打开/保存/另存为、多标签、自动保存与崩溃恢复；五种布局（思维导图 / 向右逻辑 / 组织结构图 / 鱼骨图 / 时间轴）；节点增删改、拖拽改父、Ctrl+拖拽复制、拖到空白分离自由主题、多选、折叠、撤销重做、剪贴板；**全屏大纲（F8）**、检查器、搜索、命令面板、右键菜单、演示模式；**四套主题** + 自定义强调色 + 逐节点样式；**单表面所见即所得卡片笔记**（无阅读/编辑模式切换）+ **独立卡片库**（三栏、标签体系、批量管理、反链、全文搜索）；主动回忆、知识视图、学习统计、合集导出；图片附件与粘贴/拖放；恢复中心、文件锁与冲突提示、设置中心；新建子节点后视图自动跟随；导入 Markdown / OPML / FreeMind / XMind / 缩进文本；导出 PNG / SVG / PDF / Markdown / 大纲文本 / OPML / FreeMind。
 
@@ -114,7 +112,7 @@ crates/
   mw-probe/   性能与启动里程碑探针
 docs/         设计文档（见下）
 scripts/      PowerShell 真实输入验收脚本（ASCII-only）
-shots/        golden 基线、参考图与验收截图
+shots/        golden 基线、参考图与验收截图（默认不入库，见 .gitignore）
 ```
 
 依赖方向严格单向：`mw-shell → mw-render / mw-core / mw-format / mw-io / mw-markdown`；`mw-core` 零 UI 依赖，是数据唯一权威。画布、离屏 golden 与 PNG/SVG/PDF 导出共用同一份 `Scene`，不存在第二套排版几何。
@@ -156,8 +154,8 @@ shots/        golden 基线、参考图与验收截图
 
 ## 关于 XMind
 
-Xmind 26.5.1107 是 X100 的视觉/交互参考，不是构建依赖。参考图与版本 manifest 在
-`shots/reference/xmind-26.5.1107/`；没有 Xmind 的机器照样能开发、测试和重拍本项目 golden。
+Xmind 26.5.1107 是 X100 的视觉/交互参考，不是构建依赖。参考图与版本 manifest 不随仓库分发；
+没有 Xmind 的机器照样能开发、测试和重拍本项目 golden。
 动态采样只允许隔离临时配置和空白文档，**不得自动化点击或修改用户正在使用的 Xmind 实例**。
 
 ## 许可
