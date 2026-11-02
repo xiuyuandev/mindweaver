@@ -7,7 +7,7 @@
 use std::collections::HashMap;
 use std::io::{Cursor, Read, Write};
 
-use mw_core::{new_id, DocMeta, Document, Node, Relationship};
+use mw_core::{new_id, DocMeta, Document, Node, Position, Relationship};
 use serde_json::{json, Value};
 
 use crate::{ImportReport, IoError};
@@ -24,6 +24,10 @@ struct TopicDraft {
     note: Option<String>,
     /// 超链接（XMind 的 `topic.href` / 旧版 `<link xlink:href>`）。
     link: Option<String>,
+    /// 浮动/自由主题的画布坐标；树主题不带位置。
+    pos: Option<Position>,
+    /// 图片引用 `asset:<hash>`。
+    image: Option<String>,
     collapsed: bool,
     icon: Option<String>,
     labels: Vec<String>,
@@ -53,6 +57,8 @@ fn build_document(drafts: Vec<TopicDraft>, rels: Vec<RelDraft>) -> Result<Docume
         let mut n = Node::new(d.id.clone(), d.parent.clone(), d.text.clone());
         n.note = d.note.clone();
         n.link = d.link.clone();
+        n.pos = d.pos.clone();
+        n.image = d.image.clone();
         n.collapsed = d.collapsed;
         n.icon = d.icon.clone();
         let mut seen_labels: Vec<String> = Vec::new();
@@ -174,6 +180,18 @@ fn walk_topic_json(t: &Value, parent: Option<String>, out: &mut Vec<TopicDraft>)
         .and_then(|x| x.as_str())
         .map(|s| s.trim().to_string())
         .filter(|s| !s.is_empty());
+    let pos = t.pointer("/position").and_then(|p| {
+        let x = p.get("x").and_then(|v| v.as_f64())? as f32;
+        let y = p.get("y").and_then(|v| v.as_f64())? as f32;
+        Some(Position { x, y })
+    });
+    // 图片：XMind 写 `image.src = "xap:resources/<hash>"`，还原成 `asset:<hash>`。
+    let image = t
+        .pointer("/image/src")
+        .and_then(|v| v.as_str())
+        .and_then(|s| s.split("resources/").nth(1))
+        .filter(|h| !h.is_empty())
+        .map(|h| format!("asset:{h}"));
     out.push(TopicDraft {
         id: id.clone(),
         src_id,
@@ -181,6 +199,8 @@ fn walk_topic_json(t: &Value, parent: Option<String>, out: &mut Vec<TopicDraft>)
         text,
         note,
         link,
+        pos,
+        image,
         collapsed,
         icon,
         labels,
@@ -320,6 +340,8 @@ fn parse_legacy(xml: &str) -> Result<(Vec<TopicDraft>, Vec<RelDraft>), IoError> 
                             text: String::new(),
                             note: None,
                             link: None,
+                            pos: None,
+                            image: None,
                             collapsed,
                             icon: None,
                             labels: Vec::new(),
@@ -389,6 +411,8 @@ fn parse_legacy(xml: &str) -> Result<(Vec<TopicDraft>, Vec<RelDraft>), IoError> 
                         text: String::new(),
                         note: None,
                         link: None,
+                        pos: None,
+                        image: None,
                         collapsed: false,
                         icon: None,
                         labels: Vec::new(),
@@ -553,21 +577,16 @@ pub fn import_xmind_with_report(bytes: &[u8]) -> Result<(Document, ImportReport)
         counts.collapsed += usize::from(n.collapsed);
         counts.styled += usize::from(n.style.is_some());
     }
-    let mut report = ImportReport {
+    let report = ImportReport {
         resources,
         counts,
         ..Default::default()
     };
-    if resources > 0 {
-        report.warn(format!(
-            "XMind 内含 {resources} 个图片/附件资源；字节已收进资源包，但主题上的图片引用尚未映射（P53 图片管线接入后补）"
-        ));
-    }
     Ok((doc, report))
 }
 
 /// 导出为 XMind Zen（zip 内 `content.json`）。只写导入器认识的字段：
-/// 标题、备注、标签、折叠、子主题；链接/样式/关系线暂不写（XMind 格式映射另开）。
+/// 标题、备注、标签、折叠、子主题、链接；样式/关系线暂不写（XMind 格式映射另开）。
 pub fn export_xmind(doc: &Document) -> Result<Vec<u8>, IoError> {
     fn topic(doc: &Document, id: &str) -> Value {
         let n = doc
@@ -582,6 +601,12 @@ pub fn export_xmind(doc: &Document) -> Result<Vec<u8>, IoError> {
         });
         if let Some(note) = n.note.as_deref().filter(|s| !s.trim().is_empty()) {
             t["notes"] = json!({"plain": {"content": note}});
+        }
+        if let Some(link) = n.link.as_deref().filter(|s| !s.trim().is_empty()) {
+            t["href"] = json!(link);
+        }
+        if let Some(hash) = n.image.as_deref().and_then(|v| v.strip_prefix("asset:")) {
+            t["image"] = json!({ "src": format!("xap:resources/{hash}") });
         }
         if !n.labels.is_empty() {
             t["labels"] = json!(n.labels);
@@ -671,6 +696,11 @@ fn interop_content_json(doc: &Document) -> Value {
         }
         if let Some(link) = n.link.as_deref().filter(|s| !s.trim().is_empty()) {
             t["href"] = json!(link);
+        }
+        // 图片：节点引用 `asset:<hash>`，资源字节已写进 `resources/<hash>`，
+        // 互通视图用 XMind 的 `image.src = "xap:resources/<hash>"` 指过去。
+        if let Some(hash) = n.image.as_deref().and_then(|v| v.strip_prefix("asset:")) {
+            t["image"] = json!({ "src": format!("xap:resources/{hash}") });
         }
         if n.collapsed && !n.children.is_empty() {
             t["branch"] = json!("folded");
@@ -895,6 +925,45 @@ mod tests {
         assert_eq!(child.link.as_deref(), Some("https://example.com/b"));
     }
 
+    /// 浮动/自由主题的 `position` 必须读回来（否则导入后全堆在原点）。
+    #[test]
+    fn detached_topic_positions_are_read_back() {
+        let zen = r#"[{
+          "id": "s1", "class": "sheet", "title": "画布",
+          "rootTopic": {
+            "id": "t0", "class": "topic", "title": "根",
+            "children": { "detached": [
+              { "id": "f1", "class": "topic", "title": "浮标",
+                "position": { "x": 320.5, "y": -180.0 } }
+            ]}
+          }
+        }]"#;
+        let doc = import_xmind(&zip_bytes(&[("content.json", zen)])).unwrap();
+        let floater = doc.nodes.values().find(|n| n.text == "浮标").unwrap();
+        let p = floater.pos.clone().unwrap();
+        assert_eq!(p.x, 320.5);
+        assert_eq!(p.y, -180.0);
+    }
+
+    /// 互通视图的图片引用：`topic.image.src = "xap:resources/<hash>"` 要还原成
+    /// `asset:<hash>`，字节也得在资源包里。
+    #[test]
+    fn topic_images_round_trip_through_interop_view() {
+        let mut doc = Document::new("图片互通");
+        let key = doc.assets.insert(vec![1, 2, 3, 4]);
+        let root = doc.root_id.clone();
+        doc.nodes.get_mut(&root).unwrap().image = Some(format!("asset:{key}"));
+
+        let bytes = export_xmind(&doc).unwrap();
+        let back = import_xmind(&bytes).unwrap();
+        let root = back.root_id.clone();
+        assert_eq!(
+            back.nodes[&root].image.as_deref(),
+            Some(format!("asset:{key}").as_str()),
+            "图片引用必须从 image.src 还原"
+        );
+    }
+
     #[test]
     fn import_zen_json() {
         let json = r#"[
@@ -958,11 +1027,8 @@ mod tests {
         assert_eq!(doc.meta.title, "根");
         assert_eq!(report.resources, 2);
         assert_eq!(report.counts.nodes, 1);
-        assert_eq!(report.warnings.len(), 1);
-        assert!(
-            report.warnings[0].contains("2 个图片/附件资源"),
-            "{report:?}"
-        );
+        // 资源已迁移进资源包、主题图片引用已还原，不再产生丢失警告。
+        assert!(report.warnings.is_empty(), "{report:?}");
         assert!(!report.is_empty());
     }
 

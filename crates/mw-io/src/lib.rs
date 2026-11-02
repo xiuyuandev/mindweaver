@@ -30,7 +30,7 @@ pub struct ImportCounts {
 /// 一次导入的"丢失项/降级项"报告。UI 负责展示，导入器只如实记录。
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ImportReport {
-    /// 图片/附件等资源条目数量（当前尚未迁移到 `.zmind` 资源包）。
+    /// 图片/附件等资源条目数量（已收进资源包、主题图片引用已还原）。
     pub resources: usize,
     /// 成功迁移的字段统计。
     pub counts: ImportCounts,

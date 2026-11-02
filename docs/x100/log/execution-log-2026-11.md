@@ -588,3 +588,79 @@ D15 就是第四批里「查了没动」的那条，这轮拿到许可后做了�
 **未做**：命令面板的主题列表仍是 `const` 静态表（4 条思维导图主题），概念图里会列出
 不该列的四套。`Item.label` 是 `&'static str`，要按文档类型分流得把整张表改活
 （`matching_actions` / `matching_labels` 都跟着改签名），收益不抵风险，先记着。
+
+## 2026-11-02 晚 · 开放格式保真补洞 + X22 G-01 合同表（Linux 离屏续作）
+
+环境：只能构建/测试 `mw-core` / `mw-format` / `mw-io` / `mw-markdown` / `mw-ui` /
+`mw-golden`（`mw-render` / `mw-shell` 依赖 `windows` crate，本机编不过）。所以这一轮
+只动可在 Linux 上验证的开放格式与文档层。
+
+**一、`.cxl` / `.xmind` 节点扩展字段读不回（CM-23 §7.5）—— 已修**。
+根因：`mw_format::doc_from_file_doc` 只要 `conceptMap` 块在，就只走 `concept_map::to_nodes`，
+而 `ConceptEntry` 只有 `id/text/x/y/pinned/style`，备注/链接/标签/`card_id` 等全丢。
+修法：新增 `nodes_from_file_doc`——块是权威（概念/命题以块为准），但块里有的概念按 id
+把兼容镜像 `nodes` 的扩展字段并回来；镜像里多出的树节点不往概念图塞。
+`crates/mw-format/src/lib.rs`，两条调用点（`.zmind` 加载 + 保真槽）都改用它。
+测试：`mw-format` 单测 `concept_block_is_the_authority_and_the_mirror_only_supplies_extras`
+（含「镜像多出的树节点不进概念图」）；`cmap::tests::cxl_fidelity_reads_node_extras_back`
+与 `tests/fidelity.rs::ten_concept_samples_survive_cxl_fidelity_roundtrip` 从「豁免丢字段」
+改成「必须保留」。
+
+**二、`.xmind` 保存丢图片字节 —— 已修**。
+`save_xmind` 以前只写 4 条 ZIP 条目（`content.json` / `metadata.json` / `manifest.json` /
+`mindweaver.json`），`Document.assets` 一个字节都没进包，节点里的 `asset:<hash>`
+另存成 `.xmind` 再打开就是悬空引用。现在 `save_xmind` 把每个资产写成 `resources/<hash>`
+条目并登记 `manifest.file-entries`；`load_xmind` 新增 `attach_resources` 读回（超限/坏条目
+跳过，渲染层本来就降级成占位）。`import_xmind_with_report` 也走 `attach_resources`，
+warn 文案从「尚未迁移」改成「字节已收进资源包，但主题图片引用尚未映射（P53 补）」。
+测试：`xmind::tests::embedded_resources_round_trip_through_save_and_load`
+（字节 + 引用 + manifest 登记三断言）；另补 `save_then_load_keeps_every_field_through_the_fidelity_slot`
+钉住 `.xmind` 保真槽全字段往返。
+
+**三、`.xmind` 互通视图写出 `href` 但降级解析不读 —— 已修**。
+`interop_content_json` 一直写 `topic.href`，`parse_zen` 却不读；旧版 `content.xml` 的
+`<link xlink:href>` 同理。现在 `TopicDraft` 加 `link` 字段，两路解析都回填，`build_document`
+落到 `node.link`。顺带把浮动主题的 `position` 也读回来了（`TopicDraft.pos`，`walk_topic_json`
+读 `/position/{x,y}`，旧版 XML 不带则 `None`）——以前导入后所有自由主题全堆在原点。
+测试：`topic_links_are_read_back_from_both_xmind_generations`（Zen + 旧版各一例）+
+`detached_topic_positions_are_read_back`。
+
+**三点五、`.xmind` 图片互通 —— 已修**。
+`save_xmind` 把资源写进 `resources/<hash>` 后，互通视图却没写 `topic.image.src`，外部
+XMind 看不到图；导入侧也不读 `image.src`，导进来的图是悬空的。现在 `interop_content_json`
+和 `export_xmind` 的 `topic()` 都写 `image = { src: "xap:resources/<hash>" }`；
+`walk_topic_json` 把 `image.src` 还原成 `asset:<hash>`。`ImportReport.resources` 从「丢失项」
+改成「已迁移」，不再产生 warn。测试：`topic_images_round_trip_through_interop_view`。
+
+**四、X22 G-01 画布字阶表落进合同 —— 已落文档**。
+`docs/30` 新增 §7.1「画布字阶合同表」，把 `shots/x100/X22/report.md` §7.1 从代码复算的
+四级字阶 / 行高 / 基线偏移 / 单行盒高 / 四档 DPI 物理 px 搬进来；并把 G-04 中英混排度量同源
+条款（`line_advance` 唯一出宽函数）写进合同。G-04 修码仍因 `canvas-text-ppp1.00.png`
+0.090% 漂移撤回，补丁在 `shots/x100/X22/evidence/g04-measure-parity-2026-11-02.patch`。
+
+**机器证据（本机 Linux）**：`cargo fmt --all -- --check` 绿；`cargo clippy`
+（`mw-format` + `mw-io`）0 警告；便携 crate 测试 **552 passed / 0 failed / 0 ignored**
+（`mw-core` 384+7、`mw-format` 39+2+5、`mw-io` 35+6、`mw-markdown` 15+59、`mw-ui` 15）。
+
+
+---
+
+## 2026-11-02 晚（续）· `.cxl` 降级解析回读概念外观 + 清理 lint
+
+**一、CM-23 §3 #11/#12：降级路径丢字号 / 填充色 / 边框色 —— 已修**。
+`concept-appearance` 写侧一直写 `font-size` / `background-color` / `border-color`，
+但 `parse_cxl_interop` 只读 `id` / `x` / `y`——外部工具抹掉保真槽后这三项全丢。
+改法：该分支回读三项，新增 `rgba_to_hex` 把 `r,g,b,a` / `rgb()` / `#hex` 统一转回
+`#RRGGBBAA`；只在至少一项有值时才建 `StyleOverride`，无外观概念保持 `style: None`。
+单测 `cxl_degraded_parse_drops_the_documented_fields_explicitly` 改名为
+`cxl_degraded_parse_preserves_interop_appearance_fields`，断言三项保住、`bold`/`pinned`/
+`note` 仍丢。CM-23 §3.2 的 C 档 8/25 → **10/25 行能回读**。
+
+**二、清理两条 lint**：`mw-io/tests/fidelity.rs` 两处 `i % 2 == 0` 改 `i.is_multiple_of(2)`
+（clippy `manual_is_multiple_of`，不在基线里）；`mw-io/src/xmind.rs` `let mut report`
+去掉多余 `mut`（上一轮 `attach_resources` 收口后 `report` 不再被改）。
+
+**机器证据（本机 Linux）**：`cargo fmt --all -- --check` 绿；便携 crate 测试
+**564 passed / 0 failed / 0 ignored**（`mw-core` 384+7、`mw-format` 39+2、`mw-io` 37+6、
+`mw-markdown` 15+59、`mw-ui` 15）。`mw-io` 自身 clippy 0 新增（剩余警告全在 `mw-core`
+基线内：`type_complexity` / `needless_range_loop`）。

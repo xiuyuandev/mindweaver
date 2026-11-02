@@ -233,7 +233,7 @@ fn concept_sample(i: usize) -> Document {
         }
         nodes.get_mut(&ids[k]).unwrap().relationships.push(rel);
     }
-    let groups = if i % 2 == 0 {
+    let groups = if i.is_multiple_of(2) {
         vec![ConceptGroup {
             id: format!("g-{i}"),
             label: format!("组 {i}"),
@@ -245,7 +245,7 @@ fn concept_sample(i: usize) -> Document {
     };
     let meta = DocMeta {
         title: format!("概念图 {i}"),
-        theme: if i % 2 == 0 { "snow" } else { "mist" }.to_string(),
+        theme: if i.is_multiple_of(2) { "snow" } else { "mist" }.to_string(),
         theme_accent: None,
         theme_overrides: None,
         layout: LayoutSettings {

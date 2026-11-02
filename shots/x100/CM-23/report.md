@@ -125,8 +125,8 @@ cargo test -p mw-io -- --test-threads=1
 | 8 | 概念 `text` | `<concept label>` | 有 | 有 | 有 | `cmap.rs:74`；降级 `:342` |
 | 9 | 概念 `pos` | `<concept-appearance x y>`（`as i32` 截断） | 有 | 有（取整） | 有（缺则 `0,0`） | `cmap.rs:135-138`；降级 `:363-364`、`:425` |
 | 10 | `pinned` | 无 | 有 | 无 | **丢 → `None`** | `cmap.rs:431` `pinned: None` |
-| 11 | `style.font_size` | `font-size` | 有 | 有 | **丢**（降级只读 `id/x/y`） | 写 `:141-143`；降级 `:361-368` 无该属性 |
-| 12 | `style.fill` / `style.stroke` | `background-color` / `border-color`（`r,g,b,a`） | 有 | 有 | **丢** | 写 `:144-149`；转换 `:234-252` |
+| 11 | `style.font_size` | `font-size` | 有 | 有 | **已修（2026-11-02 晚）**：降级解析回读 `font-size` → `StyleOverride.font_size` | 写 `:141-143`；降级 `concept-appearance` 分支 `attr(&e, "font-size")` |
+| 12 | `style.fill` / `style.stroke` | `background-color` / `border-color`（`r,g,b,a`） | 有 | 有 | **已修（2026-11-02 晚）**：降级解析回读两色（`rgba_to_hex` 兼容 `r,g,b,a` / `rgb()` / `#hex`） | 写 `:144-149`；降级 `attr(&e, "background-color"/"border-color").as_deref().and_then(rgba_to_hex)` |
 | 13 | `style` 其余键（`shape`/`bold`/`italic`/`radius`/`align`/`weight`/`text_color`/`stroke_width`/`branch_color`/`apply_text_to_subtree`） | 无 | 有 | 无 | 丢 | `:140-150` 只写三项 |
 | 14 | 命题（源/目标） | 概念 → 短语 → 概念两条 `<connection>` | 有 | 有 | 有 | `:112-128`；降级 `:396-423` |
 | 15 | 命题 `label` | `<linking-phrase label>` | 有 | 有 | 有（空短语变成字面 "related to"） | `:89-93` 空短语的 `unwrap_or_else` 默认值 |
@@ -151,10 +151,11 @@ cargo test -p mw-io -- --test-threads=1
   #9 坐标（取整）、#11 字号、#12 填充/边框色、#14 命题结构、#15 短语、#16 箭头（**只三档**）、
   #25 时间戳（**格式非法**）。
   **看不见**：#10 钉住、#13 样式其余键、#19 线色/虚线/线宽/注释、#20 分组、#21 备注/标签/卡片等、#17 反向箭头。
-- **C（外部工具另存后再回织思）**：**修码后 8 / 25 行能回读**——#1 标题（本轮修）、#5 聚焦问题、
-  #7 id、#8 文本、#9 坐标、#14 命题结构、#15 短语、#16/#17 箭头四档（本轮修）；
+- **C（外部工具另存后再回织思）**：**修码后 10 / 25 行能回读**——#1 标题（本轮修）、#5 聚焦问题、
+  #7 id、#8 文本、#9 坐标、#11 字号（2026-11-02 晚修）、#12 填充/边框色（2026-11-02 晚修）、
+  #14 命题结构、#15 短语、#16/#17 箭头四档（本轮修）；
   另有 #18 命题 id **变形**（`p1` → `lp-p1`）。
-  **其余 15 行全丢**：#3 主题、#10 钉住、#20 分组、#11/#12/#13 全部样式、#19 线属性、#21 节点扩展字段……
+  **其余 13 行全丢**：#3 主题、#10 钉住、#20 分组、#13 样式其余键、#19 线属性、#21 节点扩展字段……
   这一档必须在用户手册里写明，否则用户会认为「织思丢了他的数据」。
 
 > **诚实标注**：上表的「B 可表达」只表示**写进了标准元素**，**没有**用 CmapTools 真机打开验证过
@@ -376,6 +377,7 @@ let nodes = match &file.concept_map {
 | 3 | 反向箭头不可表达 | **已修** | 箭头写到它所在的边：`-a`/`-b` 两条 `connection-appearance`；降级解析按「哪条边有箭头」反推四档，`Forward` 与 `Backward` 的 XML 不再同形 |
 | 4 | `groups` 死代码 | **已修** | `save_cxl` 显式传空表 + 注释「分组只走保真槽」，死参数用法删除；保真由新单测钉住 |
 | 5 | 节点扩展字段读不回（§7.5） | **已修（2026-11-02）** | `mw-format` 新增 `nodes_from_file_doc`：块为准 + 按 id 并回兼容镜像的扩展字段；三条测试改为断言保留，另补 `.xmind` 保真槽往返一条 |
+| 6 | 降级路径丢字号 / 填充色 / 边框色（§3 #11/#12） | **已修（2026-11-02 晚）** | `parse_cxl_interop` 的 `concept-appearance` 分支回读 `font-size` / `background-color` / `border-color`，`rgba_to_hex` 兼容 `r,g,b,a` / `rgb()` / `#hex`；`cxl_degraded_parse_preserves_interop_appearance_fields` 钉住 |
 
 **实跑**（原始输出：[`evidence-cargo-test-mw-io-fix.txt`](evidence-cargo-test-mw-io-fix.txt)）：
 
@@ -386,6 +388,30 @@ cargo test -p mw-io -- --test-threads=1   → 38 passed / 0 failed
 ```
 
 新增单测 **11 条**（`cmap.rs` 9 条 + `tests/fidelity.rs` 2 条；后者原有 4 条不变，文件共 6 条）。
+
+### 7.7 降级路径回读概念外观（字号 / 填充色 / 边框色，**2026-11-02 晚已修**）
+
+**现象**：`concept-appearance` 写了 `font-size` / `background-color` / `border-color`
+（`cmap.rs` 写侧 `:141-149`），但降级解析只读 `id` / `x` / `y`——外部工具抹掉保真槽后，
+这三项外观全丢（§3 #11/#12 原标「丢」）。
+
+**改法**：`parse_cxl_interop` 的 `concept-appearance` 分支增加三项回读：
+
+- `font-size` → `StyleOverride.font_size`（`u16`，parse 失败则 `None`）；
+- `background-color` / `border-color` → `StyleOverride.fill` / `.stroke`，经新增 `rgba_to_hex`
+  转回 `#RRGGBBAA`。`rgba_to_hex` 兼容三种来源：织思写出的 `r,g,b,a`、CmapTools/通用 CSS 的
+  `rgb(r,g,b)` / `rgba(r,g,b,a)`、以及直接写的 `#RRGGBB` / `#RRGGBBAA`。
+
+只在至少一项有值时才插 `StyleOverride`，没有外观的概念保持 `style: None`（与此前行为一致）。
+
+**单测**：原 `cxl_degraded_parse_drops_the_documented_fields_explicitly` 改名为
+`cxl_degraded_parse_preserves_interop_appearance_fields`，断言：
+
+- `style.font_size == Some(18)`、`fill == "#FFCC00FF"`、`stroke == "#123456FF"`（互通视图里的三项保住）；
+- `style.bold == None`、`pinned == None`、`note == None`（互通视图里没有的仍丢）；
+- 命题 `color` / `dashed` / `width` / `note` 仍丢（互通视图不写这些）。
+
+**今天的账**：§3 #11/#12 从「丢」改回「已修」；§3.2 的 C 档从 8/25 → **10/25 行能回读**。
 
 ### 7.4 改完仍然成立的两个限制（不能因为修了 bug 就当成「互导可用」）
 

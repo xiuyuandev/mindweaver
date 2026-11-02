@@ -312,6 +312,36 @@ fn parse_iso8601(s: &str) -> Option<i64> {
     Some(days * 86_400_000 + (hour * 3_600 + minute * 60 + second) * 1_000 + millis)
 }
 
+/// CXL 互通视图里的颜色回读成织思的十六进制串（`#RRGGBB` 或 `#RRGGBBAA`）。
+///
+/// 兼容三种来源：
+/// - 织思自己写出的 `r,g,b,a`（`hex_to_rgba` 的输出）；
+/// - CmapTools / 通用 CSS 的 `rgb(r,g,b)` / `rgba(r,g,b,a)`；
+/// - 直接写的 `#RRGGBB` / `#RRGGBBAA`。
+fn rgba_to_hex(s: &str) -> Option<String> {
+    let t = s.trim();
+    if let Some(rest) = t.strip_prefix('#') {
+        return match rest.len() {
+            6 | 8 => Some(format!("#{rest}")),
+            _ => None,
+        };
+    }
+    let inner = t
+        .strip_prefix("rgba(")
+        .or_else(|| t.strip_prefix("rgb("))
+        .map(|s| s.trim_end_matches(')'))
+        .unwrap_or(t);
+    let parts: Vec<&str> = inner.split(',').map(|p| p.trim()).collect();
+    if parts.len() < 3 {
+        return None;
+    }
+    let r: u8 = parts[0].parse().ok()?;
+    let g: u8 = parts[1].parse().ok()?;
+    let b: u8 = parts[2].parse().ok()?;
+    let a: u8 = parts.get(3).and_then(|p| p.parse().ok()).unwrap_or(255);
+    Some(format!("#{r:02X}{g:02X}{b:02X}{a:02X}"))
+}
+
 /// `#rrggbb` / `#aarrggbb` → CXL 的 `"r,g,b,a"`（0–255）。非法返回 `None`。
 fn hex_to_rgba(hex: &str) -> Option<String> {
     let h = hex.trim().trim_start_matches('#');
@@ -398,6 +428,9 @@ fn parse_cxl_interop(xml: &str) -> Result<Document, IoError> {
     // connection id → arrowhead 值（`yes` / `no` / `if-to-concept` …）。
     let mut arrows: HashMap<String, String> = HashMap::new();
     let mut xy: HashMap<String, (f32, f32)> = HashMap::new();
+    // 概念 id → 降级解析得到的样式覆盖（font-size / background-color / border-color）。
+    // 保真槽无损时用不到；外部工具抹掉保真槽后，互通视图还能保住字号与配色。
+    let mut styles: HashMap<String, mw_core::model::StyleOverride> = HashMap::new();
     let mut focus: Option<String> = None;
     let mut title: Option<String> = None;
     let mut section = String::new();
@@ -462,7 +495,23 @@ fn parse_cxl_interop(xml: &str) -> Result<Document, IoError> {
                         let x = attr(&e, "x").and_then(|v| v.parse().ok()).unwrap_or(0.0);
                         let y = attr(&e, "y").and_then(|v| v.parse().ok()).unwrap_or(0.0);
                         if !id.is_empty() {
-                            xy.insert(id, (x, y));
+                            xy.insert(id.clone(), (x, y));
+                            let font_size = attr(&e, "font-size").and_then(|v| v.parse().ok());
+                            let fill = attr(&e, "background-color")
+                                .as_deref()
+                                .and_then(rgba_to_hex);
+                            let stroke = attr(&e, "border-color").as_deref().and_then(rgba_to_hex);
+                            if font_size.is_some() || fill.is_some() || stroke.is_some() {
+                                styles.insert(
+                                    id,
+                                    mw_core::model::StyleOverride {
+                                        font_size,
+                                        fill,
+                                        stroke,
+                                        ..Default::default()
+                                    },
+                                );
+                            }
                         }
                     }
                     _ => {}
@@ -558,13 +607,14 @@ fn parse_cxl_interop(xml: &str) -> Result<Document, IoError> {
     }
     for (id, label) in &concepts {
         let (x, y) = xy.get(id.as_str()).copied().unwrap_or((0.0, 0.0));
+        let style = styles.get(id.as_str()).cloned();
         block.concepts.push(mw_format::ConceptEntry {
             id: id.clone(),
             text: label.clone(),
             x: Some(x),
             y: Some(y),
             pinned: None,
-            style: None,
+            style,
         });
     }
     block.focus_question = focus;
@@ -942,16 +992,25 @@ mod tests {
     }
 
     #[test]
-    fn cxl_degraded_parse_drops_the_documented_fields_explicitly() {
-        // 保真槽被抹掉后「丢什么」要写成断言：这是设计边界，不是意外。
+    fn cxl_degraded_parse_preserves_interop_appearance_fields() {
+        // 保真槽被抹掉后：互通视图里有的字段（标题、坐标、字号、填充色、边框色、箭头方向）
+        // 必须保住；互通视图里没有的字段（pinned / note / bold / 分组 / 命题配色与线型）仍丢。
+        // 这是设计边界，写成断言防止回归。
         let doc = rich_concept_doc();
         let back = load_cxl(&strip_fidelity(&save_cxl(&doc).unwrap())).unwrap();
         assert_eq!(back.meta.title, "植物图", "标题现在能救回来（§7 第 1 条）");
         assert_eq!(back.meta.theme, "snow", "主题没有互通槽，只能回落");
         assert!(back.groups.is_empty(), "分组只在保真槽里");
-        assert_eq!(back.nodes["c-a"].pinned, None);
-        assert_eq!(back.nodes["c-a"].style, None);
-        assert_eq!(back.nodes["c-a"].note, None);
+        let a = &back.nodes["c-a"];
+        assert_eq!(a.pinned, None, "pinned 不在互通视图");
+        assert_eq!(a.note, None, "备注不在互通视图");
+        // 互通视图写了 font-size / background-color / border-color，降级必须读回。
+        let style = a.style.as_ref().expect("互通视图的外观字段必须读回");
+        assert_eq!(style.font_size, Some(18));
+        assert_eq!(style.fill.as_deref(), Some("#FFCC00FF"));
+        assert_eq!(style.stroke.as_deref(), Some("#123456FF"));
+        // bold 没有互通槽，降级回落。
+        assert_eq!(style.bold, None);
         let rel = &back.nodes["c-b"].relationships[0];
         assert_eq!(rel.color, None);
         assert!(!rel.dashed);
