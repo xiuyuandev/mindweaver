@@ -1,0 +1,78 @@
+{
+  "package": "CM-12",
+  "title": "概念图概念节点改为椭圆（形状语言与思维导图分流）",
+  "status": "已实现（机器证据齐；G-CM-2 人工门未复判）",
+  "date": "2026-10-30",
+  "track": "打磨轮（docs/x100/polish-ledger.md 第 31 轮；docs/30 §5.3 / §12 CM-10 ⑨）",
+  "_note": "2026-10-31 打磨轮 36 按 report.md 回填；不新增结论。场景清单为受影响场次的代表，不是 49 场全表；sha256 为回填当日基线（此后 CM-13/C14 又改过箭头与平行命题，故不等于 CM-12 当轮数值）。",
+  "contract": {
+    "design": "docs/30 §5.3、§12 CM-10 ⑨；docs/x100/polish-ledger.md 第 31 轮",
+    "code": [
+      "crates/mw-core/src/theme.rs::Shape::Ellipse / is_ellipse / apply_concept_defaults（conceptMap 且无显式覆盖 → 椭圆）",
+      "crates/mw-render/src/instances.rs::corner（pub，全仓唯一形状 → 圆角出口；椭圆返回 ELLIPSE_CODE = -1000.0）",
+      "crates/mw-render/src/shaders/rect.wgsl::sd_ellipse（radius < -0.5 分流，椭圆不画虚线）",
+      "crates/mw-core/src/scene.rs::measure_concept（盒子外扩 min(0.22w,24) / min(0.16h,8)，文字盒不动）",
+      "crates/mw-render/src/hit.rs（椭圆方程 ((x-cx)/a)² + ((y-cy)/b)² ≤ 1）",
+      "crates/mw-shell/src/canvas.rs:1536（编辑态强调环画 egui::Shape::Ellipse）",
+      "crates/mw-shell/src/export_svg.rs（原生 <ellipse>）",
+      "crates/mw-shell/src/export_pdf.rs（k = 0.5522848 四段三次贝塞尔）"
+    ]
+  },
+  "deliverables": {
+    "report": "shots/x100/CM-12/report.md",
+    "manifest": "shots/x100/CM-12/manifest.json"
+  },
+  "scenes": [
+    {
+      "name": "cm-default",
+      "dir": "shots/golden/cm-default",
+      "sha256_12": "5D8CB1E2F423",
+      "env": "MW_CONCEPT_DEMO=1; MW_WINDOW_SIZE=1280x800",
+      "warmup": 6,
+      "ppp": "1.0",
+      "evidence": "默认概念图：概念全是椭圆；文字盒与换行逐字节不变"
+    },
+    {
+      "name": "cm-narrow",
+      "dir": "shots/golden/cm-narrow",
+      "sha256_12": "CAB0F1EDE570",
+      "env": "MW_CONCEPT_DEMO=1; MW_WINDOW_SIZE=640x460",
+      "warmup": 6,
+      "ppp": "1.5",
+      "evidence": "窄窗 + 高 DPI 下椭圆外扩不挤文字"
+    },
+    {
+      "name": "cm-arrow-menu",
+      "dir": "shots/golden/cm-arrow-menu",
+      "sha256_12": "6647F8B8A673",
+      "env": "MW_CONCEPT_ARROW=backward; MW_CONCEPT_ARROW_MENU=1; MW_WINDOW_SIZE=1280x800",
+      "warmup": 8,
+      "ppp": "1.0",
+      "evidence": "椭圆节点上的四档箭头菜单仍可点（形状改了，热区/命中一起改）"
+    }
+  ],
+  "tests": {
+    "new": [
+      "theme::tests::concept_maps_default_to_ellipses_and_mindmaps_do_not",
+      "theme::tests::shape_names_round_trip（rect/rounded/capsule/underline/ellipse）",
+      "scene::tests::concept_boxes_follow_the_node_contract（重写为椭圆契约，同图验显式 rounded 不外扩）"
+    ],
+    "total": "未记录（报告只列新增；当轮全量见 docs/STATUS.md §1 的日期快照）"
+  },
+  "gate": {
+    "script": "scripts/x100-stage-cm-gate.ps1 + scripts/x100-stage-b-gate.ps1",
+    "stage_cm_scenes": 49,
+    "stage_cm_comparisons": 98,
+    "stage_b_scenes": 118,
+    "stage_b_comparisons": 236,
+    "result": "PASS（当轮两道门绿；具体日志已被后续轮次覆盖，以 docs/STATUS.md §1 为准）",
+    "human_gate": "G-CM-2 未复判（『概念图看起来像概念图』这条判词现在才有椭圆可看）"
+  },
+  "behaviour_change": "conceptMap 文档在无显式形状覆盖时画成椭圆；思维导图与显式覆盖（rounded 等）不变。数据模型零改动：无新字段、无 FORMAT_VERSION 变更、无迁移",
+  "known_gaps": [
+    "概念图整理布局仍按矩形外接盒算间距，椭圆之间会多出一点视觉空隙（改间距会动所有概念基线，保守未改）",
+    "椭圆不支持虚线描边（rect.wgsl 椭圆分支跳过 dash；概念图默认无虚线，暂无路径能造出来）",
+    "自定义主题显式把某层形状设为 ellipse 时，思维导图也会画椭圆（用户显式要求，可接受）",
+    "只拍 ppp 1.0/1.5；实机 GPU 下椭圆边沿抗锯齿未单独量"
+  ]
+}

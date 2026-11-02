@@ -1,0 +1,9 @@
+# 光标落在第二项行尾按回车：新行要自己带上 “- ”，接着打字就是第三项。
+wait 3
+click 700 276
+wait 1
+key End
+wait 1
+key Enter
+wait 1
+text 第三项

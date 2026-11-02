@@ -1,0 +1,35 @@
+﻿casting to the same type is unnecessary (`isize` -> `isize`) @ crates/mw-probe/src/bin/probe_egui.rs:300
+constructor `rgba` has the same name as the type @ crates/mw-core/src/theme.rs:20
+manual implementation of `.is_multiple_of()` @ crates/mw-core/examples/perf_scene.rs:75
+manual implementation of `.is_multiple_of()` @ crates/mw-core/examples/perf_scene.rs:78
+manual implementation of `.is_multiple_of()` @ crates/mw-probe/src/bin/probe_egui.rs:175
+manual implementation of `.is_multiple_of()` @ crates/mw-render/examples/perf_layers.rs:65
+manual implementation of `.is_multiple_of()` @ crates/mw-render/examples/perf_layers.rs:68
+manual slice size calculation @ crates/mw-render/src/compositor.rs:121
+redundant closure @ crates/mw-render/tests/offscreen.rs:201
+redundant closure @ crates/mw-render/tests/offscreen.rs:204
+redundant closure @ crates/mw-render/tests/offscreen.rs:205
+redundant redefinition of a binding `glyph` @ crates/mw-render/src/glyph.rs:287
+struct `GlyphAtlas` has a public `len` method, but no `is_empty` method @ crates/mw-render/src/glyph.rs:181
+the borrowed expression implements the required traits @ crates/mw-core/examples/perf_scene.rs:72
+the borrowed expression implements the required traits @ crates/mw-render/examples/perf_layers.rs:62
+the loop variable `i` is only used to index `parent` @ crates/mw-core/src/layout.rs:326
+the loop variable `i` is used to index `out` @ crates/mw-shell/src/export_pdf.rs:894
+the loop variable `i` is used to index `parent` @ crates/mw-core/src/layout.rs:337
+the loop variable `j` is only used to index `flat` @ crates/mw-core/src/layout.rs:470
+the loop variable `j` is only used to index `flat` @ crates/mw-core/src/layout.rs:658
+the loop variable `j` is only used to index `flat` @ crates/mw-core/src/layout.rs:687
+the loop variable `j` is only used to index `flat` @ crates/mw-core/src/layout.rs:715
+the loop variable `j` is only used to index `flat` @ crates/mw-core/src/layout.rs:729
+this `map_or` can be simplified @ crates/mw-render/src/hit.rs:366
+this `map_or` can be simplified @ crates/mw-render/src/instances.rs:240
+this `map_or` can be simplified @ crates/mw-render/tests/offscreen.rs:21
+this operation has no effect @ crates/mw-golden/src/lib.rs:174
+using `chunks_exact` with a constant chunk size @ crates/mw-render/src/glyph.rs:385
+using `contains()` instead of `iter().any()` is more efficient @ crates/mw-render/src/text.rs:415
+very complex type used. Consider factoring parts into `type` definitions @ crates/mw-core/src/concept_layout.rs:279
+very complex type used. Consider factoring parts into `type` definitions @ crates/mw-core/src/concept_layout.rs:845
+very complex type used. Consider factoring parts into `type` definitions @ crates/mw-core/src/concept_tree.rs:57
+very complex type used. Consider factoring parts into `type` definitions @ crates/mw-core/src/scene.rs:1085
+very complex type used. Consider factoring parts into `type` definitions @ crates/mw-shell/src/export_pdf.rs:129
+writing `&mut Vec` instead of `&mut [_]` involves a new object where a slice will do @ crates/mw-shell/src/export_pdf.rs:144

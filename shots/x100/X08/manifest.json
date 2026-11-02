@@ -1,0 +1,17 @@
+﻿{
+    "round": "X08",
+    "status": "verified",
+    "referenceVersion": "26.5.1107.202609082009",
+    "date": "2026-10-22",
+    "build": { "commit": null, "binarySha256": null },
+    "scenarios": [{
+        "id": "data-command-audit",
+        "reference": ["crates/mw-core/src/model.rs", "crates/mw-core/src/command.rs"],
+        "actual": ["docs/27-X100数据与命令审计.md"],
+        "trace": [],
+        "result": "pass",
+        "notes": "Reusable fields, additive changes, format v2 risk and command extension order are documented."
+    }],
+    "tests": ["source audit including FORMAT_VERSION and FileDoc shape"],
+    "knownGaps": ["Workbook and advanced media types remain intentionally unimplemented."]
+}

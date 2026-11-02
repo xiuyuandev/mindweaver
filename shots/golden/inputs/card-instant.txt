@@ -1,0 +1,34 @@
+# CER-16 即时转换：第二段行尾回车另起一行，逐格敲「- 」「1. 」「## 」+ 空格。
+# 每敲完那一格空格，这一行就该当场变成列表 / 有序 / 二级标题（不是等回车才转）。
+wait 3
+click 700 276
+wait 1
+key End
+key Enter
+wait 1
+text -
+wait 1
+text \s
+wait 1
+text 列表项
+wait 1
+key Enter
+wait 1
+key Enter
+wait 1
+text 1.
+wait 1
+text \s
+wait 1
+text 有序项
+wait 1
+key Enter
+wait 1
+key Enter
+wait 1
+text ##
+wait 1
+text \s
+wait 1
+text 即时标题
+wait 6

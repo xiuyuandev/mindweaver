@@ -1,0 +1,76 @@
+{
+  "package": "M12b",
+  "title": "20k 重建的分阶段账与两笔常数（打磨轮 10）",
+  "status": "已实现（20k 缓存路径重建 34.1 → 29.0ms；P7 16ms 仍未达标，真增量布局仍未做）",
+  "date": "2026-10-29",
+  "track": "打磨轮（docs/x100/polish-ledger.md §3 第 7 条，M12 的续篇）",
+  "contract": {
+    "design": "docs/08 §2 P7/P8/P9 预算；docs/x100/polish-ledger.md §3 第 7 条；前作 shots/x100/M12/report.md §7",
+    "code": [
+      "crates/mw-core/src/layout.rs::BoxSpec.lines / NodeBox.lines（Vec<String> → Arc<[String]>）",
+      "crates/mw-core/src/layout.rs::compute_layout（测量循环不再克隆 node.text；MW_LAYOUT_LOG 分阶段计时）",
+      "crates/mw-core/src/theme.rs::resolve_all（不再逐节点 clone StyleOverride）",
+      "crates/mw-core/src/scene.rs::build_scene_cached（MW_LAYOUT_LOG 外层分阶段计时）",
+      "crates/mw-core/src/scene.rs::SceneCache（命中/未命中计数 + stats()）",
+      "crates/mw-core/src/scene.rs::tests::a_cache_hit_shares_the_line_storage_instead_of_cloning_it（新单测）",
+      "crates/mw-core/examples/perf_scene.rs（全带样式语料 + 样式级联计时 + 命中数输出）"
+    ]
+  },
+  "deliverables": {
+    "report": "shots/x100/M12b/report.md",
+    "perf": "shots/x100/M12b/perf-scene.txt",
+    "perf_phases": "shots/x100/M12b/perf-phases.txt"
+  },
+  "measurements": {
+    "method": "cargo run -p mw-core --release --example perf_scene（12 次取中位；改字 40 次）；MW_LAYOUT_LOG=1 取分阶段",
+    "cache_hits_20k_typing": "799960 命中 / 0 未命中（40 次重建 × 20000 节点）",
+    "before_after_ms": {
+      "5k_build_scene": [6.8, 6.6],
+      "5k_typing_rebuild": [7.7, 8.0],
+      "5k_typing_rebuild_cached": [5.6, 4.7],
+      "5k_undo_redo": [7.5, 7.6],
+      "20k_build_scene": [40.8, 39.0],
+      "20k_layout_only": [8.2, 9.1],
+      "20k_typing_rebuild": [46.1, 41.4],
+      "20k_typing_rebuild_cached": [34.1, 29.0],
+      "20k_undo_redo": [46.7, 40.9]
+    },
+    "same_run_ab_ms": {
+      "20k_styled_resolve_all": [10.5, 7.4],
+      "5k_styled_resolve_all": [1.5, 0.8]
+    },
+    "profile_20k_cached_ms": {
+      "resolve_all": [5.3, 5.7],
+      "compute_layout": [10.0, 10.8],
+      "compute_layout.collect": [2.5, 2.9],
+      "compute_layout.measure": [5.4, 6.2],
+      "index": [1.0, 1.2],
+      "nodes": [6.6, 7.1],
+      "draw_order": [1.1, 1.3],
+      "edges_spines_advanced": [0.6, 0.7]
+    }
+  },
+  "rejected": {
+    "what": "FxHasher（rustc 风格快速哈希）替换 resolve_all 结果表 / 测量缓存 / Scene::index 三处的 SipHash",
+    "ab": "同一份代码两个 release 构建交替跑 4 轮：SipHash 31.7 / 32.8 / 32.2 / 33.4，FxHash 38.9 / 37.9 / 39.1 / 39.8",
+    "conclusion": "候选慢 6–7ms，全部撤回；瓶颈不是散列，是「每个节点每轮都要查一遍」这件事本身"
+  },
+  "tests": {
+    "new": ["scene::tests::a_cache_hit_shares_the_line_storage_instead_of_cloning_it"],
+    "total": "925 passed / 0 failed / 1 ignored"
+  },
+  "gate": {
+    "stage_b": "scripts/x100-stage-b-gate.ps1 → 100 场 / 200 次比较（target/x100/gate-b-m12b.log）",
+    "stage_cm": "scripts/x100-stage-cm-gate.ps1 → 46 场 / 92 次比较（target/x100/gate-cm-m12b.log）",
+    "new_baselines": 0,
+    "drift": "两道门全部 146 个场次逐字节零漂移（stage-b 100 场 / 200 次比较 + stage-cm 46 场 / 92 次比较）"
+  },
+  "behaviour_change": "无（只改内部常数与证据设施；渲染结果逐字节一致）",
+  "known_gaps": [
+    "P7 16ms 仍未达标：20k 缓存路径 29.0ms。要过线必须做真增量（结构指纹 + 复用 ids/styles/盒尺寸 + 原地更新 Scene）",
+    "标签胶囊在节点装配段每轮重测一次（pills()），真机上是 DirectWrite 调用；合成语料看不出来，修法要给 BoxSpec 加字段",
+    "只在合成语料上量（每层 6/8/8/5、无长文、无图片）",
+    "只量 1080p / ppp 1.0",
+    "分阶段日志单次抖动可达 ±30%，结论只取多轮中位的量级"
+  ]
+}

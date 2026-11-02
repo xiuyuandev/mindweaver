@@ -1,0 +1,17 @@
+﻿{
+    "round": "X09",
+    "status": "verified",
+    "referenceVersion": "26.5.1107.202609082009",
+    "date": "2026-10-22",
+    "build": { "commit": null, "binarySha256": null },
+    "scenarios": [{
+        "id": "fixture-corpus",
+        "reference": [],
+        "actual": ["tests/fixtures/x100/manifest.json", "tests/fixtures/x100/tiny-cn.zmind", "tests/fixtures/x100/complex-style.zmind"],
+        "trace": [],
+        "result": "pass",
+        "notes": "Small and complex fixtures are committed; the deterministic 20k corpus is generated on demand."
+    }],
+    "tests": ["cargo test -p mw-format --test x100_fixtures"],
+    "knownGaps": ["The 20k corpus and corrupt-file case are generated on demand rather than stored as binaries."]
+}

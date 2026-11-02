@@ -1,0 +1,69 @@
+{
+  "id": "CER-30",
+  "title": "笔记库证据包与 G-B2-3 门清单",
+  "date": "2026-11-02",
+  "batch": "B2-C",
+  "status": "已实现（机器证据齐；G-B2-3 人工门已过 · 2026-11-02 授权代判 8 条 · 173 场两遍正式门 2026-11-02 09:55–10:07 全绿 · 实机拼音欠账故不记已验证）",
+  "scope": [
+    "21 场基线清单（sha256_12 = 基线 PNG 的 sha256 前 12 位）",
+    "双跑 --tol 0 记录：gate-pass1.log / gate-pass2.log，各 21/21 零差异",
+    "前后对比：before/ 三张 HEAD 旧基线，逐像素差 100.000%（整面重画）",
+    "docs/28 §7.1-7.11 逐条「合同 → 落地 → 证据」，含 TYPO-01 字阶差与 §7.9 禁止项清单",
+    "机器门槛：173 场两遍正式门 346 次比较零差异、tests 1271/0/1、fmt 绿、门内 mw-shell clippy 新增 0、release 构建 PASS（2026-11-02 09:55–10:07）",
+    "门清单 gate.md 八判词：2026-11-02 授权代判全部通过，逐条依据见「判词记录」"
+  ],
+  "files": [
+    "shots/x100/CER-30/report.md",
+    "shots/x100/CER-30/gate.md",
+    "shots/x100/CER-30/gate-pass1.log",
+    "shots/x100/CER-30/gate-pass2.log",
+    "shots/x100/CER-30/tests.log",
+    "shots/x100/CER-30/clippy.log",
+    "shots/x100/CER-30/fmt.log",
+    "shots/x100/CER-30/clippy-fingerprints-now.txt",
+    "shots/x100/CER-30/before/shell-ppp1.00.png",
+    "shots/x100/CER-30/before/shell-ppp1.50.png",
+    "shots/x100/CER-30/before/shell-ppp2.00.png",
+    "shots/x100/CER-30/stage-b-formal-aborted-at-25.log",
+    "shots/x100/CER-30/stage-b-formal-aborted-at-96.log",
+    "shots/x100/CER-30/stage-b-formal-2026-11-02.log"
+  ],
+  "scenes": [
+    {"name": "library", "sha256_12": "B664928A31BB", "warmup": 3, "env": "MW_LIBRARY_DEMO=default MW_WINDOW_SIZE=1080x720", "ppp": 1.0, "note": "css 1620 → 三栏默认态"},
+    {"name": "library", "sha256_12": "69B24846C84B", "warmup": 3, "env": "MW_LIBRARY_DEMO=default MW_WINDOW_SIZE=1080x720", "ppp": 1.5, "note": "css 1080 → 两栏"},
+    {"name": "library", "sha256_12": "0F04CAF875B8", "warmup": 3, "env": "MW_LIBRARY_DEMO=default MW_WINDOW_SIZE=1080x720", "ppp": 2.0, "note": "css 810 → 单栏"},
+    {"name": "library-three-pane", "sha256_12": "50A81B728495", "warmup": 3, "env": "MW_LIBRARY_DEMO=default MW_WINDOW_SIZE=1280x800", "ppp": 1.5, "note": "三栏 + 空预览一句话"},
+    {"name": "library-ink", "sha256_12": "DD2E941729D7", "warmup": 3, "env": "MW_LIBRARY_DEMO=default MW_WINDOW_SIZE=1280x800 MW_THEME=ink", "ppp": 1.5, "note": "暗主题内容令牌"},
+    {"name": "library-mist", "sha256_12": "788C387AEBD1", "warmup": 3, "env": "MW_LIBRARY_DEMO=default MW_WINDOW_SIZE=1280x800 MW_THEME=mist", "ppp": 1.5, "note": "mist"},
+    {"name": "library-sand", "sha256_12": "6322245B0F29", "warmup": 3, "env": "MW_LIBRARY_DEMO=default MW_WINDOW_SIZE=1280x800 MW_THEME=sand", "ppp": 1.5, "note": "sand"},
+    {"name": "library-preview", "sha256_12": "D29FF2019DBE", "warmup": 3, "env": "MW_LIBRARY_DEMO=preview MW_WINDOW_SIZE=1080x720", "ppp": 1.5, "note": "两栏整页阅读面 + 返回"},
+    {"name": "library-two-pane", "sha256_12": "69B24846C84B", "warmup": 3, "env": "MW_LIBRARY_DEMO=default MW_WINDOW_SIZE=1080x720", "ppp": 1.5, "note": "两栏无选中"},
+    {"name": "library-one-pane", "sha256_12": "D554D55FB541", "warmup": 3, "env": "MW_LIBRARY_DEMO=default MW_WINDOW_SIZE=800x720", "ppp": 1.5, "note": "单栏 + 抽屉入口"},
+    {"name": "library-one-pane-narrow", "sha256_12": "BC35C7AB6914", "warmup": 3, "env": "MW_LIBRARY_DEMO=default MW_WINDOW_SIZE=640x460", "ppp": 1.5, "note": "合同另列最窄单栏档"},
+    {"name": "library-empty", "sha256_12": "78025B35C396", "warmup": 3, "env": "MW_LIBRARY_DEMO=empty MW_WINDOW_SIZE=1280x800", "ppp": 1.5, "note": "全空左对齐两句"},
+    {"name": "library-no-results", "sha256_12": "A20C8075D8BD", "warmup": 3, "env": "MW_LIBRARY_DEMO=no-results MW_WINDOW_SIZE=1280x800", "ppp": 1.5, "note": "有库零命中 + 清除筛选"},
+    {"name": "library-long", "sha256_12": "C0F0C05570A6", "warmup": 3, "env": "MW_LIBRARY_DEMO=long MW_WINDOW_SIZE=1280x800", "ppp": 1.5, "note": "10k 虚拟化 + 超长省略"},
+    {"name": "library-select", "sha256_12": "A410C9FA1B5E", "warmup": 3, "env": "MW_LIBRARY_DEMO=select MW_WINDOW_SIZE=1280x800", "ppp": 1.5, "note": "选择模式 + 44px 批量条"},
+    {"name": "library-tag-filter", "sha256_12": "8CD6A191A704", "warmup": 3, "env": "MW_LIBRARY_DEMO=tag-filter MW_WINDOW_SIZE=1280x800", "ppp": 1.5, "note": "标签 AND 过滤 + 停靠预览 snow 阅读档"},
+    {"name": "library-archive", "sha256_12": "F1DADFE672E8", "warmup": 3, "env": "MW_LIBRARY_DEMO=archive MW_WINDOW_SIZE=1280x800", "ppp": 1.5, "note": "归档作用域 + 恢复入口"},
+    {"name": "library-loading", "sha256_12": "7BFCCB39B08F", "warmup": 3, "env": "MW_LIBRARY_DEMO=loading MW_WINDOW_SIZE=1280x800", "ppp": 1.5, "note": "3 行骨架"},
+    {"name": "library-preview-ink", "sha256_12": "EF566F1C7A6E", "warmup": 3, "env": "MW_LIBRARY_DEMO=preview MW_WINDOW_SIZE=1280x800 MW_THEME=ink", "ppp": 1.5, "note": "阅读排版四主题 ink"},
+    {"name": "library-preview-mist", "sha256_12": "7171EF9CB7E6", "warmup": 3, "env": "MW_LIBRARY_DEMO=preview MW_WINDOW_SIZE=1280x800 MW_THEME=mist", "ppp": 1.5, "note": "阅读排版四主题 mist"},
+    {"name": "library-preview-sand", "sha256_12": "6EEBEE1A338E", "warmup": 3, "env": "MW_LIBRARY_DEMO=preview MW_WINDOW_SIZE=1280x800 MW_THEME=sand", "ppp": 1.5, "note": "阅读排版四主题 sand"}
+  ],
+  "tests": {
+    "new_or_changed": [],
+    "supporting": [
+      "CER-22…CER-29 九包 manifest 的 new_or_changed 全集（本包不新增测试）",
+      "workspace 测试 1271 passed / 0 failed / 1 ignored（2026-11-02 09:55–10:07 正式门内实测；stage-b-formal-2026-11-02.log）"
+    ]
+  },
+  "not_done": [
+    "库页实机微软拼音未核对（搜索框 / 加标签行内框）：只做到离屏等效，同 G-B2-1 第 8 条欠账，故九包不记已验证",
+    "library-one-pane 的 800x600 档未拍（640x460 已拍）",
+    "Esc 六级阶梯顺序无单测（代码 + library_esc step=… 轨迹作证）",
+    "批量二次确认弹层与「一次批量一条结果提示」无基线帧（只有单测/轨迹）",
+    "F6 在库页内无可见效果（沿用壳层现有口径）",
+    "X20 人工审核仍未判：173 场两遍正式门已 MACHINE GATE PASS（2026-11-02 09:55–10:07），人工门仍待用户判"
+  ]
+}

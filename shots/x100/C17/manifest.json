@@ -1,0 +1,83 @@
+{
+  "package": "C17",
+  "title": "概念图命题短语进全局检索（RelationshipHit + 命题分组 + 选中跳转）",
+  "status": "已实现（机器门绿；人工门未开，不记已验证）",
+  "date": "2026-10-31",
+  "track": "打磨轮（docs/x100/polish-ledger.md 第 42 轮；docs/30 §5.1/§5.4 命题网络）",
+  "contract": {
+    "design": "docs/30 §5.1（概念图是命题网络，边有向且带链接短语）、§5.4（短语是边的语义正文）、docs/02 §4（全文匹配口径）、M19 报告 §3（关系线短语单独立项）",
+    "code": [
+      "crates/mw-core/src/search.rs::RelationshipHit（from/id/to/score/kind/range/excerpt）",
+      "crates/mw-core/src/search.rs::SearchIndex::relationship_hits（原文 560 / 全拼 450 / 首字母 350；文档前序 + 边下标稳定排序）",
+      "crates/mw-core/src/search.rs::rel_cache_keys（键 (from,id)，短语快照失效，240 字封顶）",
+      "crates/mw-core/src/document.rs::search_relationships",
+      "crates/mw-shell/src/panels/search.rs（Group::Relationship「命题」、RelRow、Action::JumpRelationship）",
+      "crates/mw-shell/src/canvas/canvas_methods_2.rs::select_relationship_keep_focus（选中边 + 两端中点居中 + 不抢键盘）",
+      "crates/mw-shell/src/main.rs（结果组拼接、第二行「概念 · from → to」、MW_TRACE search_hits rel=）",
+      "crates/mw-shell/src/app_methods_2.rs（JumpRelationship 动作 + search_rel_jump 轨迹）",
+      "scripts/x100-stage-cm-gate.ps1（+2 场）"
+    ],
+    "note": "不改 Frame / .zmind / Node / Relationship 字段；只扩检索结果类型与壳层结果组"
+  },
+  "deliverables": {
+    "report": "shots/x100/C17/report.md",
+    "manifest": "shots/x100/C17/manifest.json",
+    "trace": "shots/x100/C17/trace.txt",
+    "diff": "shots/x100/C17/diff.txt"
+  },
+  "scenes": [
+    {
+      "name": "search-rel",
+      "dir": "shots/golden/search-rel",
+      "sha256_12": "829ED3D1995A",
+      "input": "shots/golden/inputs/search-rel.txt",
+      "evidence": "MW_CONCEPT_DEMO 模板里的「产品定位 —支撑→ 技术方案」；Ctrl+F 输入 支撑 只出命题组一行；与改前同脚本差 27 216 px（x665..1256 y80..221），只在搜索卡片内"
+    },
+    {
+      "name": "search-rel-jump",
+      "dir": "shots/golden/search-rel-jump",
+      "sha256_12": "AE946835E08A",
+      "input": "shots/golden/inputs/search-rel-jump.txt",
+      "evidence": "同脚本 + Enter；差 71 547 px（x210..1505 y80..966，画布选中环与相机居中）；轨迹 search_rel_jump … ok=1，焦点仍在 search-input"
+    }
+  ],
+  "tests": {
+    "new": [
+      "search::tests::relationship_text_hit_reports_both_ends_and_range",
+      "search::tests::relationship_pinyin_hit",
+      "search::tests::relationship_initials_hit",
+      "search::tests::blank_relationship_label_never_hits",
+      "search::tests::relationship_cache_invalidates_with_phrase",
+      "search::tests::long_phrase_still_matches_beyond_pinyin_cap",
+      "search::tests::relationship_ties_follow_doc_order_then_edge_index",
+      "search::tests::relationship_excerpt_folds_middle_range",
+      "search::tests::relationship_excerpt_flattens_newlines",
+      "panels::search::tests::relationship_results_jump_to_the_edge",
+      "panels::search::tests::relationship_group_sits_between_nodes_and_cards"
+    ],
+    "existing": [
+      "search::tests::note_field_hit_maps_range_to_note",
+      "search::tests::link_field_hit",
+      "search::tests::title_hit_ranks_above_note_hit"
+    ],
+    "total": "1052 passed / 0 failed / 1 ignored（23 个套件；mw-core 273 + contrast 7；mw-shell --bins 595）"
+  },
+  "gate": {
+    "script": "scripts/x100-stage-cm-gate.ps1 + scripts/x100-stage-b-gate.ps1",
+    "stage_cm_scenes": 58,
+    "stage_cm_comparisons": 116,
+    "stage_b_scenes": 123,
+    "stage_b_comparisons": 246,
+    "result": "PASS（stage-cm 04:31:44–04:36:32、stage-b 04:36:37–04:43:01，均两遍 --tol 0；fmt 干净、clippy 基线 36 条新增 0）",
+    "human_gate": "未开（X20 / G-CM-2 人工判词不代判）"
+  },
+  "behaviour_change": "概念图边上的短语（命题）进入全局检索：结果新增「命题」分组（排在节点后、卡片前），行首显示 ±24 字摘录与命中高亮，第二行「概念 · 源 → 目标」；点击/Enter 选中该边并把相机居中到两端中点，搜索框不丢焦点。节点三字段的分数、摘录与既有基线不变",
+  "known_gaps": [
+    "命题短语不参与 Ctrl+H 替换（替换仍只改节点标题）",
+    "不索引关系线颜色/箭头方向/边界/概要/注解",
+    "超过 240 字的短语不做拼音匹配（原文仍可命中）",
+    "20k 概念图 × 大量命题的首查耗时未单独计时；缓存只省拼音键构造，每帧仍扫全部边",
+    "命题组没有独立空状态/折叠，与节点组共用结果列表",
+    "实机 IME 与键盘手感未核（与 M4 同一缺口）"
+  ]
+}

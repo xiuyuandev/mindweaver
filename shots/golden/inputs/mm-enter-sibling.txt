@@ -1,0 +1,7 @@
+# mm-enter-sibling · 在某个子节点上 `Enter` 建同级并进编辑（根上没有同级，退化为子节点）
+# 点「平移缩放」→ Enter：新盒子的中心应当落在原节点的**下方**那条同级序列里。
+wait 3
+click 460 605
+wait 2
+key Enter
+wait 3

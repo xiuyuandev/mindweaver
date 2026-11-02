@@ -1,0 +1,62 @@
+{
+  "package": "M12d",
+  "title": "20k 打字最后一公里：索引不再每轮重建（打磨轮 14）",
+  "status": "已实现（P7「布局函数计时」p95 16.07 → 13.90ms，首次达标；端到端中位 18.3 → 16.7ms，仍超 16）",
+  "date": "2026-10-29",
+  "track": "打磨轮（docs/x100/polish-ledger.md §3 第 7 条的收尾）",
+  "contract": {
+    "design": "docs/08 §2 P7（改 1 节点 p95 ≤ 16ms，布局函数计时）；shots/x100/M12c/report.md §7 的下一刀",
+    "code": [
+      "crates/mw-core/src/scene.rs::build_scene_cached（没并进自由主题就沿用 Layout::index，不再重建索引）",
+      "crates/mw-core/src/layout.rs::compute_layout_memo（collect 的栈从 (String,u32,Option) 改成 (&Node,u32,Option)）",
+      "crates/mw-core/src/scene.rs::tests::the_scene_index_agrees_with_ids_whether_floaters_are_merged_or_not（新单测）"
+    ]
+  },
+  "deliverables": {
+    "report": "shots/x100/M12d/report.md",
+    "manifest": "shots/x100/M12d/manifest.json",
+    "logs": ["target/x100/m12d-log-a.txt", "target/x100/m12d-log-b.txt"]
+  },
+  "measurements": {
+    "method": "两个 release 二进制（A=改前 HEAD、B=改后）交替跑 perf_scene；P7 口径取 MW_LAYOUT_LOG 里 reused=19999 的 [scene] total（40 次一轮）",
+    "p7_metric_scene_total": {
+      "A_before": { "p50": 14.49, "p95": 16.07, "min": 12.91, "max": 16.67 },
+      "B_after": { "p50": 13.0, "p95": 13.9, "min": 11.08, "max": 15.55 }
+    },
+    "end_to_end_ms": {
+      "A_before": { "median": [18.3, 18.5, 17.9], "p95": [19.6, 20.4, 19.9] },
+      "B_after": { "median": [16.7, 16.9, 16.4], "p95": [18.4, 18.4, 17.8] }
+    },
+    "phase_after_ms": {
+      "index": 0.0,
+      "collect": 2.4,
+      "resolve": 2.6,
+      "nodes": 1.5,
+      "order": 1.0,
+      "bounds": 1.15
+    }
+  },
+  "tests": {
+    "new": ["scene::tests::the_scene_index_agrees_with_ids_whether_floaters_are_merged_or_not"],
+    "mutation_check": "把沿用条件改成无条件沿用 → 测试红（conceptMap 分支索引变短）；恢复条件 → 绿",
+    "total": "933 passed / 0 failed / 1 ignored"
+  },
+  "gate": {
+    "stage_b": "scripts/x100-stage-b-gate.ps1 → 100 场 / 200 次比较（target/x100/gate-b-m12d.log）",
+    "stage_cm": "scripts/x100-stage-cm-gate.ps1 → 48 场 / 96 次比较（target/x100/gate-cm-m12d.log）",
+    "new_baselines": 0,
+    "drift": "152 个场次逐字节零漂移（无视觉改动）"
+  },
+  "clippy": {
+    "new": 0,
+    "note": "基线重生成吸收本轮 8 条行号漂移（37 条、种类 0 变化）；第一版把新测试插在旧测试的 #[test] 与函数之间，被抓出 duplicated attribute / never used，已修"
+  },
+  "behaviour_change": "无（索引与 collect 的产物逐位相同；152 个场次零漂移）",
+  "known_gaps": [
+    "端到端还差 ~1ms：差额在账本克隆（memo_nodes = nodes.clone()，~1.2ms）与命令，不在 [scene] 里",
+    "collect 里 20k 次 String 分配还在（~0.8ms）：Arc<str> 化 Scene::ids/index 能连 index 建表一起省，但要动 ~150 处调用点",
+    "bounds（1.15ms）与 order（1.0ms）仍是每轮 O(n)，文字改动会变位置与绘制顺序，不能整段复用",
+    "概念图不走索引复用（浮动概念作废索引），节点数少，影响可忽略",
+    "只在合成语料（20k 树）与 1080p / ppp 1.0 上量"
+  ]
+}

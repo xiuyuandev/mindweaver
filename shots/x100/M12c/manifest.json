@@ -1,0 +1,72 @@
+{
+  "package": "M12c",
+  "title": "20k 真增量重建：改一个字只重测一颗（打磨轮 11）",
+  "status": "已实现（20k 缓存路径重建 29.0 → 18.6ms；场景内部 p50 15.5 / p95 16.9ms，P7 的 16ms p95 仍差 0.9ms）",
+  "date": "2026-10-29",
+  "track": "打磨轮（docs/x100/polish-ledger.md §3 第 7 条后半）",
+  "contract": {
+    "design": "docs/08 §2 P7（改 1 节点 p95 ≤ 16ms，布局函数计时）；shots/x100/M12b/report.md §4 分阶段账",
+    "code": [
+      "crates/mw-core/src/layout.rs::LayoutMemo（结构指纹 + 深度 + 每节点盒子输入指纹 + 盒子）",
+      "crates/mw-core/src/layout.rs::compute_layout_memo（可对上账就复用盒子，返回本轮新账）",
+      "crates/mw-core/src/layout.rs::box_inputs_fingerprint（文字 + 图标 + 标签 + 图片）",
+      "crates/mw-core/src/scene.rs::content_fingerprint（样式 + 备注/链接/卡片 + 图标/标签/图片 + 层级序号）",
+      "crates/mw-core/src/scene.rs::SceneCache / SceneMemo（take/put 一份「上一次的账」）",
+      "crates/mw-core/src/scene.rs::build_scene_cached（样式表与场景节点整表复用）",
+      "crates/mw-core/src/scene.rs::tests（三条新单测，见 report §6）"
+    ]
+  },
+  "deliverables": {
+    "report": "shots/x100/M12c/report.md",
+    "manifest": "shots/x100/M12c/manifest.json"
+  },
+  "measurements": {
+    "method": "cargo run -p mw-core --release --example perf_scene（改字 40 次取中位/p95）；MW_LAYOUT_LOG=1 取分阶段与 reused 计数",
+    "reuse": "缓存路径 reused=19999 / 20000（只有改字的那颗重新测量）；盒子缓存 0 命中 / 0 未命中（整段被账本短路）",
+    "before_after_ms": {
+      "20k_typing_rebuild_cached": [29.0, 18.6],
+      "20k_scene_total_p50": [25.0, 15.5],
+      "20k_scene_total_p95": [null, 16.9],
+      "5k_typing_rebuild_cached": [4.7, 3.5],
+      "2000_typing_rebuild_cached": [1.3, 1.3],
+      "500_typing_rebuild_cached": [0.3, 0.3]
+    },
+    "profile_20k_cached_ms": {
+      "resolve": 3.0,
+      "layout": 7.6,
+      "layout.collect": 3.0,
+      "layout.measure": 2.3,
+      "index": 1.2,
+      "nodes": 1.5,
+      "draw_order": 1.1,
+      "bounds": 1.2
+    }
+  },
+  "bugs_found_by_new_tests": [
+    "第一版内容指纹没覆盖备注/链接/卡片 → 加备注后画布上不显示（the_scene_memo_rebuilds_a_node_whose_flags_changed 抓到）",
+    "第二版盒子指纹漏了图标 → 改图标仍命中旧盒子、宽度画错（旧单测 the_box_cache_remeasures_only_when_a_size_input_changes 抓到）"
+  ],
+  "tests": {
+    "new": [
+      "scene::tests::the_scene_memo_rebuilds_a_node_whose_flags_changed",
+      "scene::tests::a_structure_change_drops_the_layout_memo",
+      "scene::tests::painting_the_same_document_twice_reuses_every_box"
+    ],
+    "total": "928 passed / 0 failed / 1 ignored"
+  },
+  "gate": {
+    "stage_b": "scripts/x100-stage-b-gate.ps1 → 100 场 / 200 次比较（target/x100/gate-b-m12c.log）",
+    "stage_cm": "scripts/x100-stage-cm-gate.ps1 → 46 场 / 92 次比较（target/x100/gate-cm-m12c.log）",
+    "new_baselines": 0,
+    "drift": "146 个场次逐字节零漂移"
+  },
+  "behaviour_change": "无（视觉逐字节一致；只改了「同样的结果算得快不快」）",
+  "known_gaps": [
+    "P7 16ms 只到 p50；p95 16.9 差 0.9ms。再往下要 Arc 化 Scene::ids/index（API 级改动）",
+    "指纹是概率判据（2^-64），靠节点数 + 深度数组双闸门与 146 场金样兜底",
+    "概念图不走复用（默认样式取决于图结构，指纹未覆盖）",
+    "内容指纹每轮仍走一遍树（3.0ms），理想做法是与 collect 合并成一次遍历",
+    "20k 首次打开（43ms）与撤销/重做（41ms）仍是全量，结构变了本来就不该复用",
+    "实机连续打字的帧率没量（离屏 harness 只有重建耗时）"
+  ]
+}

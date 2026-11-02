@@ -1,0 +1,5 @@
+# outline-edit-ime · 编辑态 + 微软拼音组合（docs/28 §5.4 IME 组合不拆行）
+# MW_OUTLINE_EDIT 进入行内编辑后注入 Preedit；组合期间 Enter/Tab/Esc 归输入法。
+wait 12
+ime preedit 拼音
+wait 2

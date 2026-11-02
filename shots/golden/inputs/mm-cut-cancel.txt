@@ -1,0 +1,7 @@
+wait 3
+click 654 433
+wait 2
+key ctrl+x
+wait 3
+key Escape
+wait 3

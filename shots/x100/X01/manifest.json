@@ -1,0 +1,17 @@
+﻿{
+    "round": "X01",
+    "status": "verified",
+    "referenceVersion": "26.5.1107.202609082009",
+    "date": "2026-10-22",
+    "build": { "commit": null, "binarySha256": null },
+    "scenarios": [{
+        "id": "reference-lock-and-feature-matrix",
+        "reference": ["docs/25-Xmind参考与差距矩阵.md"],
+        "actual": ["docs/24-X100升级路线.md"],
+        "trace": [],
+        "result": "pass",
+        "notes": "Installed executable version and current capability classification are documented."
+    }],
+    "tests": ["manual source and screenshot audit"],
+    "knownGaps": ["Dynamic Xmind states are not all recaptured yet."]
+}

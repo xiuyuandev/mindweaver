@@ -1,0 +1,5 @@
+wait 8
+click 115 27
+wait 4
+key Delete
+wait 6

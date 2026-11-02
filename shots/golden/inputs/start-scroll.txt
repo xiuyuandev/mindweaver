@@ -1,0 +1,11 @@
+wait 6
+move 632 64
+wait 1
+press 632 64
+wait 1
+move 632 420
+wait 2
+release 632 420
+wait 1
+move 8 430
+wait 4

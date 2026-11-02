@@ -1,0 +1,55 @@
+{
+  "package": "SE-06",
+  "title": "样式组 v2（色板 8 列 24px + 自定义虚线圆 + 无颜色斜杠格 + 字号/边宽 stepper + 边框色）",
+  "status": "已实现（机器门绿；实机键盘手感与真实微软拼音未核，不记已验证）",
+  "date": "2026-10-30",
+  "track": "P 轨 检查器 v2（docs/31 §5；依赖 SE-05）",
+  "contract": {
+    "design": "docs/30 §4.2（色板 8 列 × 24px、列距 8、选中 2px 环 + 1px 内白、第 9 格自定义虚线圆、无颜色斜杠格、stepper 24×72、字号 12–96、边宽 0–8、圆角 0–24、形状四档、文本对齐三段、字重 400/500/600）、§4.3（↑↓ 在色板内移动）、§4.5（禁止整行「自定义…」）",
+    "execute": "docs/31 §5 第 SE-06 行",
+    "audit": "开工前逐条对过代码：旧色板 17px 格/点半径 6/列距 3、三处整行「自定义…」、无斜杠格、字号是九档菜单、边宽/圆角没有入口、圆角与对齐与字重三档与椭圆在 StyleOverride 里没有字段——见 report.md §1"
+  },
+  "code": [
+    "crates/mw-shell/src/panels/inspector.rs（swatch_grid 8 列×24 距 8 / dashed_circle 12 段短弧 / Cell::{Color,None,Custom} / SwatchPick / SwatchRow / palette_cells 抽纯函数 / stepper 24×72 收进 StepperRow / shape_seg_w）",
+    "crates/mw-shell/src/panels/inspector/inspector_methods_1.rs（style_body：填充·分支线·文字三块色板 + 边框色 + 边宽 0–8 + 形状四段 + 字号 12–96，每项一条 SetStyle）",
+    "crates/mw-shell/src/window_state.rs（seed_inspector_group：证据预置分组开合，只写内存不落盘）",
+    "crates/mw-shell/src/app_methods_1.rs（MW_INSPECTOR_GROUPS=key=0,key=1 启动预置）"
+  ],
+  "scenes": [
+    "inspector",
+    "inspector-narrow",
+    "inspector-empty",
+    "inspector-shape",
+    "inspector-ink",
+    "inspector-mist",
+    "inspector-sand"
+  ],
+  "evidence": {
+    "baselines": "shots/golden/inspector / inspector-narrow / inspector-empty / inspector-shape / inspector-ink / inspector-mist / inspector-sand（1920×1080 @ ppp 1.5，--tol 0 双跑零差异）",
+    "drift": "inspector 29434 px / 1.419%（bbox x1502..1877 y523..975，画布 0 px）；inspector-narrow 28147 px / 1.357%（x1574..1902 y523..975）；inspector-empty 0 px；cm-arrow-inspector 0 px",
+    "new_shot": "inspector-shape = MW_INSPECTOR_GROUPS=style/color=0,style/shape=1：把默认折叠的「形状与文字」打开、颜色收起，与 inspector 差 43933 px 且全在面板内",
+    "unit_tests": "palette_ends_with_custom_then_none（四主题，钉「主题色 → 自定义 → 无颜色」次序与 palette ≤ 8）/ swatch_grid_keeps_eight_columns_until_the_panel_gets_narrow（288=8 列、240=7 列、恒 24+8）/ stepper_stops_at_the_contract_ends / shape_segments_fit_the_narrowest_panel / seeded_groups_stay_in_memory_and_never_touch_the_file",
+    "gates": "stage-b PASS（两遍各 114 比较 = 228）；stage-cm PASS（两遍各 48 比较）"
+  },
+  "tests": {
+    "new": [
+      "mw-shell::panels::inspector::tests::palette_ends_with_custom_then_none",
+      "mw-shell::window_state::tests::seeded_groups_stay_in_memory_and_never_touch_the_file"
+    ],
+    "total": "全库 944 → 948 passed / 0 failed / 1 ignored（新增 2 条；另把 stepper 的 8 参数收成 StepperRow，clippy 新增 0）"
+  },
+  "knobs": {
+    "MW_INSPECTOR_GROUPS": "启动即预置检查器分组开合，形如 style/color=0,style/shape=1；只写内存不落盘（WindowState::seed_inspector_group）"
+  },
+  "deferred": {
+    "圆角 0–24": "StyleOverride 无 radius 字段；方案见 report.md §5",
+    "文本对齐三段": "StyleOverride 无 align 字段；方案见 report.md §5",
+    "字重 400/500/600": "只有 bold: Option<bool>；方案见 report.md §5",
+    "椭圆形状": "Shape 四档无 Ellipse；方案见 report.md §5",
+    "色板数字键 1–9": "归 SE-09/SE-10 键盘包"
+  },
+  "open": {
+    "主题色板个数不一": "雪 8 色 / 墨夜·雾·沙 6 色，docs/30 §4.2「第 9 格是自定义」只在雪主题字面成立；统一成 8 色牵动主题令牌与主题金样，不在本包内改",
+    "实机未核": "↑↓ 跨行与 Tab 序的手感、实机微软拼音"
+  }
+}

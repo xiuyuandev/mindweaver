@@ -1,0 +1,81 @@
+{
+  "package": "M6",
+  "title": "键盘移动（跟镜头 + 多选整组移动）",
+  "status": "已实现（三张基线 + structure/reveal/marquee 轨迹；实机连按节拍 未验证）",
+  "date": "2026-10-29",
+  "track": "打磨轮（docs/x100/polish-ledger.md M6）",
+  "contract": {
+    "design": "账本 §1 M6 行「键盘移动：Alt+↑↓、Ctrl+Shift+←/→」；与折叠/方向键遍历/Tab 新建/右键菜单的跟镜头口径对齐",
+    "code": [
+      "crates/mw-shell/src/canvas/canvas_methods_1.rs::reveal_id（新）",
+      "crates/mw-shell/src/canvas/canvas_methods_1.rs::move_selected（多选走批量 + 跟镜头 + structure 轨迹）",
+      "crates/mw-shell/src/canvas/canvas_methods_1.rs::promote_selected / demote_selected（同上）",
+      "crates/mw-shell/src/canvas/canvas_methods_3.rs::apply_batch_structure（跟镜头 + structure_batch 轨迹）",
+      "crates/mw-shell/src/canvas/canvas_methods_2.rs（marquee picked/selected 轨迹）",
+      "crates/mw-shell/src/canvas/tests.rs::single_selection_moves_the_same_way_through_both_paths（新）"
+    ]
+  },
+  "deliverables": {
+    "report": "shots/x100/M6/report.md",
+    "manifest": "shots/x100/M6/manifest.json"
+  },
+  "scenes": [
+    {
+      "name": "mm-move-keys",
+      "dir": "shots/golden/mm-move-keys",
+      "sha256_12": "A9B006752CE8",
+      "input": "shots/golden/inputs/mm-move-keys.txt",
+      "evidence": "「纯 Rust 原生」Alt+↓ ×3 再 Alt+↑ ×1：(634,452) → (990,452) → (634,610) → (990,610) → 回 (634,610)；四次结构变化各一次 scene_build"
+    },
+    {
+      "name": "mm-move-multi",
+      "dir": "shots/golden/mm-move-multi",
+      "sha256_12": "5C2E213DC919",
+      "input": "shots/golden/inputs/mm-move-multi.txt",
+      "evidence": "框选左侧两颗（marquee picked=2 selected=2）后 Alt+↓：两颗一起换位，structure … path=batch，只重建一次"
+    },
+    {
+      "name": "mm-move-keys-reveal",
+      "dir": "shots/golden/mm-move-keys-reveal",
+      "sha256_12": "A921F44EA93D",
+      "input": "shots/golden/inputs/mm-move-keys-reveal.txt",
+      "evidence": "中键把镜头拖走（主选在 (-716,-428)，整颗在视口外）后按 Alt+↓：reveal 把主选拉回 (48,96) 的 48px 安全边内"
+    }
+  ],
+  "trace": {
+    "files": [
+      "shots/x100/M6/trace-move-keys.txt",
+      "shots/x100/M6/trace-move-multi.txt",
+      "shots/x100/M6/trace-move-multi-undo.txt",
+      "shots/x100/M6/trace-reveal-before.txt",
+      "shots/x100/M6/trace-reveal-after.txt"
+    ],
+    "structure": "`structure move=±1 selected=N path=single|batch`——分辨走的是单条路径还是批量路径",
+    "reveal": "`reveal idx=<场景下标> cam=(x,y) z=<缩放> node=(x,y,w,h) vp=(w,h)`——跟镜头之后相机与主选盒",
+    "marquee": "`marquee picked=N selected=M`——框到几颗 vs 选上几颗（被覆盖的后代会被丢掉）",
+    "reading": "trace-reveal-before 与 -after 是同一段脚本的关键一步之差（是否按 Alt+↓），用来证明跟镜头真的发生了"
+  },
+  "tests": {
+    "new": [
+      "canvas::tests::single_selection_moves_the_same_way_through_both_paths"
+    ],
+    "total": "921 passed / 0 failed / 1 ignored"
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1 (+ scripts/x100-stage-cm-gate.ps1)",
+    "stage_b_scenes": 94,
+    "stage_b_comparisons": 188,
+    "cm_scenes": 46,
+    "cm_comparisons": 92,
+    "result": "PASS",
+    "note": "既有 91 张 stage-b 与 46 张 cm-* 基线逐字节未动；两道门顺序跑（并发会互踩 actual/diff）"
+  },
+  "behaviour_change": "层级命令（Alt+↑↓、Ctrl+Shift+←/→）在多选时整组移动一格且跟着主选走；整组移动是一条撤销",
+  "bug_found_and_fixed": "第一版 mm-move-keys-reveal 拖的距离不够，节点停在视口顶端 (134,-118) 仍然可见，reveal_center 判「已在视口内」不动相机——那张基线改与不改一个样；改成把节点整颗推出屏幕后才锁住行为",
+  "known_gaps": [
+    "实机键盘连按的节拍（系统键重复率、按住不放）没量，脚本是逐帧推进的",
+    "跨父级多选按 Alt+↓ 什么都不动（batch_structure_command 的既有语义），且 UI 上不给反馈",
+    "跟镜头是「最小平移」不是居中：节点已可见时相机不动",
+    "Ctrl 拖拽复制、150%/200% 缩放下这几条命令的落点都没拍"
+  ]
+}

@@ -1,0 +1,4 @@
+wait 4
+hover 300 65 300
+scroll 0 -100
+wait 12

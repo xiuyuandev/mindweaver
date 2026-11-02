@@ -1,0 +1,80 @@
+{
+  "id": "M9b",
+  "title": "整图折叠与聚焦视图下的折叠圆点（打磨轮 67）",
+  "date": "2026-11-01",
+  "round": 67,
+  "status": "已实现（纯证据轮；stage-b 机器门见 gate 字段。实机手感仍未验证）",
+  "contract": [
+    "docs/x100/polish-ledger.md §3 第 16 项：M9 行「整图折叠与聚焦模式下的圆点没拍」",
+    "docs/02 §3 折叠/展开：折叠圆点在整体折叠与聚焦两种状态下的可见集合",
+    "docs/06 折叠圆点行：圆点只画在「有父级且有下级」的节点上"
+  ],
+  "scope": [
+    "新基线 mm-collapse-all-dots（Ctrl+/ 整图折叠终态）",
+    "新基线 mm-focus-dots（MW_DRILL_DEMO + MW_FOCUS_DEMO 聚焦子树，边界圆点在、视图外无残点）",
+    "两场进 scripts/x100-stage-b-gate.ps1 的 $scenes",
+    "轨迹导出 scene_toggle 的判据对齐 HitMap（根 / 聚焦根不再进清单）——MW_TRACE 守卫内，不碰像素"
+  ],
+  "non_goals": [
+    "不改 SetCollapsedAll / focus_selected 语义、热区半径、圆点尺寸、过渡时长",
+    "不动 mm-collapse 四张既有基线",
+    "不实机手感（触控笔、150%/200% DPI、真键盘）",
+    "不碰概念图 cm-* 与检查器；本轮不跑 stage-cm 门（该门因 CM-18 未拍板红 2 场，见 STATUS §6 第 11 条）"
+  ],
+  "files": [
+    "shots/golden/mm-collapse-all-dots/shell-ppp1.00.png",
+    "shots/golden/mm-focus-dots/shell-ppp1.00.png",
+    "shots/golden/inputs/mm-collapse-all-dots.txt",
+    "shots/golden/inputs/mm-focus-dots.txt",
+    "scripts/x100-stage-b-gate.ps1",
+    "crates/mw-shell/src/canvas/canvas_methods_2.rs",
+    "shots/x100/M9b/report.md",
+    "shots/x100/M9b/trace-collapse-all.txt",
+    "shots/x100/M9b/trace-focus.txt",
+    "shots/x100/M9b/probe-ppp150-trace.txt",
+    "shots/x100/M9b/gate/stage-b-summary.txt"
+  ],
+  "scenes": [
+    {
+      "name": "mm-collapse-all-dots",
+      "ppp": "1.0",
+      "warmup": 30,
+      "env": {
+        "MW_NOTES": "none",
+        "MW_GOLDEN_INPUT": "shots/golden/inputs/mm-collapse-all-dots.txt"
+      },
+      "baseline_sha256_12": "ab78308c91d1",
+      "script_frames": 43,
+      "pins": "整图折叠终态：可见 5 节点、scene_toggle 恰 3 条（纯 Rust 原生 / 中文排版 / 交互与性能），根与叶子不画圆点"
+    },
+    {
+      "name": "mm-focus-dots",
+      "ppp": "1.0",
+      "warmup": 30,
+      "env": {
+        "MW_NOTES": "none",
+        "MW_DRILL_DEMO": "纯 Rust 原生",
+        "MW_FOCUS_DEMO": "纯 Rust 原生",
+        "MW_GOLDEN_INPUT": "shots/golden/inputs/mm-focus-dots.txt"
+      },
+      "baseline_sha256_12": "053b98ae6977",
+      "script_frames": 19,
+      "pins": "聚焦视图内部边界圆点在（winit + windows-rs，屏幕 (536,551)）、聚焦根不画圆点、视图外无残点、面包屑不与圆点重叠"
+    }
+  ],
+  "tests": {
+    "new": [],
+    "note": "纯证据轮，未新增单测；scene_toggle 判据对齐在 MW_TRACE 守卫内，没有可单测的纯函数入口，改由两张基线的轨迹对照钉住（报告 §4.1）"
+  },
+  "gate": {
+    "stage_b": "PASS 2026-11-01 21:46:02 → 21:55:17（真脚本）：EVIDENCE / PowerShell 语法 / fmt / clippy 新增 0 / 全量测试 1202 passed 0 failed / golden 155 场 ×2 = 310 次比较零差异；场数 153→155、比较 306→310 全来自本轮两场，既有 153 场零漂移。摘要 gate/stage-b-summary.txt，原始 target/x100/stage-b-gate.log",
+    "stage_cm": "本轮未跑（改动在 MW_TRACE 守卫内不碰像素；该门自第 66 轮起因 CM-18 未拍板红 2 场，见 STATUS §6 第 11 条）",
+    "human_gate": "无（打磨轮不开新人工门）"
+  },
+  "known_gaps": [
+    "整图折叠后再单击圆点的展开路径没拍（只拍了终态画面）",
+    "聚焦视图里 Ctrl+/ 与聚焦的相互作用画布侧无画面证据（大纲侧有单测 collapse_level_respects_the_focus_root）",
+    "实机手感（触控笔、150%/200% DPI、真键盘 Ctrl+/）仍未量，M9 行缺口原样保留",
+    "双击节奏、系统双击间隔未读取（第 66 轮 M32 同一条缺口）"
+  ]
+}

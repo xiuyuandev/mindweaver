@@ -1,0 +1,8 @@
+# cm-arrange-undo · 整理布局后按**一次** Ctrl+Z（C7 打磨轮 13）
+# 判据：手工摆位整张回来——概念的位置、线、短语都回到整理前；
+# 对照 cm-arrange（整理后）与 cm-default（原图）。
+wait 3
+key ctrl+z
+wait 6
+move 1600 1100
+wait 2

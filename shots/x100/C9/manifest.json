@@ -1,0 +1,72 @@
+{
+  "package": "C9",
+  "title": "强调淡入的中间帧（概念图过渡定格）",
+  "status": "已实现（一张定格基线进门 + 数值与轨迹证据；实机手感 未验证）",
+  "date": "2026-10-29",
+  "track": "打磨轮（docs/x100/polish-ledger.md C9；CM-10 §3 第 10 条）",
+  "contract": {
+    "design": "docs/30 §12 CM-10 差距清单；docs/x100/polish-ledger.md §3 第 3 条「给渲染路径加一个只给验收用的 alpha 乘子，拍一张定格」",
+    "code": [
+      "crates/mw-shell/src/canvas.rs::motion_pin / parse_pin / Motion::{active, scene}",
+      "crates/mw-shell/src/canvas/motion.rs::motion_reduced / motion_span（关系线 id 集合也算结构变化）",
+      "crates/mw-core/src/scene.rs::blend_scenes（共有项同时插 alpha）",
+      "crates/mw-shell/src/canvas/canvas_methods_3.rs::rebuild（定格下不重取快照）",
+      "crates/mw-shell/src/canvas/canvas_methods_3.rs::paint_relationship_emphasis（读插值帧）/ trace_rel_emphasis",
+      "crates/mw-shell/src/trace.rs::enabled（pub(crate)）"
+    ]
+  },
+  "deliverables": {
+    "report": "shots/x100/C9/report.md",
+    "manifest": "shots/x100/C9/manifest.json"
+  },
+  "scenes": [
+    {
+      "name": "cm-link-fade-mid",
+      "dir": "shots/golden/cm-link-fade-mid",
+      "sha256_12": "3A43A517AA48",
+      "env": "MW_CONCEPT_DEMO=1; MW_CONCEPT_LINK='用户痛点|风险与依赖'; MW_MOTION_T=0.5; MW_WINDOW_SIZE=1280x800",
+      "warmup": 20,
+      "ppp": "1.0",
+      "evidence": "新命题线线身平均亮度 117.4（对照 cm-link-create 81.1）；取样 (887,808) mid=(119,153,142) end=(47,111,94)"
+    },
+    {
+      "name": "cm-link-create",
+      "dir": "shots/golden/cm-link-create",
+      "sha256_12": "未改（本轮未重拍，逐字节与上一轮相同）",
+      "role": "稳态对照：同文档同布局、t=1.0"
+    }
+  ],
+  "trace": {
+    "files": [
+      "shots/x100/C9/trace-fade-mid.txt",
+      "shots/x100/C9/trace-fade-end.txt"
+    ],
+    "rel_emphasis": "`rel_emphasis id=<关系 id> tier=<档位> rel_alpha=<这一帧的过渡透明度> alpha=<tier×rel_alpha> w=<线宽>`，值没变不重复写，只在 MW_TRACE 下进",
+    "mid": "tier=1.00 rel_alpha=0.500 alpha=0.500 w=3.0",
+    "end": "tier=1.00 rel_alpha=1.000 alpha=1.000 w=3.0"
+  },
+  "tests": {
+    "new": [
+      "the_motion_pin_clamps_and_ignores_junk",
+      "motion_span_sees_a_new_relationship_when_no_box_moves"
+    ],
+    "total": "915 passed / 0 failed / 1 ignored"
+  },
+  "gate": {
+    "script": "scripts/x100-stage-cm-gate.ps1 (+ scripts/x100-stage-b-gate.ps1)",
+    "cm_scenes": 45,
+    "cm_comparisons": 90,
+    "stage_b_scenes": 87,
+    "stage_b_comparisons": 174,
+    "result": "PASS",
+    "note": "44 张既有 cm-* 基线与 87 张 stage-b 基线全部逐字节未动"
+  },
+  "behaviour_change": "概念图新增/删除关系线现在有 0.20s 淡入淡出（motion_span 认关系线 id 集合变化）；时长令牌未动",
+  "known_gaps": [
+    "定格是常量 t，不是真实过渡里抓到的一帧；实机 0.2s 淡入的手感没有证据",
+    "只拍 t=0.5，0.25 / 0.75 没拍",
+    "定格模式下不重取快照，连续两条结构性命令无法在同一张定格里表达",
+    "强调与线身同色，像素只能量到「比纯 50% 深」，强调单独那一份由 trace 背书",
+    "只拍 ppp 1.0"
+  ]
+}

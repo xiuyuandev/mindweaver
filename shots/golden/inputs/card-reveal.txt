@@ -1,0 +1,9 @@
+# CER-16：把光标放进第 1 行的 `**粗体**` 里，看只有这一段露出 `**`。
+wait 3
+click 700 244
+wait 1
+key Home
+key ArrowRight
+key ArrowRight
+key ArrowRight
+key ArrowRight

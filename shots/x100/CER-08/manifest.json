@@ -1,0 +1,36 @@
+{
+  "package": "CER-08",
+  "status": "已实现",
+  "date": "2026-10-25",
+  "design_contract": "docs/28 §5.5",
+  "execution_contract": "docs/29 §6（X63/X69 范围并入）",
+  "batch": "B2-A",
+  "gate": null,
+  "scenes": ["outline", "outline-focus", "outline-compact", "outline-narrow", "outline-edit", "outline-edit-ime", "outline-edit-softbreak", "outline-paste-lines", "outline-hover-select"],
+  "themes": ["snow"],
+  "dpi": [1.5],
+  "scripts": ["shots/golden/inputs/outline-keys.txt"],
+  "evidence": ["shots/x100/CER-08/report.md", "shots/x100/CER-08/scripts/", "target/x100/keys-trace3.txt"],
+  "old_hashes": {},
+  "new_hashes": "9 个 outline 场景基线见 shots/golden/outline*/（双跑 --tol 0 锁定）",
+  "tests": { "passed": 784, "failed": 0 },
+  "golden": { "runs": 2, "diffs": 0, "tol": 0, "note": "9 场景双跑 0；机器门矩阵双跑（target/x100/cer-08-golden.log）" },
+  "engineering": {
+    "fmt": "clean",
+    "clippy_mw_shell_new": 0,
+    "release_build": "pass"
+  },
+  "contract_audit": "§5.5 全表落地：Ctrl+Enter=任务（旧加子级作废）、Alt+./Alt+Shift+.、Ctrl+]/[、Shift+↑↓ 多选、Ctrl+A、编辑态 ↑↓ 移动光标；Tab/Shift+Tab/F2/Delete/Ctrl+Shift+↑↓/Esc 逐级延续既有实现",
+  "changes": {
+    "code": [
+      "crates/mw-shell/src/panels/outline.rs（row_key 七条新映射、Ctrl+Enter 语义修正、编辑态 ↑↓ 让位、编辑态键链结构重写、死代码清理、+1 全映射单测、2 断言更新）"
+    ],
+    "golden": ["shots/golden/inputs/outline-keys.txt（新增键盘 trace 脚本）"]
+  },
+  "known_gaps": [
+    "Delete 有子树二次确认未做（§5.5 允许 P1）",
+    "编辑态退出路径收窄为 Esc/失焦（提交并走行已按 §5.5 退役）",
+    "微软拼音人工实测待用户配合",
+    "ring 场景四主题待补拍"
+  ]
+}

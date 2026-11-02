@@ -1,0 +1,11 @@
+wait 3
+click 698 473
+press middle 1500 1000
+move 900 700
+move 500 400
+move 150 120
+release middle 150 120
+wait 2
+key alt+Down
+wait 2
+move 1500 200

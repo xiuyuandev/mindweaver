@@ -1,0 +1,122 @@
+{
+  "package": "X22",
+  "title": "字阶 / 字重 / 行高 / CJK 混排 —— 设计合同与现状测绘（本轮只做文档与只读测绘）",
+  "status": "进行中",
+  "status_reason": "第一轮交文档与只读测绘（§1–§6，13 条差距）。Lead 2026-11-02 裁决后本轮做两件：① G04 修码——唯一批准改码的一条，单一出宽函数 line_advance 让度量与渲染同源，5 条新单测、lib 41 条全绿；但修完 shots/golden/canvas-text-ppp1.00.png 出现预期漂移 484/540000 px = 0.090%（只在那颗混排节点），收尾轮要求 cargo test 通过且禁止跑 golden 重拍 → 按「宁可少做一件、不留半截」把代码整块撤回，补丁留在 evidence/g04-measure-parity-2026-11-02.patch（git apply --check 已过），工作树对 crates/ 零净改动。② §7 画布字阶表：§7.1 四级 × 几何 × 四档 DPI 全部算实、§7.2 字重落面探针实测回填（无「需探针」格）。未做：golden 重拍、门登记、docs/ 与 mw-core 改动（禁改）；clippy 被并行会话的 mw-core 编译错误挡住，记未开始。",
+  "date": "2026-11-02",
+  "track": "Stage C 第 2 轮（docs/24 §3「阶段 C · 画布视觉与内容表达（X21–X30）」X22 行；X21/X21b 已收口）",
+  "contract": {
+    "route": "docs/24-X100升级路线.md 阶段 C：「X22 重做 DirectWrite 字阶、字重、行高和 CJK 混排，统一画布与编辑器度量。」+ docs/24 §4 执行协议（报告先行）",
+    "design": "docs/28 §4.1 内容字阶 / §4.2 版心 / §5.2 行解剖 / §6.2 正文排版 / §9.3 判词第 8 条；docs/30 §7.6（可量化视觉项、字号只能用 design::text 令牌）；docs/07 §4 排版表 + §5 字体策略（含 ADR-010 对照）；docs/26 §6 DPI 矩阵 1.00/1.25/1.50/2.00",
+    "token_reference": "docs/06 仅作外壳令牌参考：其全屏大纲旧规格已被 docs/28 §5 取代，不作合同",
+    "status_source": "docs/STATUS.md §1（场次与比较数唯一真相源；本包不抄数字）"
+  },
+  "scope": {
+    "must": [
+      "§1 范围与六条非目标（不动数据模型 / 不做 X23·X25·X27·X44 / 不引依赖 / 不重拍 / 不动 crates）",
+      "§2 现状表：画布 vs 编辑器与内容面 vs 导出 三列，逐项 `文件:行 + 字面`",
+      "§3 差距清单 13 条（P0×5 / P1×4 / P2×4），每条含 现状→合同要求→影响面→要动哪个 crate/是否动数据模型",
+      "§4 验收场景草案 A1–A10（字号档、行高比、字重面名、混排度量一致、禁则、编辑器基线、四档 DPI、导出同源、长文折行、字重肉眼可分）",
+      "§5 预计新增 6 场 / 重拍范围（只列名字与钉住什么，不拍图）",
+      "§6 未做与 5 条风险"
+    ],
+    "out_of_scope": [
+      "任何 crates/ 改动（含注释修复：G11 记延后）",
+      "任何 golden 采集/重拍、scripts/ 门登记、docs/STATUS.md 数字",
+      "斜体 / 下划线 / 删除线 / 逐节点行高覆写（需要 StyleOverride 新键 → 归 X44）",
+      "画布卡片形状/边框/阴影（X23）、层级样式重校（X25）、状态表（X27）"
+    ]
+  },
+  "evidence": {
+    "report": "report.md",
+    "read_code": "evidence/read-code-2026-11-02.md",
+    "g04": "evidence/g04-measure-parity-2026-11-02.md",
+    "g04_patch": "evidence/g04-measure-parity-2026-11-02.patch",
+    "method": "rg / 只读 read；每条出处给 文件:行 + 那一行的字面（行号是快照）",
+    "executed": true,
+    "note": "G04 有真实执行证据（单测、集成 golden 漂移读数、字重探针读数）但代码已撤回；§4 其余 A1–A10 仍是草案"
+  },
+  "gaps": {
+    "total": 13,
+    "p0": [
+      "G01 画布字阶无合同表",
+      "G02 行高两套公式（画布倍率 vs 内容绝对值）",
+      "G03 docs/28 §4.1 与 design::content 14 档中 9 档不一致",
+      "G04 中英混排 0.1em 只在渲染期加、度量不含",
+      "G05 两套 shaper（DWrite vs epaint）且编辑器无禁则"
+    ],
+    "p1": [
+      "G06 字重 500 无真面（探针实测：画布与内容面落面一致，500 = 拉丁600 + 中文400 的非对称档）",
+      "G07 CJK 600 实测落雅黑 700 面（探针请求 600 → 实际 700；与 docs/28「不用 700」冲突）",
+      "G08 大纲单行不锁 26（只有换行才 26）",
+      "G09 无排版专项 golden 且缺 1.25/1.75 DPI 档"
+    ],
+    "p2": [
+      "G10 画布 ppd 向上量化档 vs 编辑器精确 ppp",
+      "G11 三处陈旧口径（1.45 / 1.42-1.36-1.22 / docs/06 §7）",
+      "G12 caret 高度占满行盒（docs/06 自认欠账）",
+      "G13 导出「基线同源」与「逐像素一致」的边界要写清"
+    ]
+  },
+  "decisions_needed": [
+    "G03：按 docs/28 §4.1 改码（9 个内容角色变，卡片/库/大纲全量重拍）还是反向把 docs/28 对齐实现（零重拍但设计降级）",
+    "G06：500 档的口径（画布 DWrite 落面 + 内容面 500 = 拉丁 600/中文 400 的不对称要不要统一）",
+    "G07：CJK 真 600 是否要绑定变量字体（与「不引入依赖 / 不捆绑字体」的既有决定冲突，需用户级拍板）"
+  ],
+  "next": [
+    "重放 G04 补丁三步：git apply evidence/g04-measure-parity-2026-11-02.patch → MW_GOLDEN_UPDATE=1 重拍 canvas-text-ppp1.00.png 并记旧/新哈希 → cargo test -p mw-render 全绿 + clippy 新增为 0",
+    "把 report.md §7 的画布字阶表搬进 docs/28（Lead 裁决：先写合同再动码）",
+    "G03 由 Lead 改 docs/28 §4.1 九行数值（以 design::content 现值为准）",
+    "复跑 cargo clippy -p mw-render --all-targets 并回填 evidence §5（本轮被并行会话阻塞，记未开始）"
+  ],
+  "updated": "2026-11-02T20:44:00+08:00",
+  "lead_corrections": [
+    "G03：以 design::content 现值为准、改 docs/28（Lead 自己写文档，不许顺手改字号令牌）",
+    "G04：批准修码；改后要求逐场统计像素影响，只重拍真的含中英混排的场景",
+    "G01/G02：X22 必须交一张画布字阶表（字号×字重×行高×基线偏移×四档 DPI），先写进 docs/28 再动码；行高 round(字号×倍数) 保留",
+    "G06/G07：只做一次性探针取证（GetWeight 读数），本轮不改字重映射",
+    "G05：编辑器无禁则延后到 X33，X22 只合同化「行高/基线/行数一致」"
+  ],
+  "code": [
+    "crates/mw-render/src/text.rs —— 已撤回（补丁见 evidence/*.patch）",
+    "crates/mw-render/src/dwrite.rs —— 已撤回（同上）"
+  ],
+  "tests": {
+    "final": "cargo test -p mw-render -- --test-threads=1 → 72 passed / 0 failed（36 lib + 11 + 4 + 12 + 9；最后一个二进制 test result: ok. 9 passed; 0 failed）",
+    "check": "cargo check -p mw-render --all-targets → Finished，0 error / 0 warning",
+    "clippy": "未开始（cargo clippy -p mw-render --all-targets 被并行会话在 mw-core 的编译错误挡住：design.rs:891 cannot find type Rgba）",
+    "with_patch": "带补丁那一趟 lib 41 passed / 0 failed（含 5 条新增）；集成 8 绿 + text_canvas_matches_golden 预期漂移 0.090%",
+    "new_tests": [
+      "text::tests::line_advance_counts_every_cjk_latin_boundary",
+      "text::tests::only_mixed_script_lines_gain_width",
+      "text::tests::measured_width_equals_shaped_advance",
+      "dwrite::tests::measure_adds_cjk_latin_gaps_to_the_dwrite_width",
+      "dwrite::tests::weight_faces_are_read_back_from_dwrite"
+    ],
+    "new_tests_state": "已随补丁撤回，重放补丁后可用"
+  },
+  "probe": {
+    "test": "dwrite::tests::weight_faces_are_read_back_from_dwrite",
+    "readings": {
+      "Segoe UI": {
+        "400": 400,
+        "500": 600,
+        "600": 600,
+        "700": 700
+      },
+      "Microsoft YaHei UI": {
+        "400": 400,
+        "500": 400,
+        "600": 700,
+        "700": 700
+      },
+      "Microsoft YaHei": {
+        "400": 400,
+        "500": 400,
+        "600": 700,
+        "700": 700
+      }
+    },
+    "conclusion": "画布与内容面 400/500/600 落面完全一致；500 = 拉丁600+中文400（非对称档）；CJK 600 实测落雅黑 700 面"
+  }
+}

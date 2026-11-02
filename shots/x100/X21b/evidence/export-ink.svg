@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="560.4" height="99" viewBox="-280.2 -49.5 560.4 99">
+<defs><pattern id="zdots" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="14" cy="14" r="1.1" fill="#3c424a"/></pattern></defs>
+<rect x="-280.2" y="-49.5" width="560.4" height="99" fill="#17191c"/>
+<rect x="-280.2" y="-49.5" width="560.4" height="99" fill="url(#zdots)"/>
+<g id="lines">
+<path d="M -44.5 0 C -83.5 0 -83.5 0 -122.5 0" fill="none" stroke="#7fb69a" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 44.5 0 C 83.5 0 83.5 0 122.5 0" fill="none" stroke="#e0a46e" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<g id="nodes">
+<rect x="-44" y="-31.5" width="88" height="63" rx="10" ry="10" fill="#d8a75b"/>
+<rect x="-262.2" y="-24.5" width="138.2" height="49" rx="10" ry="10" fill="#24332c" stroke="#385044" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="124" y="-24.5" width="138.2" height="49" rx="10" ry="10" fill="#3b2c22" stroke="#5f4633" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<g id="text">
+<text x="-18" y="8.58" font-family="Segoe UI, Microsoft YaHei UI, Microsoft YaHei, Noto Sans SC, sans-serif" font-size="28" font-weight="600" fill="#1a1a1a" text-anchor="start">根</text>
+<text x="-244.2" y="6.38" font-family="Segoe UI, Microsoft YaHei UI, Microsoft YaHei, Noto Sans SC, sans-serif" font-size="20" fill="#f2efe9" text-anchor="start">分支 0 内容</text>
+<text x="142" y="6.38" font-family="Segoe UI, Microsoft YaHei UI, Microsoft YaHei, Noto Sans SC, sans-serif" font-size="20" fill="#f2efe9" text-anchor="start">分支 1 内容</text>
+</g>
+<g id="overlay">
+</g>
+</svg>

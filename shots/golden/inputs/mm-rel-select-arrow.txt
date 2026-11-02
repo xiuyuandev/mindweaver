@@ -1,0 +1,15 @@
+# M26（打磨轮 49）：关系线选中后按两次 ArrowRight。
+# 建线序列与 mm-rel-link-created 相同（线一落地即选中）；随后方向键遍历节点。
+# 改前：关系线 3px 强调 + 节点选中环并存；改后：selection_clear lane=relationship，
+# 只剩节点环与节点底。坐标按落定相机（zoom 1.33）量。
+wait 3
+click 1167 503
+wait 2
+key ctrl+l
+wait 2
+click 626 634
+wait 4
+key ArrowRight
+wait 2
+key ArrowRight
+wait 4

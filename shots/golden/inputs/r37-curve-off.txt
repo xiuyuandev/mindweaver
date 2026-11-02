@@ -1,0 +1,7 @@
+# 与 cm-rel-curve 同一场景，末尾点空白取消选中——差集只剩强调线。
+wait 8
+text 引起
+key Enter
+wait 4
+click 120 740
+wait 4

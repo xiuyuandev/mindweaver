@@ -1,0 +1,592 @@
+﻿{
+    "product":  "Xmind",
+    "version":  "26.5.1107.202609082009",
+    "generatedAt":  "2026-10-22T06:17:50",
+    "count":  73,
+    "files":  [
+                  {
+                      "path":  "../shots/qa/xmind-add.png",
+                      "bytes":  257767,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "8ECDAD048738FC9C873B1A2D5371040CC7B5A62B0E9C1191A1CC993BCDA3FE02",
+                      "modifiedAt":  "2026-10-18T21:45:52"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-canvas2.png",
+                      "bytes":  259750,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "7A557237BF1CC4F69686A37CF2A1CBD53AD65B33CFE296DCE927E4387408F7C7",
+                      "modifiedAt":  "2026-10-18T21:49:06"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-canvas-tab.png",
+                      "bytes":  259540,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "27C41FCB33416D0ADC9015405761460D38AB868AE94E671D566B88FF522D2BCA",
+                      "modifiedAt":  "2026-10-18T21:43:34"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-commit.png",
+                      "bytes":  269422,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "E948A0A214839215F6B722940FF55CD334E1E698D53F78849C0F3BAB49F54FCD",
+                      "modifiedAt":  "2026-10-18T21:46:12"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-context.png",
+                      "bytes":  278023,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "4C1E5DC6F0777A066E57B73786329AD5E7281EF45A935B4168D31F0CA00EADD7",
+                      "modifiedAt":  "2026-10-18T21:52:14"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-esc.png",
+                      "bytes":  259575,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "3BC46601160DDCD43790DE87FCD7B4083C31CB3909995F68CE2D610CABC75F89",
+                      "modifiedAt":  "2026-10-18T21:45:38"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-esc2.png",
+                      "bytes":  251189,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "B11D8C1B8EDB78C76AEBD3704BA90EF21AAE918E28E44788F8B2AD0D9BFF2BE6",
+                      "modifiedAt":  "2026-10-18T21:48:42"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-esc3.png",
+                      "bytes":  258206,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "175C935836A8EE331E83DCF4837213D312F3014879E565A8EC0567DFFB133CF9",
+                      "modifiedAt":  "2026-10-18T21:50:23"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-esc4.png",
+                      "bytes":  248426,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "1E9D712FED06A4110FFF0D0717624C876CF98C35094A0B85E48F5C78E3968B9E",
+                      "modifiedAt":  "2026-10-18T21:52:12"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-esc5.png",
+                      "bytes":  232566,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "720B6539029400B1A92805A64770F8C87660732D25F3E2B6A74C994CDFCBDE53",
+                      "modifiedAt":  "2026-10-18T21:52:38"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-export.png",
+                      "bytes":  292277,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "0F53639C95E8C9618D836A3B9A7AA703A2E764AB9BCB2459A3B040535DC39F63",
+                      "modifiedAt":  "2026-10-18T21:53:09"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-insert.png",
+                      "bytes":  267813,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "9CE4BF23F98ACE279D8E6D583AE9034884720585317C1B1317327C17F6F78A67",
+                      "modifiedAt":  "2026-10-18T21:48:16"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-launch.png",
+                      "bytes":  152140,
+                      "width":  1280,
+                      "height":  800,
+                      "sha256":  "FB04A4E0D01E2142502C798040AE66A562087CF6B5FCB503FACA98B7B16B0DD8",
+                      "modifiedAt":  "2026-10-18T21:12:39"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-menu.png",
+                      "bytes":  269541,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "375CD56278E77F33D8A85E7B0A3DE74AB570C99B651FB0F8493F64A2D438A436",
+                      "modifiedAt":  "2026-10-18T21:52:40"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-new-1.png",
+                      "bytes":  37149,
+                      "width":  1280,
+                      "height":  800,
+                      "sha256":  "A4353F2B4FD3209BE9D64ABC24B649D8B53055CC0F6C399548FC0B7A53E42B7F",
+                      "modifiedAt":  "2026-10-18T21:41:37"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-nodebar.png",
+                      "bytes":  257280,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "991F5DB3B234BAC9B47DB8DD8B774F4751BC379A3FBDCEA2F1A9F68EADCC2D4F",
+                      "modifiedAt":  "2026-10-18T21:46:32"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-now.png",
+                      "bytes":  249187,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "5B51A2BCF41FA9783854292BF723347B54165FC9E6B79DBE14F6711D2810794A",
+                      "modifiedAt":  "2026-10-18T21:42:49"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-present.png",
+                      "bytes":  241009,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "313A3902EC1647E9B87373F618666D56CBDD677841F6FE561018D18AD3B3A001",
+                      "modifiedAt":  "2026-10-18T21:48:44"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-recent.png",
+                      "bytes":  84066,
+                      "width":  1280,
+                      "height":  800,
+                      "sha256":  "18282C016B29C6302194324CA12C0FAF7E2F436780AFB6A649EF218810CA5246",
+                      "modifiedAt":  "2026-10-18T21:13:17"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-select.png",
+                      "bytes":  133728,
+                      "width":  1280,
+                      "height":  800,
+                      "sha256":  "25A405E18FCDB12CD1305A47DE37FF0E2D91C0EA433A2260F0FD44D3E5641429",
+                      "modifiedAt":  "2026-10-18T21:41:52"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-shape-list.png",
+                      "bytes":  294389,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "AFB50943534D9B5601D65D01E49A4FA1B7175E0995E17C6E4953C61EE7D6945D",
+                      "modifiedAt":  "2026-10-18T21:51:25"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-shapes.png",
+                      "bytes":  253874,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "F9860DAB90886A1AE0B9AB97F6A0152074131E62DD969038EC54D2F65D9432F3",
+                      "modifiedAt":  "2026-10-18T21:50:27"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-structure.png",
+                      "bytes":  253486,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "53CDAF1B848F30717DF591A527339F8ECB8119DE14C9EE9E401BFCDD5352D095",
+                      "modifiedAt":  "2026-10-18T21:43:19"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-structures.png",
+                      "bytes":  346589,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "F1CDAD7242BDBE2580782F4594D19D0CF3DA586EFB9D5BCA0DFBAED7AF206B5D",
+                      "modifiedAt":  "2026-10-18T21:43:48"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-structures-2.png",
+                      "bytes":  342541,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "E36D0AD56BA5FBCA07BB7F5F880AE50733054EAD3EFB7C690604CCB6885A52BF",
+                      "modifiedAt":  "2026-10-18T21:44:45"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-structures-3.png",
+                      "bytes":  328720,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "29AFF832D1D61825106A79DB4F005689450F2268E2B463E37077D44FB998B670",
+                      "modifiedAt":  "2026-10-18T21:45:02"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-structures-4.png",
+                      "bytes":  337160,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "E2EA2A388A38EEDA8D4BCDFEA616AFA354474900E0597464AFF0C148A8A022F3",
+                      "modifiedAt":  "2026-10-18T21:45:20"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-style.png",
+                      "bytes":  258206,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "175C935836A8EE331E83DCF4837213D312F3014879E565A8EC0567DFFB133CF9",
+                      "modifiedAt":  "2026-10-18T21:50:25"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-style2.png",
+                      "bytes":  242760,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "DFE37DDC86B80DE182D715BFC49A9FE99043DF65F06AC437C2F3D18742AEA17F",
+                      "modifiedAt":  "2026-10-18T21:50:57"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-theme.png",
+                      "bytes":  269353,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "CC9812B65A6E2556EFD50AFE624F5F3EAB871605D3E8C3DEEE2C74DD8061DAA3",
+                      "modifiedAt":  "2026-10-18T21:43:04"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-themes.png",
+                      "bytes":  325598,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "F7315AC559508DA169020F8423207A40EF56FDC5F160EF2D69DB661DC181F19B",
+                      "modifiedAt":  "2026-10-18T21:49:08"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-themes-classic.png",
+                      "bytes":  322277,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "4CEE01094E3D6DDE99288529B72AF4502F817B3023F8F80F382BEB1FC0C20554",
+                      "modifiedAt":  "2026-10-18T21:49:32"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-theme-zen.png",
+                      "bytes":  312780,
+                      "width":  1920,
+                      "height":  1200,
+                      "sha256":  "ABCC35FE468D13D142773B0A4D19CEAB0A8B7E3EBF84AD34C49B58CF964B0E24",
+                      "modifiedAt":  "2026-10-18T21:49:58"
+                  },
+                  {
+                      "path":  "../shots/qa/xmind-window.png",
+                      "bytes":  33091,
+                      "width":  1279,
+                      "height":  751,
+                      "sha256":  "554351AD11B12D1B296727638FA4F02B0ECE74CCF6DD0DF299569484E6CB887B",
+                      "modifiedAt":  "2026-10-19T13:03:29"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind-2026.png",
+                      "bytes":  36818,
+                      "width":  1280,
+                      "height":  800,
+                      "sha256":  "68AF144C7C7029DC62D6A3968CAD446C345E113938A1E64A203061D10EAD5588",
+                      "modifiedAt":  "2026-10-21T00:24:55"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind2026-branch1.png",
+                      "bytes":  37394,
+                      "width":  1279,
+                      "height":  751,
+                      "sha256":  "CA61DBF72D444AE2391152BEECD2586DC916E5868D999EFB73BBD175EB69F280",
+                      "modifiedAt":  "2026-10-18T10:46:34"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind2026-branch1b.png",
+                      "bytes":  37394,
+                      "width":  1279,
+                      "height":  751,
+                      "sha256":  "CA61DBF72D444AE2391152BEECD2586DC916E5868D999EFB73BBD175EB69F280",
+                      "modifiedAt":  "2026-10-18T10:46:45"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind2026-branch1c.png",
+                      "bytes":  37394,
+                      "width":  1279,
+                      "height":  751,
+                      "sha256":  "CA61DBF72D444AE2391152BEECD2586DC916E5868D999EFB73BBD175EB69F280",
+                      "modifiedAt":  "2026-10-18T10:46:48"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind2026-branch-selected.png",
+                      "bytes":  37394,
+                      "width":  1279,
+                      "height":  751,
+                      "sha256":  "CA61DBF72D444AE2391152BEECD2586DC916E5868D999EFB73BBD175EB69F280",
+                      "modifiedAt":  "2026-10-18T10:46:23"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind2026-center2.png",
+                      "bytes":  36420,
+                      "width":  1279,
+                      "height":  751,
+                      "sha256":  "A585A813601CF353430ED08225DC5ACFB9747C5E1C8F4C2A608661BB1FC2A37E",
+                      "modifiedAt":  "2026-10-18T10:47:00"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind2026-child.png",
+                      "bytes":  36420,
+                      "width":  1279,
+                      "height":  751,
+                      "sha256":  "A585A813601CF353430ED08225DC5ACFB9747C5E1C8F4C2A608661BB1FC2A37E",
+                      "modifiedAt":  "2026-10-18T10:47:03"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind2026-new.png",
+                      "bytes":  20693,
+                      "width":  1279,
+                      "height":  751,
+                      "sha256":  "F17BF28A7DD3A095B030A28BDA2ABF41EF6FFE83DC21A056224D1DCCFCCBBFC9",
+                      "modifiedAt":  "2026-10-18T10:45:33"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind2026-new2.png",
+                      "bytes":  118703,
+                      "width":  1279,
+                      "height":  751,
+                      "sha256":  "C1C0CD8260E3B932A0C45472C98A1C8E9AC598E9D125FCD91BDB47D08AC043F6",
+                      "modifiedAt":  "2026-10-18T10:45:40"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind2026-new3.png",
+                      "bytes":  106714,
+                      "width":  1279,
+                      "height":  751,
+                      "sha256":  "284BE129BB2A41F3294854E544803B3FE5C4B689B9562A6F5E6BCB5A308021F1",
+                      "modifiedAt":  "2026-10-18T10:45:47"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind2026-new4.png",
+                      "bytes":  37321,
+                      "width":  1279,
+                      "height":  751,
+                      "sha256":  "02D1FA04365939B73EF8C21E2F62BBD1CA48A45F663ABF98F6AB683D71A6AF4F",
+                      "modifiedAt":  "2026-10-18T10:46:03"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind2026-selected.png",
+                      "bytes":  37934,
+                      "width":  1279,
+                      "height":  751,
+                      "sha256":  "031BB957B2DAF16BF39C1D0D5E3714BBFD4FCBA91244C3751FD3C50DDA9562BF",
+                      "modifiedAt":  "2026-10-18T10:46:14"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind2026-type-ladder.png",
+                      "bytes":  33091,
+                      "width":  1279,
+                      "height":  751,
+                      "sha256":  "554351AD11B12D1B296727638FA4F02B0ECE74CCF6DD0DF299569484E6CB887B",
+                      "modifiedAt":  "2026-10-19T13:11:19"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind2026-window.png",
+                      "bytes":  87296,
+                      "width":  1279,
+                      "height":  751,
+                      "sha256":  "DD893E45C83DACF3838D211A6D9D389871123FB799A6CC84C85ADC886FD081B0",
+                      "modifiedAt":  "2026-10-18T10:44:56"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind2026-zoomout.png",
+                      "bytes":  47838,
+                      "width":  1279,
+                      "height":  751,
+                      "sha256":  "E3EAC6049F6AF2A831609B488C00E9C18BD86C45ED245398CF438A334F6F94A7",
+                      "modifiedAt":  "2026-10-18T10:45:25"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind-26.5.1107/live/default-map-selected.png",
+                      "bytes":  65090,
+                      "width":  1270,
+                      "height":  751,
+                      "sha256":  "83D72EF9A360C63B47ED3FC7BA017C333FCFCB4C328F597ECFF0B9E931C47C72",
+                      "modifiedAt":  "2026-10-22T05:37:14"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind-26.5.1107/live/export-menu.png",
+                      "bytes":  55603,
+                      "width":  1270,
+                      "height":  751,
+                      "sha256":  "5D5F972C7E4527A7DB4D2A221D9C4EDD097B0CD6FD293BF5C0BD792472D23C0C",
+                      "modifiedAt":  "2026-10-22T06:07:56"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind-26.5.1107/live/home-clean.png",
+                      "bytes":  28469,
+                      "width":  1024,
+                      "height":  751,
+                      "sha256":  "2128E19767DA962E57159574C4B6E50EA91C24AD34D50D18C5011ACD34E7570B",
+                      "modifiedAt":  "2026-10-22T06:14:25"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind-26.5.1107/live/navigation-panel.png",
+                      "bytes":  52384,
+                      "width":  1270,
+                      "height":  751,
+                      "sha256":  "3CA4241A42E288B7DD9FF8D52CB0441A0BB9D4093146E5C950A0F79D7FBAC77C",
+                      "modifiedAt":  "2026-10-22T05:56:48"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind-26.5.1107/live/navigation-search.png",
+                      "bytes":  46460,
+                      "width":  1270,
+                      "height":  751,
+                      "sha256":  "EC8BED7CA0D4E2DB3FFB10A5A3DB8FE41AFC6072A41371AAF5D4B9000FBDCA2E",
+                      "modifiedAt":  "2026-10-22T05:58:32"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind-26.5.1107/live/node-context-menu.png",
+                      "bytes":  74677,
+                      "width":  1270,
+                      "height":  751,
+                      "sha256":  "F89E8CDCEDFF7B4AE0789457E269208B9BEAC2B1134E7E78BAE8BFECEB745698",
+                      "modifiedAt":  "2026-10-22T05:40:59"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind-26.5.1107/live/outline-default.png",
+                      "bytes":  38847,
+                      "width":  1270,
+                      "height":  751,
+                      "sha256":  "6DC6ECD5E42303F8C8F69E168FEE28F95B61F5F9C01DEB554E80B3E991BD06F9",
+                      "modifiedAt":  "2026-10-22T05:48:40"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind-26.5.1107/live/outline-edit-empty.png",
+                      "bytes":  39575,
+                      "width":  1270,
+                      "height":  751,
+                      "sha256":  "161E8DA772046C19D9D846C76B244C4078139EBC50E4009767788B55DB0C0608",
+                      "modifiedAt":  "2026-10-22T05:54:47"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind-26.5.1107/live/outline-edit-text.png",
+                      "bytes":  41026,
+                      "width":  1270,
+                      "height":  751,
+                      "sha256":  "41EA3425A9FEA31B8A22844D3C27313952A45D702AE62F2E5A07BC7414A4C4EF",
+                      "modifiedAt":  "2026-10-22T05:55:49"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind-26.5.1107/live/outline-multi-select.png",
+                      "bytes":  39586,
+                      "width":  1270,
+                      "height":  751,
+                      "sha256":  "853E83BB41D8DAF1E06C556897BDA4FC0202255F22F3C58FF6503A1AF288CF15",
+                      "modifiedAt":  "2026-10-22T05:51:49"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind-26.5.1107/live/presentation-default.png",
+                      "bytes":  38628,
+                      "width":  1280,
+                      "height":  800,
+                      "sha256":  "892B6FA789C348821992C9D4AED3B903F4633CCECAFA826E6273AB30FDA951BC",
+                      "modifiedAt":  "2026-10-22T06:04:59"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind-add.png",
+                      "bytes":  43769,
+                      "width":  1280,
+                      "height":  800,
+                      "sha256":  "C3800102285A78B001311C5F84A5C21627D34EAD71DD06BE4A9C8F322A600EA3",
+                      "modifiedAt":  "2026-10-21T00:29:43"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind-alt.png",
+                      "bytes":  43769,
+                      "width":  1280,
+                      "height":  800,
+                      "sha256":  "C3800102285A78B001311C5F84A5C21627D34EAD71DD06BE4A9C8F322A600EA3",
+                      "modifiedAt":  "2026-10-21T00:29:21"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind-context.png",
+                      "bytes":  43769,
+                      "width":  1280,
+                      "height":  800,
+                      "sha256":  "C3800102285A78B001311C5F84A5C21627D34EAD71DD06BE4A9C8F322A600EA3",
+                      "modifiedAt":  "2026-10-21T00:28:50"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind-edit.png",
+                      "bytes":  43769,
+                      "width":  1280,
+                      "height":  800,
+                      "sha256":  "C3800102285A78B001311C5F84A5C21627D34EAD71DD06BE4A9C8F322A600EA3",
+                      "modifiedAt":  "2026-10-21T00:30:11"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind-edit2.png",
+                      "bytes":  43769,
+                      "width":  1280,
+                      "height":  800,
+                      "sha256":  "C3800102285A78B001311C5F84A5C21627D34EAD71DD06BE4A9C8F322A600EA3",
+                      "modifiedAt":  "2026-10-21T00:30:34"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind-edit3.png",
+                      "bytes":  43769,
+                      "width":  1280,
+                      "height":  800,
+                      "sha256":  "C3800102285A78B001311C5F84A5C21627D34EAD71DD06BE4A9C8F322A600EA3",
+                      "modifiedAt":  "2026-10-21T00:31:49"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind-esc.png",
+                      "bytes":  43769,
+                      "width":  1280,
+                      "height":  800,
+                      "sha256":  "C3800102285A78B001311C5F84A5C21627D34EAD71DD06BE4A9C8F322A600EA3",
+                      "modifiedAt":  "2026-10-21T00:33:42"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind-home.png",
+                      "bytes":  101505,
+                      "width":  1280,
+                      "height":  800,
+                      "sha256":  "5E682A8DA835DE5FC44B37E9A48ADAFDD97FC861353A1008FEDFF236D4C0ADBC",
+                      "modifiedAt":  "2026-10-21T00:27:32"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind-home2.png",
+                      "bytes":  43769,
+                      "width":  1280,
+                      "height":  800,
+                      "sha256":  "C3800102285A78B001311C5F84A5C21627D34EAD71DD06BE4A9C8F322A600EA3",
+                      "modifiedAt":  "2026-10-21T00:28:06"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind-menu.png",
+                      "bytes":  43769,
+                      "width":  1280,
+                      "height":  800,
+                      "sha256":  "C3800102285A78B001311C5F84A5C21627D34EAD71DD06BE4A9C8F322A600EA3",
+                      "modifiedAt":  "2026-10-21T00:26:55"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind-msgclick.png",
+                      "bytes":  43769,
+                      "width":  1280,
+                      "height":  800,
+                      "sha256":  "C3800102285A78B001311C5F84A5C21627D34EAD71DD06BE4A9C8F322A600EA3",
+                      "modifiedAt":  "2026-10-21T00:33:15"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind-tab.png",
+                      "bytes":  43769,
+                      "width":  1280,
+                      "height":  800,
+                      "sha256":  "C3800102285A78B001311C5F84A5C21627D34EAD71DD06BE4A9C8F322A600EA3",
+                      "modifiedAt":  "2026-10-21T00:31:07"
+                  },
+                  {
+                      "path":  "../shots/reference/xmind-toggle2.png",
+                      "bytes":  43769,
+                      "width":  1280,
+                      "height":  800,
+                      "sha256":  "C3800102285A78B001311C5F84A5C21627D34EAD71DD06BE4A9C8F322A600EA3",
+                      "modifiedAt":  "2026-10-21T00:32:36"
+                  }
+              ]
+}

@@ -1,0 +1,8 @@
+# content-kit-hover · 悬停标签行（TagText hover 底 + 下划线）
+# 坐标按 content-kit 基线校准（1200×860 @ppp1.5，见 content_kit::gallery_anchors）。
+# 顺序：先悬停 TextAction 行（验证下划线），再落回标签行收尾截图。
+wait 10
+hover 215 432
+wait 2
+hover 215 365
+wait 2

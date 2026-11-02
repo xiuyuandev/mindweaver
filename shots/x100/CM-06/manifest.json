@@ -1,0 +1,73 @@
+{
+  "package": "CM-06",
+  "status": "已实现",
+  "date": "2026-10-26",
+  "design_contract": "docs/30 §4.2（卡片绑定三态）、§5.6（与笔记联动）",
+  "execution_contract": "docs/31 §6（CM-06）",
+  "batch": "M 轨 M2（CM-06..08）",
+  "gate": "G-CM-2（未开）",
+  "scenes": ["cm-card-link", "cm-card-link-back"],
+  "themes": ["snow"],
+  "dpi": [1.0],
+  "scripts": [],
+  "evidence": [
+    "shots/x100/CM-06/report.md",
+    "shots/x100/CM-06/cm-card-link.trace.txt",
+    "shots/x100/CM-06/cm-card-pick.png",
+    "shots/x100/CM-06/gate-summary.txt",
+    "shots/golden/cm-card-link/shell-ppp1.00.png",
+    "shots/golden/cm-card-link-back/shell-ppp1.00.png"
+  ],
+  "old_hashes": {
+    "shots/golden/cm-default/shell-ppp1.00.png": "5b0d9dc4da7c680e24173b29ebbaa6afba482b156d4e8b3862d47958a8874cb0",
+    "shots/golden/cm-narrow/shell-ppp1.50.png": "fc7f31f1a4c49138e2d429a919adfa1c067d3db4f4015b0b9e33b0d4646d872c",
+    "shots/golden/cm-arrange/shell-ppp1.00.png": "56bc40170f3de479e820324669b63c67c8f9b1193b40f1ae606ed9272ac2ab92",
+    "shots/golden/cm-crosslink/shell-ppp1.00.png": "f2e948d1b9ac0eca26a113e18e8aa0214c617652ed8df799a18f0ead0e5b7966",
+    "shots/golden/library/shell-ppp1.50.png": "561fa6cea15bdb9fe38ce9a184ab7b74422a059a151c2e567fa5055b1b0d1939",
+    "shots/golden/card-slash/shell-ppp1.50.png": "3e3cd8833a0f196bb4c2cfa4f3abad13a1f5bafb56bd62d8bdbe2612cfc32b56"
+  },
+  "new_hashes": {
+    "shots/golden/cm-card-link/shell-ppp1.00.png": "b7d11182b516c57734e85c77d67f1d820b6abe8b30e179200482e624908627a4",
+    "shots/golden/cm-card-link-back/shell-ppp1.00.png": "1ee059f441784f90fafc291b7c9112bb482364f6e354186144f20ff1896b6e91"
+  },
+  "tests": { "passed": 805, "failed": 0 },
+  "golden": {
+    "runs": 2,
+    "diffs": 0,
+    "tol": 0,
+    "note": "两遍各 37 组全 0 差异；新增 cm-card-link / cm-card-link-back 双跑一致；cm-default / cm-narrow / cm-arrange / cm-crosslink / library / card-slash 逐字节未变（来源行的改动不碰没有 sourceNode 的演示卡片）"
+  },
+  "engineering": {
+    "fmt": "clean",
+    "clippy_mw_shell_new": 0,
+    "clippy_mw_shell_historical": "export_pdf.rs 3 + panels/outline.rs 1（均为本包之前既有）",
+    "release_build": "pass",
+    "stage_gate": "scripts/x100-stage-b-gate.ps1 PASS（0 差异，37 comparisons ×2，终局 03:34:25）"
+  },
+  "changes": {
+    "code": [
+      "crates/mw-core/src/document.rs（layout_kind / is_concept_map / display_title / linkable_cards + 3 tests）",
+      "crates/mw-shell/src/app_methods_3.rs（card_reader_for 来源语义 + card_sources() + jump_to_source() 统一回跳落地 + library_ui 传 Extras）",
+      "crates/mw-shell/src/note_view.rs（SourceLink.concept_map、来源行 `文档名 · 概念名`、同名不画角标、按钮「回到概念」）",
+      "crates/mw-shell/src/note_library.rs（CardSource + phrase() + Extras 打包 + 来源行/按钮文案 + 1 test）",
+      "crates/mw-shell/src/panels/inspector.rs（Action::LinkCard、card_pick 状态、open_card_picker）",
+      "crates/mw-shell/src/panels/inspector/inspector_methods_1.rs（card_section 三态 + card_pick_list 候选列表 + 按文档类型换「概念/主题」措辞）",
+      "crates/mw-shell/src/collection.rs（导出包来源 `概念 · x` / `主题 · x`）",
+      "crates/mw-shell/src/main.rs（IA::LinkCard 落地、JumpToNode 走 jump_to_source）",
+      "crates/mw-shell/src/app_methods_1.rs（MW_CONCEPT_CARD / MW_CONCEPT_CARD_BACK / MW_CARD_PICK 演示入口）"
+    ],
+    "docs": [
+      "scripts/x100-stage-b-gate.ps1 增 cm-card-link / cm-card-link-back（35→37 组）",
+      "PLAN.md §4 记录新增基线与「旧基线 0 漂移」"
+    ],
+    "wiring": "绑卡仍只走 `SetNodeCard` / `AttachNewCard` 两条既有命令；回跳只有 `jump_to_source` 一个落地点，卡片页按钮与笔记库按钮共用"
+  },
+  "known_gaps": [
+    "笔记库整体重排（三栏 / 来源面包屑版式）属 G-B2-2，本包只改「来源这一行写什么」",
+    "卡片页里没有「解绑」入口（解绑在检查器/笔记库侧）",
+    "跨文档回跳仍 toast「来源概念不在当前文档里」",
+    "MW_CONCEPT_CARD 用 replace_session 造初始文档，会盖掉同一次启动里 MW_CONCEPT_CROSS 的交叉连接（两个变量不同时用）",
+    "检查器头部类型字仍写「分支主题」（SE 轨的检查器重做范围）",
+    "概念图选中环在浅色主题下偏淡（既有效果，本包未调）"
+  ]
+}

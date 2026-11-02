@@ -1,0 +1,6 @@
+# C17：概念图命题短语进检索 —— 结果行
+wait 8
+key ctrl+f
+wait 4
+text 支撑
+wait 8

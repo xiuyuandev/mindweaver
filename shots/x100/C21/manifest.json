@@ -1,0 +1,79 @@
+{
+  "package": "C21",
+  "title": "三车道以上平行命题的等距避让",
+  "status": "已实现（mw-core 单测与 clippy 绿；cm-parallel-3 基线已拍并双跑零差异；stage-cm 整门待复跑）",
+  "date": "2026-11-01",
+  "round": 63,
+  "track": "打磨轮（docs/x100/polish-ledger.md C15 行的「已知粗糙」；docs/30 §5.4）",
+  "contract": {
+    "design": "docs/30 §5.4「同一对概念之间允许多条命题」；C15 的分车道实现（跨源节点收齐 + 法向常量扇开 + 切线常量 24）",
+    "code": [
+      "crates/mw-core/src/concept_layout.rs::proposition_label_offsets（新增纯函数：按实测短语宽自适应切线偏移，≥3 条保证净空 ≥ 24；≤2 条逐位走旧公式）",
+      "crates/mw-core/src/concept_layout.rs::PROPOSITION_LABEL_CLEARANCE / _HEIGHT / _MIN_W / _LEGACY_STEP（新增常量）",
+      "crates/mw-core/src/scene.rs::concept_lanes（组值改为 (id, 实测短语宽)；按无向对预计算 concept_lane_steps）",
+      "crates/mw-core/src/scene.rs::label_at（查表取偏移；曲线/法向/端点汇合均未改）",
+      "scripts/clippy-baseline.txt（仅两处既有 type_complexity 行号平移：717→795、1051→1045）"
+    ],
+    "note": "不改数据模型 / .zmind / Node / NoteCard / mw-render ABI / mw-shell；不改 bowed_straight 与 CONCEPT_LANE_GAP"
+  },
+  "deliverables": {
+    "report": "shots/x100/C21/report.md",
+    "manifest": "shots/x100/C21/manifest.json",
+    "proposed_input": "shots/golden/inputs/cm-parallel-3.txt"
+  },
+  "scenes": [
+    {
+      "name": "cm-parallel-3",
+      "status": "已拍（--tol 0 双跑零差异，sha256-12 6BA2BF3A32FE）",
+      "dir": "shots/golden/cm-parallel-3",
+      "env": "MW_CONCEPT_DEMO=1; MW_CONCEPT_PARALLEL=2; MW_WINDOW_SIZE=1280x800",
+      "note": "壳层旋钮已由打磨轮负责人改成数量：值是再补几条，=1 与 C15 逐位一致（cm-parallel-select-a/b 用 =1），=2 凑出 3 条车道；无输入脚本。"
+    }
+  ],
+  "tests": {
+    "before": 305,
+    "after": 316,
+    "new": [
+      "concept_layout::tests::one_lane_label_offset_is_always_zero",
+      "concept_layout::tests::two_lane_offsets_match_the_legacy_constant_step_bit_for_bit",
+      "concept_layout::tests::three_equal_lanes_get_real_clearance_and_stay_symmetric",
+      "concept_layout::tests::three_lanes_on_a_horizontal_edge_pay_for_their_width",
+      "concept_layout::tests::diagonal_tangent_uses_the_projected_half_extent",
+      "concept_layout::tests::five_lanes_with_mixed_widths_never_crowd",
+      "concept_layout::tests::degenerate_inputs_stay_finite_and_spaced",
+      "concept_layout::tests::three_lane_scene_keeps_24_world_unit_label_clearance",
+      "concept_layout::tests::short_edge_three_lanes_do_not_overlap",
+      "concept_layout::tests::mixed_direction_three_lanes_share_one_band"
+    ],
+    "existing": [
+      "scene::tests::opposite_propositions_between_the_same_pair_also_take_lanes",
+      "scene::tests::parallel_proposition_labels_do_not_overlap_on_a_vertical_edge",
+      "scene::tests::crossing_bow_leaves_a_lane_curve_alone",
+      "scene::tests::a_lone_proposition_still_runs_straight_between_the_boxes",
+      "hit::tests::parallel_propositions_are_individually_hittable"
+    ],
+    "note": "mw-core lib 305 → 316（C21 新增 10；门日志 10:31 的 302 是更早快照；差额含并行代理同期新增的 1 条）"
+  },
+  "measured": {
+    "before_three_lane_vertical": "相邻短语净空 4.00 世界单位",
+    "before_three_lane_short_edge": "相邻短语盒真重叠：x 12.00 / y 12.85（净空 0）",
+    "after_three_lane_vertical": "切线偏移 [-44, 0, 44]，相邻净空 24.00",
+    "after_three_lane_short_edge": "切线偏移 [-60, 0, 60]，相邻净空 24.00",
+    "after_five_lane_mixed": "相邻净空 24.00–64.00，整条带对称，中车道 0"
+  },
+  "gate": {
+    "script": "cargo test -p mw-core / cargo clippy -p mw-core --all-targets",
+    "result": "PASS（316 passed / 0 failed；clippy 指纹 current=14 / baseline=35 / added=0）",
+    "golden": "cm-parallel-3 已重拍并二次 --tol 0 全过；整门与 SE-12/M7b/M31 一起复跑"
+  },
+  "behaviour_change": "同一对概念之间的 3 条及以上平行命题，短语沿切线的间距不再固定 24，而是按每条短语实测盒宽的投影半宽分配，相邻盒净空 ≥ 24；整条带以中车道为 0 对称展开。1/2 条命题的几何逐位不变。",
+  "affected_baselines": "无。概念图模板没有任何一对概念有 ≥3 条命题；cm-parallel-select-a/b 是唯一的 2 车道夹具（走逐位保留的旧公式）；cm-crosslink 的两条都是新对（ln=1）。",
+  "data_model": "零新字段；不升 FORMAT_VERSION、无迁移",
+  "known_gaps": [
+    "3+ 车道金样未拍；stage-cm 门未跑",
+    "实机鼠标手感 / 高 DPI 未核",
+    "短边（裁后 < 120）的法向车道间距仍可能 < 20，靠切线避让；标签可能伸到端点外",
+    "端点汇合区的点选歧义是曲线几何，未改",
+    "水平长短语的切线跨度较大（5 车道例最外两条相距 556），是保证净空的代价；法向参与分配需另批"
+  ]
+}

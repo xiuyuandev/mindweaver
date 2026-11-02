@@ -1,0 +1,38 @@
+{
+  "package": "CER-06",
+  "status": "已实现",
+  "date": "2026-10-25",
+  "design_contract": "docs/28 §5.3、§4.3、§4.6",
+  "execution_contract": "docs/29 §6（X63/X69 范围并入）",
+  "batch": "B2-A",
+  "gate": null,
+  "scenes": ["outline", "outline-focus", "outline-compact", "outline-narrow", "outline-hover-select"],
+  "themes": ["snow"],
+  "dpi": [1.5],
+  "scripts": ["shots/golden/inputs/outline-hover-select.txt"],
+  "evidence": ["shots/x100/CER-06/report.md", "shots/x100/CER-06/scripts/"],
+  "old_hashes": {
+    "shots/golden/outline/shell-ppp1.50.png": "bd39b43d7087de13 (153733B)",
+    "shots/golden/outline-focus/shell-ppp1.50.png": "74741253205d04c8 (106589B)",
+    "shots/golden/outline-compact/shell-ppp1.50.png": "bd39b43d7087de13 (153733B)",
+    "shots/golden/outline-narrow/shell-ppp1.50.png": "a82230285f16c76f (123787B)"
+  },
+  "new_hashes": "重拍后以 shots/golden/outline*/shell-ppp1.50.png 现文件为准（双跑 --tol 0 锁定）；outline-hover-select 为新增场景",
+  "tests": { "passed": 781, "failed": 0 },
+  "golden": { "runs": 2, "diffs": 0, "tol": 0, "note": "5 个 outline 场景双跑 0（hover-select 三跑 0）；机器门矩阵双跑 PASS（target/x100/cer-06-golden.log）" },
+  "engineering": {
+    "fmt": "clean",
+    "clippy_mw_shell_new": 0,
+    "release_build": "pass"
+  },
+  "changes": {
+    "code": [
+      "crates/mw-shell/src/panels/outline.rs（状态色迁 content 令牌、删描边、圆角 6、编辑底、行悬停双源修复、pin/键盘焦点分离、删 mix32、+1 单测）"
+    ],
+    "visual": "状态表按 docs/28 §5.3 落地；默认画面无环、hover/selected/hover+selected 均有实拍"
+  },
+  "known_gaps": [
+    "键盘焦点环四主题截图未完成：键盘焦点起点存在非确定性（试拍基线已删除），修复列入 CER-06 续轮或 CER-07",
+    "拖拽源/目标状态、搜索命中高亮属 CER-09/CER-10"
+  ]
+}

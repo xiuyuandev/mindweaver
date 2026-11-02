@@ -1,0 +1,6 @@
+wait 3
+click 661 442
+sleep 600
+doubleclick 661 442
+wait 3
+move 1500 200

@@ -1,0 +1,14 @@
+wait 4
+key Tab
+key Tab
+key Tab
+key Tab
+key Tab
+key Tab
+key Tab
+key Tab
+wait 8
+# 收尾把指针移出窗口：本场景有最近文件行，脚本存在时 harness 不清桌面指针，
+# 悬停 wash 会随桌面光标位置漂进基线（CER-09 门检时发现）。
+move 24 690
+wait 2

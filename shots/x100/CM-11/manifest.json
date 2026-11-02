@@ -1,0 +1,65 @@
+{
+  "package": "CM-11",
+  "title": "概念图复制 / 粘贴 / Ctrl+D / Ctrl+拖拽与选中底色",
+  "status": "已实现（两道 golden 门绿；实机拖拽手感未核，不记已验证）",
+  "date": "2026-10-30",
+  "track": "M 轨 概念图（docs/30 §5.2/§5.3/§5.7；docs/31 CM-11）",
+  "contract": {
+    "design": "docs/30 §5.2「概念图不用 parent/children 表达关系」+ §5.3「选中 8% 强调底、悬停 4% 强调底」；副本必须是独立浮动概念，位置自由，关系线沿用 propositions",
+    "execute": "docs/31 §3 CM 轨纪律与 §6 CM-11；data 侧遵守 docs/32（不改字段、不迁移、不升 FORMAT_VERSION）",
+    "audit": "开工前对过代码：四条路径（copy_subtrees / paste_under / duplicate_command / commit_concept_move 的 copy 分支）都走树语义，会造出 parent->child 或忽略复制标记；见 report.md §1"
+  },
+  "code": [
+    "mw-core/src/command.rs（Command::InsertConcepts { nodes }，label「粘贴概念」）",
+    "mw-core/src/document.rs（apply 校验：仅概念图 / 非空 / id 唯一 / 禁父子结构 / pos 有限 / text 合规 / 卡片 1:1 冲突拒绝；一条命令一次撤销）",
+    "mw-shell/src/canvas.rs（concept_snapshot 只取概念不带子树；concept_clone_command 换 id、重映射内部关系、card_id=None、整体偏移、fallback 4 列铺开）",
+    "mw-shell/src/canvas/canvas_methods_1.rs（Ctrl+V 走概念路径；Ctrl+D 复制副本；整批选中副本）",
+    "mw-shell/src/canvas/canvas_methods_3.rs（Ctrl+拖拽复制，原件不动，走同一条命令）",
+    "mw-render/src/instances.rs（SELECT_FILL=0.08 / HOVER_FILL=0.04，先铺底再画环）",
+    "shots/golden/inputs/mm-drag-{child,before,after}.txt、mm-toggle-edge.txt（末尾 sleep 160，让 60ms 吸附/过渡落定）",
+    "shots/x100/X11–X16、X20 manifest.json（docs/16 归档路径修正）"
+  ],
+  "scenes": [
+    "cm-copy-paste",
+    "cm-crosslink",
+    "cm-rel-adjacent",
+    "cm-rel-hover",
+    "mm-drag-child",
+    "mm-drag-before",
+    "mm-drag-after",
+    "mm-toggle-edge",
+    "selected"
+  ],
+  "evidence": {
+    "baselines": "26 个 shell 场景 + canvas-ppp1.00 + 3 张 shots/render/offscreen-zoom*.png 因选中底色重拍；所有差异只在选中/悬停节点盒内，最大通道差 ≤ 16。代表：cm-crosslink 7763 px / 0.337% / max 16 / bbox (466,376)-(610,430)；mm-drag-child 11592 px / 0.663% / max 14 / bbox (536,601)-(716,666)；selected 12181 px / 0.696% / max 9 / bbox (546,407)-(738,470)",
+    "unit_tests": "inserting_concepts_keeps_them_floating_and_undoes_in_one_step / insert_concepts_is_concept_map_only_and_rejects_tree_payloads / inserting_a_concept_does_not_steal_an_already_bound_card / concept_copy_preserves_propositions_but_never_parent_links / tree_clipboard_pastes_as_independent_concepts_without_parents",
+    "ran": {
+      "full": "968 passed / 0 failed / 1 ignored（--test-threads=1，TEMP/TMP 重定向）",
+      "fmt": "cargo fmt --all -- --check exit 0",
+      "clippy": "cargo clippy --workspace --all-targets 与基线比新增 0"
+    },
+    "gates": "stage-b PASS 118 场 / 236 次比较（--tol 0，2026-10-30 13:36:57）；stage-cm PASS 49 场 / 98 次比较（--tol 0，2026-10-30 13:48:59）",
+    "trace": "shots/x100/CM-11/trace.txt：clipboard Copy → concept-copy n=1 dx=32.0 dy=44.0 → clipboard Paste"
+  },
+  "tests": {
+    "new": [
+      "mw-core::document::tests::inserting_concepts_keeps_them_floating_and_undoes_in_one_step",
+      "mw-core::document::tests::insert_concepts_is_concept_map_only_and_rejects_tree_payloads",
+      "mw-core::document::tests::inserting_a_concept_does_not_steal_an_already_bound_card",
+      "mw-shell::canvas::tests::concept_copy_preserves_propositions_but_never_parent_links",
+      "mw-shell::canvas::tests::tree_clipboard_pastes_as_independent_concepts_without_parents"
+    ],
+    "total": "全库 963 → 968 passed / 0 failed / 1 ignored；fmt 干净，clippy 新增 0"
+  },
+  "non_goals": {
+    "字段与格式": "不新增 .zmind 字段、不改 FORMAT_VERSION、不做迁移",
+    "卡片绑定": "副本一律解绑（一张卡片只能被一个节点关联）",
+    "外部关系": "只保留两端都在本次复制集合内的命题",
+    "思维导图语义": "树文档的复制/粘贴保持原样"
+  },
+  "open": {
+    "实机连续拖拽 / 跨文档粘贴": "无头脚本与单测只能验语义；手感未核，不记已验证",
+    "复制概念同时复制卡片": "属数据模型变更，需单独批准",
+    "四主题 × 多 DPI 选中底色": "人工色彩判读未做"
+  }
+}

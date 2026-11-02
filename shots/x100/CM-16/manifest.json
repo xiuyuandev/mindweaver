@@ -1,0 +1,66 @@
+{
+  "package": "CM-16",
+  "title": "关系线线型（实线/虚线）、线宽三档与命题注释",
+  "status": "已实现（单测绿；基线未拍，不记已验证）",
+  "date": "2026-11-01",
+  "track": "M 轨 概念图（docs/30 §5.4.3；docs/32 §12.1/§12.2）",
+  "contract": {
+    "design": "docs/30 §5.4.3（本轮新增）：线型两档、虚线 6/4 世界单位、线宽三档屏幕空间恒定、注释不进检索不画角标；§5.2 记下用户拍板的字段例外",
+    "execute": "docs/32 §12.1 / §12.2 的字段方案（三个可选键，不升 FORMAT_VERSION、不做迁移）",
+    "audit": "来源是 CM-15 复审（docs/30 §12.2）列的 8 项缺口，用户 2026-11-01 拍板先做第 18/19 项"
+  },
+  "code": [
+    "mw-core/src/model.rs（Relationship 新增 dashed/width/note + width_css()；is_false 跳过默认）",
+    "mw-core/src/command.rs（SetRelationshipDashed / SetRelationshipWidth / SetRelationshipNote + 撤销文案）",
+    "mw-core/src/document.rs（三条 apply 分支：线宽 0.5–6.0 校验、注释空串归一、超长复用 NoteTooLong；反向连接带走三个属性）",
+    "mw-core/src/scene.rs（SceneRelationship.dashed/.width；REL_DASH=[6,4]；blend 插值线宽）",
+    "mw-render/src/instances.rs（按 r.width 画线；push_dashed_curve + 纯函数 dash_walk，相位跨拐点连续）",
+    "mw-shell/src/export_svg.rs（path_elt_styled + stroke-dasharray）",
+    "mw-shell/src/export_pdf.rs（stroke_path_styled + [6 4] 0 d）",
+    "mw-shell/src/panels/inspector.rs + inspector_methods_1.rs（线型两段 / 线宽三档 / 注释多行框）",
+    "mw-shell/src/panels/context.rs + app_methods_2.rs（关系线菜单「线型」子菜单，当前档打勾）",
+    "mw-shell/src/canvas/canvas_methods_3.rs（selected_relationship_dashed / set_selected_relationship_dashed / style_relationship_by_label 夹具）",
+    "mw-shell/src/canvas.rs + main.rs + app_methods_1.rs（ConceptHook::RelStyle + MW_CONCEPT_REL_STYLE）",
+    "scripts/x100-stage-cm-gate.ps1（登记 cm-rel-style）"
+  ],
+  "scenes": [
+    "cm-rel-style（夹具已就位，基线待 -Update）"
+  ],
+  "evidence": {
+    "baselines": "未重拍、未新增。本机 cargo golden 拿不到 wgpu 适配器（mw-render/src/compositor.rs:721 写死 VULKAN | GL）。预计另有 cm-arrow-menu 因多出「线型」子菜单而漂",
+    "unit_tests": "relationship_line_style_and_note_are_undoable_and_normalised / reverse_relationship_swaps_ends_keeps_head_and_undoes_in_one_step（已扩） / relationship_line_style_uses_defaults_and_writes_nothing_when_unset / dash_tests::{a_short_line_gets_one_run_and_leaves_the_phase_mid_dash, phase_carries_across_segments_so_a_bend_never_restarts_the_rhythm, a_long_line_alternates_and_ends_exactly_at_the_length, a_degenerate_dash_never_loops_forever} / a_dashed_relationship_exports_a_dash_array",
+    "ran": {
+      "core": "cargo test -p mw-core --lib -- --test-threads=1 → 323 passed / 0 failed",
+      "shell": "canvas:: 135 passed；export_svg:: 14 passed",
+      "render": "cargo test -p mw-render --lib -- dash → 4 passed；全量 28 passed / 3 failed，三条失败均为 glyph.rs「系统里没有可用的中文字族」（本机无桌面会话，与本次改动无关）",
+      "format": "cargo test -p mw-format --lib -- relationship_line_style → 1 passed",
+      "fmt": "cargo fmt --all -- --check 干净",
+      "clippy": "cargo clippy -p mw-shell -p mw-core -p mw-render --all-targets：改动文件新增 0"
+    },
+    "gates": "未跑（依赖 golden，本机无适配器）。缺基线的场景会被门脚本 SKIP 并计数"
+  },
+  "tests": {
+    "new": [
+      "mw-core::document::tests::relationship_line_style_and_note_are_undoable_and_normalised",
+      "mw-format::tests::relationship_line_style_uses_defaults_and_writes_nothing_when_unset",
+      "mw-render::instances::dash_tests::a_short_line_gets_one_run_and_leaves_the_phase_mid_dash",
+      "mw-render::instances::dash_tests::phase_carries_across_segments_so_a_bend_never_restarts_the_rhythm",
+      "mw-render::instances::dash_tests::a_long_line_alternates_and_ends_exactly_at_the_length",
+      "mw-render::instances::dash_tests::a_degenerate_dash_never_loops_forever",
+      "mw-shell::export_svg::tests::a_dashed_relationship_exports_a_dash_array"
+    ],
+    "total": "mw-core 322 → 323；mw-shell canvas 135（不变）、export_svg 13 → 14；mw-render 新增 4"
+  },
+  "non_goals": {
+    "嵌套概念 / 分组": "docs/32 §12.3 仍待拍板，本轮不做",
+    "多选关系线": "选择模型仍是单数（CM-15 第 20 项），本轮不做",
+    "注释角标": "画布上不给命题注释画点（会吃掉短语胶囊的断口留白），只在检查器读",
+    "注释进检索": "Ctrl+F 不搜注释，未做",
+    "第三种线型": "点线/双线不做（§5.4.3 禁令）"
+  },
+  "open": {
+    "基线": "cm-rel-style 待 -Update；cm-arrow-menu 需一并重拍",
+    "虚线观感": "6/4 世界单位在 20% 缩放下接近实线；实机观感未核",
+    "IME": "检查器注释框与备注框同一套 TextEdit，但组合期失焦提交没有实机核对"
+  }
+}

@@ -1,0 +1,8 @@
+# C17：命题结果按 Enter 跳转 —— 选中该边并居中，搜索框不丢焦点
+wait 8
+key ctrl+f
+wait 4
+text 支撑
+wait 8
+key Enter
+wait 8

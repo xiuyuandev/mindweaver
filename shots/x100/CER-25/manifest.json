@@ -1,0 +1,56 @@
+{
+  "id": "CER-25",
+  "title": "笔记库列表行与虚拟化",
+  "date": "2026-11-02",
+  "batch": "B2-C",
+  "status": "已实现（机器证据齐；G-B2-3 人工门未开）",
+  "scope": [
+    "行高 60 / 内边距 12x16：标题 LIST_TITLE 15-22-600、摘要 LIST_EXCERPT 13-19、元信息 LIST_META 12-18，各一行省略（docs/28 §7.4 的 14.5/12.5/11.5 是 TYPO-01 前旧档）",
+    "元信息 = 至多 1 个标签（6px 圆点 + 纯文字）+ 日期，超出用 +n；无卡片底/圆角/阴影",
+    "行间 1px divider 左右内缩 16；hover 4% 中性底、选中 7% 强调底、键盘焦点 1.5px 环",
+    "摘要走 NoteCard::excerpt，待办框方括号不进摘要",
+    "虚拟化：只排可见行 + 余量，行高恒定 60 → 偏移即下标（10k 场 library-long）",
+    "光标随 rows 收缩夹取、两端停住、空库无光标；重排按 id 保住焦点并丢掉缓存正文",
+    "滚动位置 NoteLibrary::list_scroll：切筛选回顶，从阅读面返回保留"
+  ],
+  "files": [
+    "crates/mw-shell/src/note_library/list.rs",
+    "crates/mw-shell/src/note_library.rs",
+    "crates/mw-core/src/note.rs",
+    "crates/mw-shell/src/demo_notes.rs",
+    "crates/mw-shell/src/note_library/tests.rs"
+  ],
+  "scenes": [
+    {"name": "library-long", "sha256_12": "C0F0C05570A6", "warmup": 3, "env": "MW_LIBRARY_DEMO=long MW_WINDOW_SIZE=1280x800", "note": "10000 行（不落盘），侧栏计数 10000、标签树 甲/乙 各 5000；只画可见行"},
+    {"name": "library ppp1.00", "sha256_12": "B664928A31BB", "warmup": 3, "env": "MW_LIBRARY_DEMO=default MW_WINDOW_SIZE=1080x720", "note": "三栏，全部卡片 16 张，看行字阶与省略"},
+    {"name": "library-two-pane", "sha256_12": "69B24846C84B", "warmup": 3, "env": "MW_LIBRARY_DEMO=default MW_WINDOW_SIZE=1080x720", "note": "同一份夹具两栏（css 1080），列表列宽 320-440 档内"}
+  ],
+  "tests": {
+    "new_or_changed": [
+      "note::tests::excerpt_drops_task_list_checkboxes",
+      "note_library::tests::sort_default_is_updated_desc",
+      "note_library::tests::searching_puts_relevance_first",
+      "note_library::tests::plain_click_moves_focus_without_selecting",
+      "note_library::tests::sync_keeps_focus_by_id_across_a_reorder",
+      "note_library::tests::sync_forgets_the_cached_body",
+      "note_library::tests::cursor_is_clamped_when_rows_shrink",
+      "note_library::tests::move_cursor_stops_at_both_ends",
+      "note_library::tests::empty_library_has_no_cursor_and_no_focus",
+      "note_library::tests::double_click_needs_two_hits_on_the_same_id",
+      "note_library::tests::double_click_window_is_400ms"
+    ],
+    "supporting": [
+      "note::tests::excerpt_drops_markdown_noise_and_stays_single_line",
+      "note::tests::a_blank_title_still_has_a_readable_name",
+      "note::tests::tags_are_trimmed_deduped_and_capped",
+      "note::tests::validation_rejects_oversized_values",
+      "note::tests::sorts_are_total_and_stable（CER-22 拥有）",
+      "note_store::tests::search_thousand_cards_is_bounded",
+      "note_store::tests::one_thousand_cards_rebuild_without_losing_order_or_content"
+    ]
+  },
+  "not_done": [
+    "10k 滚动 >=55fps 无实机帧率证据（离屏无 vsync）：只证明每帧只排可见行 + 10k 首屏双跑零差异",
+    "摘要按字宽截断不按词边界（中文优先，英文长词会被切）"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "package": "CM-03",
+  "title": "概念图连线与链接短语（四件事）",
+  "status": "已实现（本包范围；G-CM-1 门未开）",
+  "date": "2026-10-26",
+  "track": "M 轨 概念图（docs/31 §6；依赖 CM-01 / CM-02）",
+  "_note": "补记（2026-10-29，打磨轮 17）：本包当时只留了 report.md，没有 manifest；这里按报告原文回填，不新增结论。",
+  "contract": {
+    "design": "docs/30 §5.4 §5.7 §5.9",
+    "execute": "docs/31 §6",
+    "code": [
+      "canvas_methods_3.rs::rel_editor_ui（编辑框去掉描边与内距，字号改 design::content::LIST_META.size）",
+      "RelEdit.ime + ime_transition（组合期 Enter 不再误提交）",
+      "概念图空短语画「＋ 链接词」占位（12px text.dim 居中）",
+      "commit_link：概念图拖出即进短语编辑态；留空 Esc / 失焦仍为空 → DeleteRelationship 把线一起撤掉（RelEdit.blank_new）"
+    ]
+  },
+  "fixes": [
+    "短语编辑框像飘着的控件 → 只留 canvas_bg 底 + 4/2 内距，字号与胶囊同源",
+    "IME 组合中按 Enter 误提交半截拼音 → RelEdit.ime 守卫",
+    "空短语什么都不画 → 「＋ 链接词」占位",
+    "拖出即落盘、Esc 后留无词线 → 概念图留空即删线（一条命令）"
+  ],
+  "tests": {
+    "total_at_the_time": "790 passed / 0 failed（fmt 干净、mw-shell clippy 新增 0）",
+    "note": "中途被 chrome::tests::shell_sources_do_not_hardcode_font_sizes 拦下一次（写了 FontId::proportional(11.5)），改用 design::content::LIST_META.size 后过"
+  },
+  "gate": {
+    "machine": "当时 33 场景双跑 --tol 0（target/x100/stage-b-gate.log）",
+    "human": "G-CM-1 未开"
+  },
+  "behaviour_change": "概念图拖出关系线后会立刻进入短语编辑；留空取消会连那条线一起撤掉；空短语显示「＋ 链接词」占位",
+  "known_gaps": [
+    "没有交互脚本场景（cm-link-create / cm-label-ime 未拍）：拖拽脚本要按相机算世界→屏幕坐标，而概念图相机缩放随包围盒变化",
+    "IME 守卫只有逻辑，没有真实输入法实测（与实机微软拼音同一笔账）",
+    "「＋ 链接词」占位不参与命中（要先点线选中再双击/回车）",
+    "思维导图仍允许空短语落盘（那里的关系线是辅助标注，不是命题）",
+    "交叉处 ≤8px 微弧未做（留 CM-05）"
+  ]
+}

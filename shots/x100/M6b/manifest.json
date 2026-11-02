@@ -1,0 +1,51 @@
+{
+  "id": "M6b",
+  "title": "结构移动的边界反馈（把「按了没反应」说清楚）",
+  "date": "2026-11-01",
+  "round": 60,
+  "status": "已实现（机器门绿；实机键重复率未核）",
+  "scope": [
+    "复核账本 M6 旧结论：跨父级多选 MoveDown 本来就能各自换位（新增单测证伪『什么都不动』）",
+    "纯函数 canvas::move_block_reason(doc, id, delta) -> Root|First|Last|None",
+    "Canvas::move_selected 在移动被拦时给 notice：根主题不能移动 / 已经是第一个同级主题 / 已经是最后一个同级主题 / 选中的主题已经在边界，无法再移动",
+    "轨迹 structure_move_blocked delta=… selected=… reason=Root|First|Last|batch",
+    "新基线 mm-move-blocked 进 stage-b 门（145 → 146 场 / 290 → 292 次比较）"
+  ],
+  "files": [
+    "crates/mw-shell/src/canvas.rs",
+    "crates/mw-shell/src/canvas/canvas_methods_1.rs",
+    "crates/mw-shell/src/canvas/tests.rs",
+    "scripts/x100-stage-b-gate.ps1",
+    "shots/golden/mm-move-blocked/shell-ppp1.00.png",
+    "shots/golden/inputs/mm-move-blocked.txt",
+    "docs/x100/polish-ledger.md"
+  ],
+  "scenes": [
+    {"name": "mm-move-blocked", "warmup": 20, "env": "MW_NOTES=none; MW_GOLDEN_INPUT=shots/golden/inputs/mm-move-blocked.txt", "vs_control": "10760 px / bbox x[16..375] y[1028..1057]（只有底部提示条）", "trace": "structure_move_blocked delta=-1 selected=1 reason=First"}
+  ],
+  "tests": {
+    "before": 1124,
+    "after": 1126,
+    "new": [
+      "canvas::tests::batch_move_cross_parent_moves_each_within_its_own_parent",
+      "canvas::tests::move_block_reason_covers_root_first_last_and_free"
+    ],
+    "existing": [
+      "canvas::tests::batch_move_group_up_and_down_keeps_order_and_respects_edges"
+    ]
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1",
+    "result": "PASS（146 场 / 292 次比较，两遍 --tol 0）",
+    "human_gate": "未开（X20 人工判词不代判）"
+  },
+  "deliverables": [
+    "report.md",
+    "manifest.json",
+    "shell-ppp1.00.png"
+  ],
+  "known_gaps": [
+    "成功移动的路径未加新提示（保持安静）",
+    "实机连按节拍（系统键重复率）仍未量"
+  ]
+}

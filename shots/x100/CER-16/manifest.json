@@ -1,0 +1,381 @@
+{
+  "package": "CER-16",
+  "title": "单一表面编辑引擎与语法揭示（片段级，第一步）",
+  "status": {
+    "part1": "已实现",
+    "part2": "已实现（实机 IME 未核对）"
+  },
+  "date": "2026-10-28",
+  "scenes": [
+    {
+      "name": "card-reveal",
+      "dir": "shots/golden/card-reveal",
+      "ppp": 1,
+      "size": "1800x1200",
+      "sha256_12": "B391E701D2C4",
+      "env": {
+        "MW_CARD_REVEAL": "1",
+        "MW_WINDOW_SIZE": "1200x1000",
+        "MW_GOLDEN_INPUT": "shots/golden/inputs/card-reveal.txt"
+      },
+      "shows": "光标进 `**粗体**` → 只有这一段的 `**` 露出"
+    },
+    {
+      "name": "card-reveal-block",
+      "dir": "shots/golden/card-reveal-block",
+      "ppp": 1,
+      "size": "1800x1200",
+      "sha256_12": "1B1629B01164",
+      "env": {
+        "MW_CARD_REVEAL": "1",
+        "MW_WINDOW_SIZE": "1200x1000",
+        "MW_GOLDEN_INPUT": "shots/golden/inputs/card-reveal-block.txt"
+      },
+      "shows": "光标在 `## 小标题` 行 → 只有块标记 `##` 露出"
+    },
+    {
+      "name": "card-reveal-link",
+      "dir": "shots/golden/card-reveal-link",
+      "ppp": 1,
+      "size": "1800x1200",
+      "sha256_12": "A315DB5F2177",
+      "env": {
+        "MW_CARD_REVEAL_LINK": "1",
+        "MW_WINDOW_SIZE": "1200x1000",
+        "MW_GOLDEN_INPUT": "shots/golden/inputs/card-reveal-link.txt"
+      },
+      "shows": "光标进 `[织思](url)` → 方括号与 URL 露出，同行的 `[[双链]]` 仍收起"
+    },
+    {
+      "name": "card-enter-continue",
+      "dir": "shots/golden/card-enter-continue",
+      "ppp": 1,
+      "size": "1800x1200",
+      "sha256_12": "D14782EA0C5E",
+      "env": {
+        "MW_CARD_ENTER": "1",
+        "MW_WINDOW_SIZE": "1200x1000",
+        "MW_GOLDEN_INPUT": "shots/golden/inputs/card-enter-continue.txt"
+      },
+      "shows": "第二项行尾回车 → 新行自带 “- ”，继续打字仍是列表项"
+    },
+    {
+      "name": "card-enter-exit",
+      "dir": "shots/golden/card-enter-exit",
+      "ppp": 1,
+      "size": "1800x1200",
+      "sha256_12": "7FD1A5ED664E",
+      "env": {
+        "MW_CARD_ENTER": "1",
+        "MW_WINDOW_SIZE": "1200x1000",
+        "MW_GOLDEN_INPUT": "shots/golden/inputs/card-enter-exit.txt"
+      },
+      "shows": "续写出的空项再回车 → 前缀退掉，变回空段落"
+    },
+    {
+      "name": "card-ime-preedit",
+      "dir": "shots/golden/card-ime-preedit",
+      "ppp": 1,
+      "size": "1800x1200",
+      "sha256_12": "D9AD193E6A09",
+      "env": {
+        "MW_CARD_IME": "1",
+        "MW_WINDOW_SIZE": "1200x1000",
+        "MW_GOLDEN_INPUT": "shots/golden/inputs/card-ime-preedit.txt"
+      },
+      "shows": "组合串原地长出并带下划线；段落 y 与成稿态相同"
+    },
+    {
+      "name": "card-ime-commit",
+      "dir": "shots/golden/card-ime-commit",
+      "ppp": 1,
+      "size": "1800x1200",
+      "sha256_12": "D9B029206B67",
+      "env": {
+        "MW_CARD_IME": "1",
+        "MW_WINDOW_SIZE": "1200x1000",
+        "MW_GOLDEN_INPUT": "shots/golden/inputs/card-ime-commit.txt"
+      },
+      "shows": "确认后下划线消失、字原地不动；与 preedit 只差 1792 px"
+    },
+    {
+      "name": "card-paste-list",
+      "dir": "shots/golden/card-paste-list",
+      "ppp": 1,
+      "size": "1800x1200",
+      "sha256_12": "CC70D59721C2",
+      "env": {
+        "MW_CARD_ENTER": "1",
+        "MW_WINDOW_SIZE": "1200x1000",
+        "MW_GOLDEN_INPUT": "shots/golden/inputs/card-paste-list.txt"
+      },
+      "shows": "多行纯文本粘进列表项，续行也带 “- ”"
+    },
+    {
+      "name": "card-paste-none",
+      "dir": "shots/golden/card-paste-none",
+      "sha256_12": "C32274AB09AD",
+      "bytes": 66115,
+      "ppp": 1,
+      "size": "1800x1200",
+      "env": {
+        "MW_CARD_ENTER": "1",
+        "MW_WINDOW_SIZE": "1200x1000",
+        "MW_GOLDEN_INPUT": "shots/golden/inputs/card-paste-none.txt"
+      },
+      "shows": "什么都没粘的参照帧（relates to card-paste-undo）"
+    },
+    {
+      "name": "card-paste-undo",
+      "dir": "shots/golden/card-paste-undo",
+      "sha256_12": "C32274AB09AD",
+      "bytes": 66115,
+      "ppp": 1,
+      "size": "1800x1200",
+      "env": {
+        "MW_CARD_ENTER": "1",
+        "MW_WINDOW_SIZE": "1200x1000",
+        "MW_GOLDEN_INPUT": "shots/golden/inputs/card-paste-undo.txt"
+      },
+      "shows": "粘两行再按一次 Ctrl+Z —— 与 card-paste-none 逐字节相同"
+    },
+    {
+      "name": "card-instant",
+      "dir": "shots/golden/card-instant",
+      "ppp": 1,
+      "env": {
+        "MW_CARD_INSTANT": "1",
+        "MW_WINDOW_SIZE": "1200x1000",
+        "MW_GOLDEN_INPUT": "shots/golden/inputs/card-instant.txt"
+      },
+      "shows": "逐格敲 - / 1. / ## + 空格：三行当场成块（缓冲区区 trace 同步核对）",
+      "size": "1800x1200",
+      "sha256_12": "EE8063FF0B23"
+    },
+    {
+      "name": "card-instant-undo",
+      "dir": "shots/golden/card-instant-undo",
+      "ppp": 1,
+      "env": {
+        "MW_CARD_INSTANT": "1",
+        "MW_WINDOW_SIZE": "1200x1000",
+        "MW_GOLDEN_INPUT": "shots/golden/inputs/card-instant-undo.txt"
+      },
+      "shows": "## + 空格后一次 Ctrl+Z：与 card-instant-enter 逐字节相同（无残留 #）",
+      "size": "1800x1200",
+      "sha256_12": "5510C3FC73A9"
+    }
+  ],
+  "control_only": [
+    {
+      "name": "card-reveal-col0",
+      "dir": "target/x100/reveal-col0",
+      "input": "shots/golden/inputs/card-reveal-col0.txt"
+    },
+    {
+      "name": "card-reveal-off",
+      "dir": "target/x100/reveal-off",
+      "input": null
+    },
+    {
+      "name": "card-reveal-block-col0",
+      "dir": "target/x100/block-col0",
+      "input": "shots/golden/inputs/card-reveal-block-col0.txt"
+    },
+    {
+      "name": "card-reveal-link-col0",
+      "dir": "target/x100/link-col0",
+      "input": "shots/golden/inputs/card-reveal-link-col0.txt"
+    },
+    {
+      "name": "card-enter-nox",
+      "dir": "target/x100/enter-nox",
+      "input": "shots/golden/inputs/card-enter-nox.txt"
+    },
+    {
+      "name": "card-paste-plain",
+      "dir": "target/x100/paste-plain",
+      "input": "shots/golden/inputs/card-paste-plain.txt",
+      "fixture": "MW_CARD_IME"
+    }
+  ],
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1",
+    "scenes": 63,
+    "comparisons": 126,
+    "result": "PASS"
+  },
+  "tests": {
+    "workspace": 891,
+    "note_view": 43,
+    "added": 22
+  },
+  "clippy": {
+    "current": 37,
+    "baseline": 37,
+    "added": 0
+  },
+  "diffs": {
+    "card-reveal vs col0": {
+      "px": 2074,
+      "bbox": [
+        539,
+        219,
+        682,
+        250
+      ]
+    },
+    "card-reveal-block vs col0": {
+      "px": 1709,
+      "bbox": [
+        539,
+        219,
+        640,
+        321
+      ],
+      "note": "标题行整行右移 35px（`## ` 宽），段落行与列表行逐簇不变"
+    },
+    "card-reveal-link vs col0": {
+      "px": 2549,
+      "bbox": [
+        539,
+        219,
+        870,
+        251
+      ],
+      "note": "URL 墨迹出现在 x≥813"
+    }
+  },
+  "notes": [
+    "写第二条单测时发现 inline_spans 缺 `!` 分支：图片 `![` 的 `!` 落在跨度外，光标在图片说明里时永远不露；已修。"
+  ],
+  "part2": {
+    "funcs": [
+      "list_prefix",
+      "enter_edit"
+    ],
+    "tests": 9,
+    "gate": "58/116 零漂移（第 63 轮补两张实拍后）",
+    "ci": "OK",
+    "probes": {
+      "dirs": [
+        "target/x100/ent-a",
+        "target/x100/ent-b",
+        "target/x100/enter-continue",
+        "target/x100/blocks-plain"
+      ],
+      "diff_px": 23077,
+      "bbox": [
+        524,
+        28,
+        1583,
+        1003
+      ],
+      "note": "A 按 Enter 续写、B 不按；差为整页下移，未逐行核对"
+    },
+    "ink_runs": {
+      "card-enter-continue": [
+        [
+          543,
+          547
+        ],
+        [
+          553,
+          566
+        ],
+        [
+          569,
+          582
+        ],
+        [
+          584,
+          600
+        ]
+      ],
+      "card-enter-exit": [
+        [
+          541,
+          554
+        ],
+        [
+          557,
+          570
+        ],
+        [
+          572,
+          587
+        ],
+        [
+          589,
+          601
+        ]
+      ],
+      "card-enter-nox": [
+        [
+          543,
+          547
+        ],
+        [
+          552,
+          567
+        ],
+        [
+          569,
+          582
+        ],
+        [
+          584,
+          599
+        ]
+      ],
+      "note": "continue/nox 首簇 543-547（5px 短横）后再缩进起字；exit 首簇 541-554（14px 宽的字，无短横）→ 前缀确实退掉"
+    },
+    "status": "已实现（缺 IME 门，与 CER-17 合判）",
+    "remaining": [
+      "IME 门（与 CER-17 合判）",
+      "Ctrl+Z 单次撤销的专门验证"
+    ]
+  },
+  "ime": {
+    "scenes": 2,
+    "segments": "(226,241) (258,289) (366,377) (389,400) 两图相同",
+    "diff_px": 1792,
+    "bbox": [
+      652,
+      260,
+      715,
+      287
+    ],
+    "underline": "preedit y=271 x654..695 连续横线；commit 无",
+    "limitation": "构造事件，不是真输入法；真机仍待 CER-07/人工"
+  },
+  "paste": {
+    "scenes": 1,
+    "control": "card-paste-plain",
+    "ink_runs": {
+      "card-paste-list": [
+        [
+          543,
+          547
+        ],
+        [
+          553,
+          568
+        ]
+      ],
+      "card-paste-plain": [
+        [
+          541,
+          556
+        ]
+      ]
+    },
+    "note": "list 版续行首簇是 5px 短横 + 字；plain 版一簇 15px 无短横（夹具无列表，判据干净）"
+  },
+  "undo": {
+    "scenes": 2,
+    "invariant": "card-paste-undo 与 card-paste-none 逐像素相同（diff_px 0，哈希同为 C32274AB09AD）",
+    "mechanism": "带外改动记「改前文本 + 改前光标 + 改后文本」，Ctrl+Z 优先还原该槽；正文被别处改过即作废；还原一次即清空",
+    "tried_and_rejected": "先试过直接给 TextEdit 的 undoer add_undo：egui 下一帧按自己规则再补点，撤销退过头（718 px，包围盒 (539,219)-(612,277)）"
+  }
+}

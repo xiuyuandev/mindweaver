@@ -1,0 +1,16 @@
+# M21（打磨轮 44）：在 `search-replace` 的预览基础上按 `Ctrl+Enter` 逐个替换。
+# 判据：标题变「中文排布」、相机居中、撤销按钮亮起、搜索框不丢焦点；
+# 轨迹 `search_replace_one id=… chars=3 before_chars=4`。
+wait 8
+key ctrl+f
+wait 4
+text 排版
+wait 8
+key Enter
+wait 8
+key ctrl+h
+wait 4
+text 排布
+wait 8
+key ctrl+Enter
+wait 8

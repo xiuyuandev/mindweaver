@@ -1,0 +1,157 @@
+{
+  "package": "CER-20",
+  "title": "保存 / 冲突 / 只读 / 长文性能",
+  "status": "已实现（实机 IME 与真实磁盘竞争场景未测；G-B2-2 未开）",
+  "date": "2026-10-29",
+  "contract": {
+    "design": "docs/28 §6.7 保存/冲突/只读、§6.9 长文与性能",
+    "execute": "docs/29 §7 CER-20",
+    "plan": "shots/x100/CER-20/plan.md"
+  },
+  "delivered": {
+    "funcs": [
+      "note_view::autosave_due",
+      "note_view::autosave_delay",
+      "note_view::CardReader::mark_saving / mark_saved / mark_save_failed / clear_saving",
+      "note_view::CardReader::set_conflict / set_read_only / is_read_only",
+      "app_helpers::CardSave",
+      "app_methods_3::pump_card_save",
+      "app_methods_3::note_card_path / refresh_card_disk_state / reload_card_from_disk",
+      "file_guard::changed_since",
+      "trace::card_frame_ms"
+    ],
+    "trace_events": [
+      "card_autosave",
+      "card_save_ok id=<id> close=<bool>",
+      "card_save_fail <原因> / card_save_fail id=<id>",
+      "card_conflict id=<id>",
+      "card_reload id=<id>"
+    ],
+    "fixtures": {
+      "MW_CARD_STATE": "saving | conflict | readonly",
+      "MW_CARD_AUTOSAVE": "<ms>：把去抖阈值压短（金样里默认关闭自动保存）",
+      "MW_CARD_20K": "20k 中文字符的一张卡",
+      "MW_CARD_PERF": "<文件>：逐帧记录画卡片页的毫秒数"
+    }
+  },
+  "scenes": [
+    {
+      "name": "card-saving",
+      "dir": "shots/golden/card-saving",
+      "ppp": 1,
+      "size": "1800x1200",
+      "sha256_12": "1D24D8AB2DA7",
+      "env": { "MW_CARD_STATE": "saving", "MW_WINDOW_SIZE": "1200x1000" },
+      "shows": "顶栏「保存中…」+ 6px 点"
+    },
+    {
+      "name": "card-conflict",
+      "dir": "shots/golden/card-conflict",
+      "ppp": 1,
+      "size": "1800x1200",
+      "sha256_12": "F6136E31812B",
+      "env": { "MW_CARD_STATE": "conflict", "MW_WINDOW_SIZE": "1200x1000" },
+      "shows": "顶栏下方 32px 行内条：重新加载 / 覆盖 / 取消 + 「文件已在外部修改」"
+    },
+    {
+      "name": "card-readonly",
+      "dir": "shots/golden/card-readonly",
+      "ppp": 1,
+      "size": "1800x1200",
+      "sha256_12": "A65E42FDCED9",
+      "env": { "MW_CARD_STATE": "readonly", "MW_WINDOW_SIZE": "1200x1000" },
+      "shows": "顶栏「只读」；正文与成稿无异"
+    },
+    {
+      "name": "card-autosave",
+      "dir": "shots/golden/card-autosave",
+      "ppp": 1,
+      "size": "1800x1200",
+      "sha256_12": "7C2F249A8EB6",
+      "warmup": 20,
+      "env": {
+        "MW_CARD_TASK": "1",
+        "MW_CARD_AUTOSAVE": "50",
+        "MW_WINDOW_SIZE": "1200x1000",
+        "MW_GOLDEN_INPUT": "shots/golden/inputs/card-autosave.txt"
+      },
+      "shows": "敲两个字 → 停手 50ms → 落盘；trace card_body → card_autosave → card_save_ok"
+    },
+    {
+      "name": "card-editing",
+      "dir": "shots/golden/card-editing",
+      "ppp": 1,
+      "size": "1800x1200",
+      "sha256_12": "2C189A320189",
+      "warmup": 20,
+      "env": {
+        "MW_CARD_TASK": "1",
+        "MW_WINDOW_SIZE": "1200x1000",
+        "MW_GOLDEN_INPUT": "shots/golden/inputs/card-editing.txt"
+      },
+      "shows": "对照：同样的输入但不自动保存 → 顶栏停在「编辑中 · 稍后自动保存」"
+    },
+    {
+      "name": "card-20k",
+      "dir": "shots/golden/card-20k",
+      "ppp": 1,
+      "size": "1800x1200",
+      "sha256_12": "BB17F3BE5E7F",
+      "warmup": 12,
+      "env": { "MW_CARD_20K": "1", "MW_WINDOW_SIZE": "1200x1000" },
+      "shows": "20k 中文字符一页的首屏（版式回归）"
+    }
+  ],
+  "control_only": [
+    {
+      "name": "card-readonly-typing",
+      "input": "shots/golden/inputs/card-readonly-type.txt",
+      "dir": "target/x100/cer20/ro-type",
+      "result": "只读 + 点击 + 敲字 + 回车 与静置只读逐位相同（0 px），trace 0 条 card_body"
+    }
+  ],
+  "perf": {
+    "probe": "MW_CARD_PERF（trace::card_frame_ms）",
+    "fixture": "MW_CARD_20K（while chars < 20000）",
+    "size": "1800x1200 @ ppp 1.0, release",
+    "open": { "first_frame_ms": 5.5, "p50_ms": 1.7, "frames": 24 },
+    "typing_200": { "p50_ms": 1.7, "p95_ms": 3.6, "max_ms": 5.4, "over_50ms": 0, "frames": 432 },
+    "ime_20_rounds": { "p50_ms": 1.7, "p95_ms": 3.4, "max_ms": 4.4, "over_16ms": 0, "frames": 152 },
+    "verdict": "合同三条（打开 ≤150ms、输入无 >50ms、IME ≤16ms）全部达标；未启用块级缓存",
+    "logs": [
+      "target/x100/cer20/perf-open.txt",
+      "target/x100/cer20/perf-typing.txt",
+      "target/x100/cer20/perf-ime.txt"
+    ],
+    "limitation": "IME 是构造事件（ime preedit/commit），不是真输入法"
+  },
+  "drift": {
+    "cause": "顶栏保存态前新增 6px 圆点（docs/28 §6.7）",
+    "sample": { "scene": "card-reveal", "px": 242, "pct": 0.011, "bbox": [1639, 26, 1682, 37] },
+    "reshot": "全部 card-*/cm-card-link 基线按 docs/29 §5 重拍并双跑 --tol 0"
+  },
+  "tests": {
+    "workspace": 911,
+    "added": 3,
+    "names": [
+      "note_view::tests::autosave_waits_for_the_debounce_and_never_overlaps_a_write",
+      "note_view::tests::a_failed_save_keeps_the_draft_and_stops_the_retry_loop",
+      "file_guard::tests::a_changed_file_is_a_conflict_but_a_missing_one_is_not"
+    ]
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1",
+    "scenes": 77,
+    "comparisons": 154,
+    "result": "PASS",
+    "log": "target/x100/stage-b-gate.log"
+  },
+  "clippy": { "current": 37, "baseline": 37, "added": 0 },
+  "not_done": [
+    "只读探测对网络盘/瞬时占用可能误报，且不会自动恢复",
+    "外部修改的行内条只覆盖库内卡片；文档内卡片仍走文档级模态",
+    "「保存中…」实际只亮一帧（写盘很快）",
+    "实机微软拼音未核对（与 CER-16/17 共用 IME 门）",
+    "20k 只在 1.0 DPI 拍基线，滚动帧率未量"
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "package": "SE-01",
+  "title": "起始页骨架 v2",
+  "status": "已实现（待 G-B3-1 人工门）",
+  "date": "2026-10-26",
+  "track": "P 轨 外壳体验（docs/31 §4）",
+  "_note": "补记（2026-10-29，打磨轮 17）：本包当时只留了 report.md，没有 manifest；这里按报告原文回填，不新增结论，数字一律来自 report.md §5。",
+  "contract": {
+    "design": "docs/30 §3",
+    "execute": "docs/31 §4",
+    "code": [
+      "crates/mw-shell/src/start.rs::layout（三档断点：≥900 / 640–899 / <640）",
+      "crates/mw-shell/src/start.rs（五段式版心 880、72px 快速开始卡、44px 最近文件行、32px 提示行）"
+    ]
+  },
+  "scenes": ["start", "start-narrow", "start-scroll", "start-tab-focus"],
+  "gate": {
+    "method": "四个场景各双跑 `--tol 0`，全部 0 差异（warmup 4 / 脚本场景 16）",
+    "hashes": {
+      "start": "ecbe21ddf80d8f6b32164f5b15676f1d64067508c99a9e65b13f55b5ba1ed425",
+      "start-narrow": "2234666e630a131fbc2dc097edc43f9aa92ccb4aad0cb81bd86188b6a1a86bdf",
+      "start-scroll": "725a772123750e548f4e9e48660266d61f6dc5eb64b6063a569816beb9026503",
+      "start-tab-focus": "8fc6018a55feece083eed70655d86a046e9e0ba0f4fd9170a91e7ae66b7dcc6b"
+    }
+  },
+  "tests": {
+    "total_at_the_time": "787 passed / 0 failed（784 + 概念图 2 + slack 1）",
+    "fmt": "干净",
+    "clippy": "mw-shell 新增 0（仅 export_pdf.rs 3 条历史告警）"
+  },
+  "behaviour_change": "起始页版心 880 五段式；三档断点；删掉底部两张大提示卡、居中脚注与装饰留白",
+  "known_gaps": [
+    "`start` 场景实际是 1280×800 逻辑（150% 缩放把窗口钳到 1920×1200 物理像素），不是规格里的 1440×1000",
+    "Tab 顺序与 docs/30 §3.5 不一致（「清除列表」排在最近文件行之前），等 G-B3-1 判是否必须修",
+    "加载中骨架（3 行）未实现：最近文件是同步读 recent.json，没有可挂的加载态",
+    "`start-concept` / `start-empty` 两张新场景未拍，随 SE-03 补",
+    "底部余量上限 200px：逻辑高度超过约 1000px 时底部仍留白（取舍，不是遗漏）"
+  ]
+}

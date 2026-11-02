@@ -1,0 +1,7 @@
+# 常用命令别名（README / HANDOFF 里的 `cargo shell`、`cargo golden`、`cargo core-test`）。
+# 2026-10-19 交接清理时这个文件被一并删掉，现按 README 的用法复原。
+# mw-shell 的模式开关是 `--golden`（见 golden.rs 的用法说明），所以别名里必须带两根横线。
+[alias]
+shell = "run -p mw-shell --release"
+golden = "run -p mw-shell --release -- --golden"
+core-test = "test -p mw-core -p mw-ui"

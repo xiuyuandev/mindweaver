@@ -1,0 +1,111 @@
+{
+  "package": "M13",
+  "title": "打开就有文档时的取景：首帧视口没落定（打磨轮 19）",
+  "status": "已实现（轨迹 + 像素 + 两道门；慢机器未测，不记已验证）",
+  "date": "2026-10-29",
+  "track": "打磨轮（docs/x100/polish-ledger.md §1 M13 行 / §3 第 11 条）",
+  "contract": {
+    "design": "docs/30 §5.5「启动后头若干帧要重取景」",
+    "code": [
+      "crates/mw-shell/src/main.rs（App::start_refit_frames 字段；update 里启动阶段**视口变化时**才 request_fit）",
+      "crates/mw-shell/src/app_methods_1.rs（App::new 里 start_refit_frames = 60）",
+      "crates/mw-shell/src/canvas.rs（Canvas::fit_viewport 字段）",
+      "crates/mw-shell/src/canvas/canvas_methods_1.rs（set_camera 记 fit_viewport；fit_viewport() / viewport() 取值口）",
+      "crates/mw-shell/src/canvas/canvas_methods_2.rs::fit_bounds（记下本次取景用的视口；`fit vp=… zoom=…` 轨迹补视口）"
+    ]
+  },
+  "problem": "同一份概念图、同一包围盒 (-346,-246,738,498)：首帧自动 fit 得 zoom=1.2369（视口 1280×728，默认窗口），落定后（1920×1128）应为 1.5。文档因此被画小一档。",
+  "evidence": {
+    "trace": "shots/x100/M13/fit-after.txt（首帧 1280×728 → 1.2369；第二帧起 1920×1128 → 1.5）",
+    "trace_before": "shots/x100/M13/fit-before.txt（打磨轮 18 构建：只出一次 fit，zoom=1.2369）",
+    "pixel": "新 cm-default 与同一文档手动 Ctrl+1（shots/x100/C7/fit-ref.png）整图 0 像素差异",
+    "drift": {
+      "files": 60,
+      "scenes": 58,
+      "by_track": {
+        "cm": 31,
+        "mm": 27,
+        "shell_png": 2
+      },
+      "list": [
+        "cm-arrow-backward",
+        "cm-arrow-both",
+        "cm-arrow-inspector",
+        "cm-arrow-menu",
+        "cm-arrow-menu-click",
+        "cm-arrow-menu-key",
+        "cm-arrow-off",
+        "cm-blank-menu",
+        "cm-card-link-back",
+        "cm-crosslink",
+        "cm-default",
+        "cm-focus-long",
+        "cm-focus-question",
+        "cm-focus-question-edit",
+        "cm-focus-question-hover",
+        "cm-label-ime",
+        "cm-link-blank",
+        "cm-link-create",
+        "cm-link-drag",
+        "cm-link-drag-pointer",
+        "cm-link-fade-mid",
+        "cm-multi-menu",
+        "cm-node-edit",
+        "cm-rel-adjacent",
+        "cm-rel-curve",
+        "cm-rel-hover",
+        "cm-relink-blank",
+        "cm-relink-drag",
+        "cm-relink-near",
+        "cm-relink-select-only",
+        "cm-submenu-bottom",
+        "mm-annot-multi",
+        "mm-annot-multi-off",
+        "mm-boundary-select",
+        "mm-collapse",
+        "mm-collapse-mid",
+        "mm-drag-after",
+        "mm-drag-before",
+        "mm-drag-child",
+        "mm-drag-illegal",
+        "mm-enter-sibling",
+        "mm-marquee",
+        "mm-marquee-add",
+        "mm-move-keys",
+        "mm-move-keys-reveal",
+        "mm-move-multi",
+        "mm-new-cancel",
+        "mm-new-chain",
+        "mm-new-child",
+        "mm-redo-one",
+        "mm-span-commit",
+        "mm-span-drag",
+        "mm-summary-select",
+        "mm-toggle-edge",
+        "mm-toggle-miss",
+        "mm-undo-built",
+        "mm-undo-one",
+        "mm-undo-three",
+        "shell-ppp1.00.png",
+        "shell-ppp2.00.png"
+      ],
+      "note": "全部是「打开就有文档、靠自动 fit 取景」的场景；没有一张固定相机的场景被改动。用 ci.ps1 -Update 与两道门的 -Update 重拍，随后两道门裸跑全过。"
+    },
+    "flaky_first_version": "第一版「头 12 帧每帧重取」让基线跟着窗口落定时刻飘（cm-arrow-menu-click / cm-focus-question-hover 两遍之间自己不同），已改为「视口变了才重取」"
+  },
+  "gate": {
+    "stage_b": "scripts/x100-stage-b-gate.ps1 → 100 场 / 200 次比较，PASS（target/x100/gate-b-m13b.log）",
+    "stage_cm": "scripts/x100-stage-cm-gate.ps1 → 48 场 / 96 次比较，PASS（target/x100/gate-cm-m13b.log）",
+    "golden_update": "powershell -File scripts/ci.ps1 -Update（重拍后各门双跑 --tol 0）",
+    "write_lock": "重拍时两次撞上 os error 1224（基线文件被映射占用），相关两张未写成；第二遍比对全过，说明它们本来没漂"
+  },
+  "known_gaps": [
+    "60 帧只是预算：窗口若在 60 帧之后才落定（极慢机器），取景仍会停在中间视口（本机第 2 帧落定）",
+    "没有新单测：start_refit_frames 挂在 App::update 的帧循环上，单测里没有无头构造 App 的路径",
+    "只修「启动即取景」：打开另一篇文档、切标签页时的取景策略没动",
+    "启动预算期内用户若强行缩放会被覆盖（视口稳定后就不再重取，实际几乎不可达）"
+  ],
+  "tests": {
+    "total": "935 passed / 0 failed（本轮无新单测）"
+  }
+}

@@ -1,0 +1,188 @@
+{
+  "round": "X19",
+  "status": "verified",
+  "referenceVersion": "26.5.1107.202609082009",
+  "date": "2026-10-25",
+  "build": {
+    "commit": null,
+    "binary": "target/release/mw-shell.exe",
+    "binarySha256": "f4d4ba436559a7442ee3fd7847e4c4b7539cbe5c657ee55ccc0b3d0cffd60250",
+    "binarySize": 23452672
+  },
+  "scenarios": [
+    {
+      "id": "tab-strip-geometry-and-selection",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/06-界面布局与交互设计.md"
+      ],
+      "actual": [
+        "shots/x100/X19/golden/tabs-shell-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X19/traces/ci-final1.log",
+        "shots/x100/X19/traces/tests-final.txt"
+      ],
+      "result": "pass",
+      "notes": "1080×720（ppp 1.5）三标签实拍：34px 标签条紧贴标题栏，底部 1px sep；活动「产品路线图」用 accent_soft 底 + 2px accent 下划线（左右内缩 8px），「访谈纪要」显示 6px warn 脏点，加号固定在标签条右端。宽度由 tab_strip::tab_width 夹取 108–220，标题超宽走字符级尾部省略。单标签视图不画标签条——既有 18 个场景哈希与 X18 逐字节一致。"
+    },
+    {
+      "id": "middle-click-close-and-dirty-guard",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/06-界面布局与交互设计.md"
+      ],
+      "actual": [
+        "shots/x100/X19/actual/middle-close-ppp1.50.png",
+        "shots/x100/X19/actual/dirty-middle-close-ppp1.50.png",
+        "shots/x100/X19/actual/dirty-close-guard-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X19/inputs/middle-close.txt",
+        "shots/x100/X19/traces/middle-close.trace",
+        "shots/x100/X19/inputs/dirty-middle-close.txt",
+        "shots/x100/X19/traces/dirty-middle-close.trace",
+        "shots/x100/X19/inputs/dirty-close-guard.txt",
+        "shots/x100/X19/traces/dirty-close-guard.trace"
+      ],
+      "result": "pass",
+      "notes": "干净标签中键关闭：tab_close index=2 remaining=2 active=0，活动页不跳。脏标签「访谈纪要」中键关闭进入三选弹窗（保存并关闭 / 不保存关闭 / 取消），默认焦点在「取消」；再点「不保存关闭」后 tab_close index=1 remaining=2 active=1，文档未写盘。脏点只读各自会话的修订号。"
+    },
+    {
+      "id": "tab-drag-reorder",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/06-界面布局与交互设计.md"
+      ],
+      "actual": [
+        "shots/x100/X19/actual/drag-hold-ppp1.50.png",
+        "shots/x100/X19/actual/drag-reorder-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X19/inputs/drag-hold.txt",
+        "shots/x100/X19/traces/drag-hold.trace",
+        "shots/x100/X19/inputs/drag-reorder.txt",
+        "shots/x100/X19/traces/drag-reorder.trace"
+      ],
+      "result": "pass",
+      "notes": "横向位移超过 4px 进入重排（阈值按按下原点与标签矩形判定，不依赖指针是否仍停在标签上）。drag-hold 实拍可见原标签淡出、指针处 60% accent_soft 幽灵与两标签间隙的 2px accent 插入线。松手后 tab_reorder from=0 slot=3 active=2：标签移到第 3 槽，活动的「产品路线图」跟随移动，视图/相机/撤销栈不串。"
+    },
+    {
+      "id": "tab-context-menu",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/06-界面布局与交互设计.md"
+      ],
+      "actual": [
+        "shots/x100/X19/actual/tab-menu-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X19/inputs/tab-menu.txt",
+        "shots/x100/X19/traces/tab-menu.trace"
+      ],
+      "result": "pass",
+      "notes": "右键标签走 X16 菜单引擎：menu_open anchor=62,65 entries=5，固定条目「关闭 Ctrl+W / 关闭其他 / —— / 复制文件路径 / 在资源管理器中显示」。未落盘文档的复制路径与在资源管理器中显示为禁用态（实拍）。菜单开着时画布与标签条不收输入，↑↓ / Enter / Esc 与画布右键菜单同一状态机。"
+    },
+    {
+      "id": "tab-keyboard-focus-order",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/26-X100完成定义与验收规范.md"
+      ],
+      "actual": [
+        "shots/x100/X19/actual/tab-focus-tab-ppp1.50.png",
+        "shots/x100/X19/actual/tab-focus-close-ppp1.50.png",
+        "shots/x100/X19/actual/tab-focus-enter-ppp1.50.png",
+        "shots/x100/X19/actual/tab-focus-plus-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X19/inputs/tab-focus-tab.txt",
+        "shots/x100/X19/traces/tab-focus-tab.trace",
+        "shots/x100/X19/inputs/tab-focus-close.txt",
+        "shots/x100/X19/traces/tab-focus-close.trace",
+        "shots/x100/X19/inputs/tab-focus-enter.txt",
+        "shots/x100/X19/traces/tab-focus-enter.trace",
+        "shots/x100/X19/inputs/tab-focus-plus.txt",
+        "shots/x100/X19/traces/tab-focus-plus.trace"
+      ],
+      "result": "pass",
+      "notes": "画布握着键盘时裸 Tab 是「加子主题」，所以先用 F6 把键盘交给面板（status 显示「键盘：面板 · F6 收回」），再走焦点环：14 次 Tab 落到标签页·产品路线图，15 次落到关闭标签页·产品路线图，20 次落到新建标签页；顺序严格为 标签1 → 关闭1 → 标签2 → 关闭2 → 标签3 → 关闭3 → 加号，每次落点都有中文语义焦点名，三处均画 1.4px accent 焦点环。第 16 次 Tab 停在标签页·访谈纪要后 Enter，画面切到访谈纪要（标题、下划线与焦点环同步），证明标签体键盘激活。四条 trace 均无 reveal 事件，文档保持 13 个主题，不再出现旧证据里误加的「未命名主题」。既有 Ctrl+Tab / Ctrl+Shift+Tab / Alt+1…9 未改。"
+    },
+    {
+      "id": "save-saving-to-saved",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/06-界面布局与交互设计.md"
+      ],
+      "actual": [
+        "shots/x100/X19/actual/ctrl-s-saved-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X19/inputs/ctrl-s-save.txt",
+        "shots/x100/X19/traces/ctrl-s-save.trace"
+      ],
+      "result": "pass",
+      "notes": "在隔离的 save-evidence.zmind 上 F2 改名根主题并回车，Ctrl+S 后 trace 先 save_start、下一帧 save_ok rev=1（先画「保存中…」再在下一帧开头写盘）。实拍：标题芯片与状态栏均为「已保存」，toast「已保存 save-evidence.zmind」，脏点消失。保存成功记录的是写入那一刻的修订号；SavePhase 单测覆盖 Saving > Failed(同修订) > Dirty/Saved > Untitled 的优先级与失败后继续编辑回 Dirty。"
+    },
+    {
+      "id": "open-loading-and-failure-retry",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/26-X100完成定义与验收规范.md"
+      ],
+      "actual": [
+        "shots/x100/X19/golden/opening-shell-ppp1.50.png",
+        "shots/x100/X19/golden/open-error-shell-ppp1.50.png",
+        "shots/x100/X19/actual/open-retry-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X19/inputs/open-retry.txt",
+        "shots/x100/X19/traces/open-retry.trace"
+      ],
+      "result": "pass",
+      "notes": "打开两段式：先画「正在打开…」模态（无按钮、不可 Esc、遮罩压住画布与菜单），至少一整帧后才读盘。失败弹窗标题「打不开文档」，给文件名、完整路径、原因与「重试（主）/ 打开其他文件… / 从最近列表移除 / 关闭」，默认「关闭」；来源不在最近列表时收为「重试 / 打开其他文件… / 关闭」三键。open-retry 点「重试」重新走两段式（open_start → 再次 open_fail），按钮按失败当时真实的最近列表重算（演示假路径不在 recent.json，故 4 键收敛为 3 键）；背景文档与标签始终未被替换或关闭。"
+    },
+    {
+      "id": "golden-baselines-and-regressions",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/26-X100完成定义与验收规范.md",
+        "scripts/ci.ps1"
+      ],
+      "actual": [
+        "shots/x100/X19/golden/tabs-shell-ppp1.50.png",
+        "shots/x100/X19/golden/opening-shell-ppp1.50.png",
+        "shots/x100/X19/golden/open-error-shell-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X19/traces/ci-final1.log",
+        "shots/x100/X19/traces/ci-final2.log",
+        "shots/x100/X19/traces/hashes.txt"
+      ],
+      "result": "pass",
+      "notes": "新增第 19/20/21 个 golden：tabs（1080×720、ppp 1.5、MW_TABS_DEMO=1、warmup 8）、opening（960×680、ppp 1.5、MW_OPENING_DEMO=1、warmup 8）、open-error（960×680、ppp 1.5、MW_OPEN_FAILED=1、warmup 8）。21 个场景 × 2 次 --tol 0 全绿（42/42，最终二进制复跑的 ci-final1/ci-final2 各 21 条「无超容差差异」）。既有 18 个基线哈希与 X18 逐字节一致。新增基线 SHA256：tabs f11988fd…ad2553f、opening 0d587369…c4c79962、open-error dcd234ec…2a51a7d。"
+    }
+  ],
+  "tests": [
+    "cargo fmt --all -- --check (clean; traces/fmt-final.txt 为空)",
+    "cargo clippy -p mw-shell --all-targets (mw-shell: 3 historical export_pdf warnings, 0 new; traces/clippy-final.txt)",
+    "cargo test --workspace -- --test-threads=1 (746 passed / 0 failed; traces/tests-final.txt)",
+    "tab_strip module: width clamp with dirty/close, char-boundary ellipsis (CJK/mixed/very narrow), drop slot start/middle/end/beyond, active index after reorder, 4px drag threshold, active follows non-dragged tab (8 new tests)",
+    "app_helpers: open-failure action mapping with/without recent source, SavePhase priority over base state (2 new tests)",
+    "recent::contains matches relative and absolute forms (1 new test)",
+    "overlay::modal_count expectation updated 19 → 21",
+    "scripts/ci.ps1 golden matrix, two consecutive passes: 21 scenarios x 2 runs at --tol 0 (42/42 clean on the final binary; traces/ci-final1.log, traces/ci-final2.log)"
+  ],
+  "knownGaps": [
+    "「保存中…」中间帧没有截图：trace 的 save_start → save_ok rev=1 只证明顺序，最终实拍是已保存态；Saving 文案与芯片由 SavePhase 单测覆盖。",
+    "保存失败态（Failed）没有实拍，需要只读目录或占用文件；目前只有 SavePhase 单测与代码路径。",
+    "脏标签关闭弹窗的「保存并关闭」写盘失败停在弹窗原位没有实拍；本轮只截了「不保存关闭」路径。",
+    "Esc 取消拖拽只有代码路径与人工推理，没有输入脚本、trace 或截图。",
+    "标签横向溢出后的内部横向滚动、滚轮横滚、加号固定只有宽度夹取与绘制代码，没有超宽标签实拍或 golden。",
+    "右键菜单的启用态「复制文件路径 / 在资源管理器中显示」没有实拍：前者会写系统剪贴板，后者会拉起资源管理器；本轮只截未落盘禁用态。",
+    "打开成功的两段式落地过渡（去重切页、最近文件刷新、抢锁、恢复点探测）没有截图；只截了「正在打开」与失败重试。",
+    "标签体只截了 Enter 激活；Space 走同一条 ui_kit::activated 路径但没有单独截图。Ctrl+Tab / Ctrl+Shift+Tab / Alt+1…9 只有既有单测与代码路径。",
+    "单标签视图与 X18 逐像素一致由 18 份既有 golden 哈希证明，但没有单独的 X19 单标签场景基线。",
+    "标签关闭确认弹窗、右键菜单与打开失败弹窗都用 ppp 1.5 的 1080×720 / 960×680 实拍；ppp 1.0 与 2.0 只覆盖既有 golden 场景，没有行为实拍。"
+  ]
+}

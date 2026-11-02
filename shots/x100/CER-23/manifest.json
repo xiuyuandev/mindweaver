@@ -1,0 +1,51 @@
+{
+  "id": "CER-23",
+  "title": "笔记库自适应三/两/单栏骨架 + 内容令牌接主题",
+  "date": "2026-11-02",
+  "batch": "B2-C",
+  "status": "已实现（机器证据齐；G-B2-3 人工门未开）",
+  "scope": [
+    "Pane::of：≥1200 三栏 / 840–1199 两栏（预览变整页）/ <840 单栏抽屉；跨档不丢状态",
+    "侧栏 200–280、列表 320–440 可拖并记忆（WindowState 落盘）",
+    "页头 48 + 极窄退化；三栏收缩顺序 先列表后侧栏、预览恒 ≥480",
+    "ContentColors::for_theme：内容色只从 design::content 取，四主题各一份 alpha 表",
+    "c32() 改 from_rgba_unmultiplied：4–12% 半透明令牌不再画成实心块"
+  ],
+  "files": [
+    "crates/mw-shell/src/note_library.rs",
+    "crates/mw-shell/src/note_library/sidebar.rs",
+    "crates/mw-shell/src/note_library/list.rs",
+    "crates/mw-shell/src/note_library/preview.rs",
+    "crates/mw-shell/src/canvas/canvas_methods_3.rs",
+    "crates/mw-shell/src/window_state.rs"
+  ],
+  "scenes": [
+    {"name": "library ppp1.00", "sha256_12": "B664928A31BB", "warmup": 3, "env": "MW_LIBRARY_DEMO=default MW_WINDOW_SIZE=1080x720", "note": "物理 1620x1080 → css 1620 → 三栏"},
+    {"name": "library ppp1.50", "sha256_12": "69B24846C84B", "warmup": 3, "env": "同上", "note": "css 1080 → 两栏"},
+    {"name": "library ppp2.00", "sha256_12": "0F04CAF875B8", "warmup": 3, "env": "同上", "note": "css 810 → 单栏"},
+    {"name": "library-three-pane", "sha256_12": "50A81B728495", "warmup": 3, "env": "MW_LIBRARY_DEMO=default MW_WINDOW_SIZE=1280x800"},
+    {"name": "library-two-pane", "sha256_12": "69B24846C84B", "warmup": 3, "env": "MW_WINDOW_SIZE=1080x720", "note": "与 library ppp1.50 同环境同像素"},
+    {"name": "library-one-pane", "sha256_12": "D554D55FB541", "warmup": 3, "env": "MW_WINDOW_SIZE=800x720"},
+    {"name": "library-ink", "sha256_12": "DD2E941729D7", "warmup": 3, "env": "MW_THEME=ink"},
+    {"name": "library-mist", "sha256_12": "788C387AEBD1", "warmup": 3, "env": "MW_THEME=mist"},
+    {"name": "library-sand", "sha256_12": "6322245B0F29", "warmup": 3, "env": "MW_THEME=sand"}
+  ],
+  "tests": {
+    "new_or_changed": [
+      "note_library::tests::pane_breakpoints_follow_7_2",
+      "note_library::tests::three_pane_keeps_preview_at_least_480",
+      "note_library::tests::three_pane_shrinks_the_list_before_the_sidebar",
+      "note_library::tests::three_pane_shrinks_sidebar_only_as_last_resort",
+      "note_library::tests::two_and_one_pane_have_no_preview_column",
+      "note_library::tests::sidebar_width_is_clamped_not_wrapped",
+      "note_library::tests::split_header_gives_48_and_the_rest",
+      "note_library::tests::split_header_degenerates_on_a_tiny_window",
+      "note_library::tests::tab_ring_three_pane_cycles_all_three",
+      "note_library::tests::tab_ring_two_pane_skips_the_docked_preview",
+      "note_library::tests::tab_ring_one_pane_skips_a_closed_drawer"
+    ]
+  },
+  "not_done": [
+    "换机器跑门需重拍 ppp 基线（帧缓冲被显示器物理尺寸夹，与既有 ppp 基线同一约束）"
+  ]
+}

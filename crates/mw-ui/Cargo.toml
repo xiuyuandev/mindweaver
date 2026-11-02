@@ -1,0 +1,9 @@
+[package]
+name = "mw-ui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "织思手势层（M2b）：选择 / 框选 / 拖拽落点 / 对齐吸附的纯逻辑，输入是 mw-core 的 Scene，不碰窗口也不碰 GPU（docs/13 §9）"
+
+[dependencies]
+mw-core = { path = "../mw-core" }

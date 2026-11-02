@@ -1,0 +1,49 @@
+{
+  "package": "C19",
+  "title": "概念图检查器属性（概念元信息、钉住开关与局部整理入口）",
+  "status": "已实现（机器门绿；人工门未开，不记已验证）",
+  "date": "2026-11-01",
+  "track": "打磨轮（docs/x100/polish-ledger.md 第 54 轮；docs/30 §4.2 / §5.5）",
+  "contract": {
+    "design": "docs/30 §4.2（检查器属性面板对象行与分组能力）、docs/30 §5.5（概念图手工排布保护、钉住状态与局部整理入口）",
+    "code": [
+      "crates/mw-core/src/document.rs::is_concept_pinned / concept_proposition_count（概念钉住查询与出入命题统计）",
+      "crates/mw-shell/src/panels/inspector.rs::object_meta（单选识别为概念 · N 条命题，钉住前置已钉住）",
+      "crates/mw-shell/src/panels/inspector.rs::Action（新增 ArrangeConcepts / ArrangeSelectedConcepts 动作）",
+      "crates/mw-shell/src/panels/inspector/inspector_methods_1.rs::show（多选副行识别为 N 个概念，展示已钉住统计）",
+      "crates/mw-shell/src/panels/inspector/inspector_methods_1.rs::style_body（隐藏概念图含子树作用域，新增「概念排布」分组、switch_row 钉住开关及局部/全图整理快捷入口）",
+      "crates/mw-shell/src/main.rs::inspector_panel（IA::ArrangeConcepts / IA::ArrangeSelectedConcepts 落地与 toast 反馈）",
+      "scripts/x100-stage-cm-gate.ps1（+2 场新基线 cm-inspector / cm-inspector-pinned，总场次 60 → 62）"
+    ],
+    "note": "不升 FORMAT_VERSION；不动 Frame ABI；概念图与思维导图语义严格隔离"
+  },
+  "deliverables": {
+    "report": "shots/x100/C19/report.md",
+    "manifest": "shots/x100/C19/manifest.json",
+    "trace": "shots/x100/C19/trace.txt",
+    "diff": "shots/x100/C19/diff.txt"
+  },
+  "scenes": [
+    {
+      "name": "cm-inspector",
+      "dir": "shots/golden/cm-inspector",
+      "sha256_12": "DDEDFEFA1445",
+      "size": 194030,
+      "evidence": "MW_CONCEPT_DEMO=1 + MW_CONCEPT_SELECT=产品定位 + MW_INSPECTOR=1；单选展示概念元信息「概念 · 3 条命题」，颜色组无含子树作用域，概念排布分组展示「自动重排」摘要、钉住位置开关置关，展示「整理全部布局」按钮"
+    },
+    {
+      "name": "cm-inspector-pinned",
+      "dir": "shots/golden/cm-inspector-pinned",
+      "sha256_12": "B19304716E8F",
+      "size": 192943,
+      "evidence": "MW_CONCEPT_DEMO=1 + MW_CONCEPT_SELECT=产品定位 + MW_CONCEPT_PIN=产品定位 + MW_INSPECTOR=1；单选展示「已钉住 · 概念 · 3 条命题」，概念排布展示「已钉住」摘要，钉住位置开关置开；与 cm-inspector 差异 4 659 px 落在画布受保护微标 (1632 px) 与检查器副行/摘要/开关 (3027 px)"
+    }
+  ],
+  "tests": {
+    "total": 1114,
+    "passed": 1114,
+    "failed": 0,
+    "stage_cm_gate": "62 scenes × 2 passes = 124 comparisons, 0 drift (100% PASS)",
+    "stage_b_gate": "140 scenes × 2 passes = 280 comparisons, 0 drift (100% PASS)"
+  }
+}

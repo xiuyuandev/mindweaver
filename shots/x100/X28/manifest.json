@@ -1,0 +1,146 @@
+{
+  "package": "X28",
+  "title": "折叠圆点 / 快速加子按钮 / 关系线手柄 / 注解手柄（现状审计 + 验收底稿）",
+  "status": "进行中",
+  "status_reason": "本轮只做文档与只读审计：代码零改动、金样未拍、门未跑；按 AGENTS §3.6 只能写「进行中」",
+  "date": "2026-11-02",
+  "track": "Stage C（docs/24 §3 X28 行）；上一包 X27 交互状态表（shots/x100/X27/report.md）",
+  "contract": {
+    "route": "docs/24 §3「X28 重做折叠圆点、快速加子按钮、关系线手柄和注解手柄」",
+    "design": "docs/30 §5.3（概念节点/卡片圆点）、§5.4（连线）、§5.10（端点手柄与跨度手柄两张基线）、§5.12（切换型要拍撤下）、§5.13（拖拽要拍松手后）；docs/28 §4.3（动作按需出现 悬停/选中）、§5.6（4px 拖拽阈值、禁止落点）；docs/02 §3（双击下钻）、§10（快捷键）",
+    "prior": [
+      "shots/x100/M9b/report.md（整图折叠与聚焦视图下的圆点）",
+      "shots/x100/M17/report.md（悬停 1.3 倍 / 120ms）",
+      "shots/x100/M32/report.md（双击圆点展开到下一级）",
+      "shots/x100/M26/report.md（三条选中道互斥）",
+      "shots/x100/X27/report.md（8 状态 × 3 表面；I1–I4 不在本包重复判定）"
+    ]
+  },
+  "objects": {
+    "toggle": {
+      "geometry": "描边环 r=8 css px、环宽 1.5、+/- 线 3.5、画布色 halo 外扩 1.5；cam.chrome 换算→屏幕空间恒定",
+      "hit": "10 css px（TOGGLE_R+2），编译期断言 >= r+halo(9.5)，命中优先级 7",
+      "visible_when": "有父级且有子级；根与叶子不画；视图外按 sees 裁剪",
+      "hover": "1.0→1.3 倍，120ms，壳层覆盖层",
+      "single_click": "折叠↔展开整棵 + select_node_only(fold-dot)；轨迹 toggle idx= collapsed= kids=",
+      "double_click": "同节点 + 500ms + <=4 css px + 撤销栈深不变 → 撤第一击后发一条 Batch（mw_core::drill）；轨迹 toggle_drill",
+      "concept_map": "不出（概念图平铺、无子级；M32 定「概念图没有折叠语义」）",
+      "export": "导出有：SVG/PDF 都经 mw_core::layout::toggle_pos 画"
+    },
+    "node_plus": {
+      "visible_when": "仅悬停节点；editor/drag/moving/link/input_blocked 时消失；选中但不悬停不出现",
+      "geometry": "24x24 css px（design::control::HIT），间距 space::XS，节点外 HOVER_GAP=space::SM（> DROP_PAD_X=6）；右→左镜像、上→下兜底，都放不下则不画；有卡片角标再抬一个按钮高",
+      "on_click": "select_node_only(hover-add) → add_child() → add_relative → AddNode 命令 → start_edit（ed.fresh + fresh_depth）",
+      "undo": "建节点一条 + 提交文字一条（两步）；Esc 取消时 cancel_fresh_node 若栈顶仍是建它那条则一并收回",
+      "keyboard": "Tab 加子主题（与按钮同源 add_child）",
+      "export": "不导出（egui 覆盖层）"
+    },
+    "relink_handle": {
+      "visual": "起点 2.6 css px 实心强调点（不可拖）；终点 r4.5 白底圆 + 1.5 强调描边 + 1.5 halo（可拖）",
+      "hit": "仅终点，9 css px（借 SPAN_HANDLE_HIT）；只在关系线为主选时可命中",
+      "drag": "start_relink → RelinkDrag → 预览线 → commit_relink；有目标改指；空白落点概念图新建概念（RetargetLinkToNewConcept）、思维导图静默取消",
+      "snap": "LINK_SNAP_CSS=12 css px 是目标吸附半径（C3，cm-relink-near），与手柄命中 9 不是同一件事",
+      "export": "不导出（覆盖层）"
+    },
+    "span_handle": {
+      "visual": "上下两端 r4.5 白底圆 + 1.5 强调描边 + 1.5 halo",
+      "hit": "9 css px（SPAN_HANDLE_HIT），只在注解被选中时存在",
+      "drag": "span_handle_at → span_drag_start → 预览框 → commit_span_drag：SetSummaryTargets / SetBoundaryTargets（一条即一次撤销）；轨迹 span <label> <id> <start>..<end>；预览==原值不发命令",
+      "keyboard": "只有新建（Ctrl+B / Ctrl+]），无调整跨度/删除路径",
+      "export": "手柄不导出；注解本体在 Scene 中会导出"
+    }
+  },
+  "gaps": {
+    "count": 9,
+    "high": ["D5"],
+    "medium": ["D1", "D2", "D3", "D6", "D9"],
+    "low": ["D4", "D7", "D8"],
+    "items": [
+      { "id": "D1", "what": "快速加子按钮只在悬停出现，选中态不出现（docs/28 §4.3 说悬停/选中都出现）", "severity": "中", "needs_decision": true },
+      { "id": "D2", "what": "加子后提交是两条撤销（AddNode + SetText），只有 Esc 取消会合成一步", "severity": "中", "needs_decision": true },
+      { "id": "D3", "what": "关系线只有终点可拖，起点画成实心点不可拖，两端视觉像同类", "severity": "中", "needs_decision": true },
+      { "id": "D4", "what": "关系线落空在思维导图里静默取消，无提示", "severity": "低", "needs_decision": false },
+      { "id": "D5", "what": "Esc 取消被 self.drag.is_some() 门住，只拖注解/关系线手柄时可能取消不掉", "severity": "高", "needs_decision": false },
+      { "id": "D6", "what": "注解键盘路径只有新建；关系线手柄无键盘路径", "severity": "中", "needs_decision": false },
+      { "id": "D7", "what": "圆点命中 10 比视觉 9.5 大且优先级高于节点，边缘易误触", "severity": "低", "needs_decision": false },
+      { "id": "D8", "what": "手柄视觉 4.5 / 命中 9 / 目标吸附 12 三个半径无跨缩放像素证据", "severity": "低", "needs_decision": false },
+      { "id": "D9", "what": "关系线端点手柄串用注解的 SPAN_HANDLE_R/HIT；ANCHOR_R/HIT 实际服务连线锚点", "severity": "中", "needs_decision": false }
+    ]
+  },
+  "data_model": {
+    "needs_new_field": false,
+    "note": "4 个对象全是交互层/派生几何；所需命令（SetCollapsed / SetSummaryTargets / SetBoundaryTargets / RetargetLink / RetargetLinkToNewConcept / AddNode）均已存在"
+  },
+  "scenes": {
+    "new": [
+      "mm-toggle-scale",
+      "mm-toggle-hit-10",
+      "mm-node-plus-states",
+      "mm-node-plus-commit",
+      "mm-node-plus-undo",
+      "mm-node-plus-scale",
+      "mm-span-esc",
+      "mm-relink-anchor-scale"
+    ],
+    "reuse": [
+      "mm-toggle-hover",
+      "mm-toggle-miss",
+      "mm-toggle-edge",
+      "mm-toggle-drill",
+      "mm-toggle-drill-deep",
+      "mm-collapse-all-dots",
+      "mm-focus-dots",
+      "mm-summary-select",
+      "mm-summary-hover",
+      "mm-boundary-select",
+      "mm-boundary-hover",
+      "mm-span-drag",
+      "mm-span-commit",
+      "mm-annot-multi",
+      "cm-relink-select-only",
+      "cm-relink-drag",
+      "cm-relink-near",
+      "cm-relink-blank",
+      "cm-link-mode",
+      "mm-rel-link"
+    ]
+  },
+  "evidence": {
+    "collected": false,
+    "note": "本轮只交报告与计划：金样 0 张、门未跑、cargo 未运行",
+    "existing": [
+      "shots/x100/M9b/report.md（mm-collapse-all-dots / mm-focus-dots）",
+      "shots/x100/M17/report.md（mm-toggle-hover 等三场）",
+      "shots/x100/M32/report.md（mm-toggle-drill / mm-toggle-drill-deep）",
+      "shots/x100/M24/report.md（mm-boundary-key / mm-summary-key）",
+      "shots/x100/M26/report.md（mm-rel-select-arrow / mm-rel-select-delete）",
+      "shots/x100/X27/report.md（24 格状态矩阵）"
+    ]
+  },
+  "risks": [
+    { "id": "R1", "level": "高", "what": "并行会话在改 crates/，行号与常量会漂", "fix": "每格带「那一行的字面」；动码前重 grep TOGGLE_R / SPAN_HANDLE_* / ANCHOR_*" },
+    { "id": "R2", "level": "中", "what": "D1/D2/D3 任一要落地都会推高 stage-b 场次", "fix": "优先零像素方案（轨迹 + toast）" },
+    { "id": "R3", "level": "中", "what": "D5 若确认是 bug，改它要重跑所有拖拽类基线", "fix": "先补 mm-span-esc 红灯基线当证据再改" },
+    { "id": "R4", "level": "低", "what": "双击下钻依赖 egui 时间；脚本帧数不够会把双击拍成两次单击", "fix": "两次点击之间 wait <= 2 帧，轨迹断言只有一条 toggle_drill" },
+    { "id": "R5", "level": "低", "what": "圆点命中与工具条避让几何耦合（HOVER_GAP_V 要避开 r8+1.5）", "fix": "已有单测 hover_bar_sits_outside_the_node_and_clears_the_fold_toggle 守着" }
+  ],
+  "not_done": [
+    "代码零改动（crates/ 归其他 owner）",
+    "新金样 0 张、门未跑、无 cargo",
+    "D5 未实机确认",
+    "跨缩放档位的像素证据（两个 ppp 对照）没有",
+    "注解手柄的成员增减没有独立手势",
+    "关系线起点手柄未做（D3 待拍板）",
+    "X27 的 I1–I4 不在本包处理"
+  ],
+  "handoff": {
+    "write_scope": "本包只写 shots/x100/X28/；crates/、docs/、scripts/、docs/STATUS.md 由其他 owner 落地",
+    "next": [
+      "Lead 裁决 D1/D2/D3 三条口径",
+      "先补 mm-span-esc 与 mm-node-plus-states 两张红灯/对照基线",
+      "按 §4 量化判据补跨缩放对照",
+      "D9 拆常量（SPAN_HANDLE_* 与 ANCHOR_* 各自使用）",
+      "回填本目录证据与 manifest.evidence.collected=true"
+    ]
+  }
+}

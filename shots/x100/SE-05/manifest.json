@@ -1,0 +1,59 @@
+{
+  "package": "SE-05",
+  "title": "检查器骨架 v2（面板 288 可拖 240–360 + 头行 40 + 对象行 44 + 分段 30 无描边 + 分组折叠 + 空状态）",
+  "status": "已实现（机器门绿；实机键盘与真实微软拼音未核，不记已验证）",
+  "date": "2026-10-30",
+  "track": "P 轨 检查器 v2（docs/31 §5；依赖 SE-02）",
+  "contract": {
+    "design": "docs/30 §4.1（结构）、§4.2（分段/分组控件）、§4.3（无选中状态）、§4.5（禁止项）",
+    "execute": "docs/31 §5 第 SE-05 行",
+    "audit": "开工前逐条对过代码：面板宽 260、可拖 220–520、无固定头行/对象行、分段是 28 高描边胶囊、分组无折叠无 chevron、内距 16、无空状态——七条 ❌，见 shots/x100/SE-05/report.md §1"
+  },
+  "code": [
+    "crates/mw-shell/src/panels/inspector.rs（PANEL_W=288 / MIN=240 / MAX=360 / clamp_width / geo 模块 40-44-30-28 / GUTTER=12 / segment() 无描边 + 1.5px 强调条 / group_header() chevron + 摘要 / ellipsize / shape_seg_w）",
+    "crates/mw-shell/src/window_state.rs（inspector_groups: Vec<String>「键=0/1」，只记用户动过的组；inspector_width 落盘）",
+    "crates/mw-shell/src/panels/inspector/inspector_methods_1.rs（头行 40 + 对象行 44 + 三段 30 tabs；样式/内容/标记三页全部换 group() 折叠；组内左右 16→12）",
+    "crates/mw-shell/src/panels/inspector/inspector_methods_2.rs（doc_body 空状态 + 五个文档分组）",
+    "crates/mw-shell/src/app_methods_2.rs::inspector_panel（max_w 给画布留 360；宽度只在 drag_stopped/dragged 时回写——内容顶宽不再冒充用户选择）",
+    "crates/mw-shell/src/main.rs（IA::ToggleGroup → window_state.set_inspector_group + trace `group key=… open=…`）"
+  ],
+  "scenes": [
+    "inspector",
+    "inspector-narrow",
+    "inspector-empty"
+  ],
+  "evidence": {
+    "geometry_trace": "MW_TRACE：`inspector w=288.00 head=40 obj=44 seg=30 bar=1.5 group=28 gutter=12`（narrow 场景下 w=240.00，其余不变）",
+    "baselines": "shots/golden/inspector / inspector-narrow / inspector-empty（1920×1080 @ ppp 1.5，--tol 0 双跑零差异）",
+    "reshoot": "cm-arrow-inspector 因检查器重排重拍（旧差异 95242 px / 4.134%，新基线双跑零差异）",
+    "unit_tests": "the_skeleton_geometry_matches_the_contract / panel_width_clamps_to_the_drag_range / shape_segments_fit_the_narrowest_panel / group_state_prefers_what_the_user_toggled（含前缀键不串用例）"
+  },
+  "tests": {
+    "new": [
+      "mw-shell::panels::inspector::tests::shape_segments_fit_the_narrowest_panel",
+      "mw-shell::panels::inspector::tests::group_state_prefers_what_the_user_toggled",
+      "mw-shell::panels::inspector::tests::the_skeleton_geometry_matches_the_contract",
+      "mw-shell::panels::inspector::tests::panel_width_clamps_to_the_drag_range",
+      "mw-shell::window_state::tests::inspector_width_round_trips_and_clamps",
+      "mw-shell::window_state::tests::collapsed_groups_round_trip_and_keep_one_entry_each"
+    ],
+    "total": "全库 939 → 944 passed / 0 failed / 1 ignored（新增 6 条：几何常量、宽度夹取、形状四段收窄、分组开合记忆、window_state 宽度与开合落盘）"
+  },
+  "gate": {
+    "stage_b": "scripts/x100-stage-b-gate.ps1 → 110 场 / 220 次比较，PASS（2026-10-30 01:33，日志 target/x100/stage-b-gate.log；本轮加 inspector / inspector-narrow / inspector-empty 三场）",
+    "stage_cm": "scripts/x100-stage-cm-gate.ps1（48 场；首跑红过 cm-arrow-inspector 95242 px / 4.134%——检查器整列重排的预期漂移，-Update 重拍后复跑 PASS，2026-10-30 01:45）"
+  },
+  "behaviour_change": [
+    "检查器默认宽 260 → 288，可拖 220–520 → 240–360（越界夹到端点并落盘）",
+    "分段控件从 28 高描边胶囊改为 30 高无描边（8% 强调底 + 1.5px 底条）",
+    "样式/内容/标记三页的每组都可折叠（chevron + 摘要），开合记忆进 window.json；标记组默认折叠",
+    "组内左右内距 16 → 12（§4.1「左右 12」），全部检查器行左移 4px",
+    "无选中时先显示「还没有选中主题 + 选中第一个主题」，不再直接铺文档属性",
+    "「形状」四段按版心均分；修复「内容最小宽 292 把面板顶开、240 拖不下去且被记成 293」的回归"
+  ],
+  "known_gaps": [
+    "折叠只有单测 + 点击轨迹（`group key=… open=…`），没有「点分组标题收起」的金样——点击坐标要从布局常数推，脚本脆弱；SE-10 证据包再补",
+    "实机键盘（F9 关闭、Tab 进分组、色板方向键）与实机微软拼音未核，全员共享缺口",
+    "group_header/group_with 参数 8 个，按仓库惯例挂 #[allow(clippy::too_many_arguments)]（app_helpers.rs 等十处同款）"
+  ]
+}

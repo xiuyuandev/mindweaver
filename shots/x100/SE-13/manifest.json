@@ -1,0 +1,70 @@
+{
+  "package": "SE-13",
+  "title": "检查器四项样式能力（椭圆 / 圆角 / 字重三档 / 对齐）",
+  "status": "已实现（代码、8 条新单测、15 场基线、两道机器门全绿；`已验证` 欠实机字体目检）",
+  "date": "2026-11-02",
+  "track": "P 轨 检查器 v2 补齐包（docs/31 §5 第 SE-13 行；补 G-B3-2 第 4 条缺口）",
+  "contract": {
+    "design": "docs/30 §4.2 必选能力清单第 3/4/6/7 项与控件规格；docs/32 §15（字段例外的决定）",
+    "execute": "docs/31 §5 第 SE-13 行",
+    "model": "docs/05 §2.3（StyleOverride 三个新键：radius / align / weight）",
+    "authorization": "用户 2026-11-02：「继续开发，而且呢，你帮助我验收，不需要我决定。」"
+  },
+  "code": [
+    "crates/mw-core/src/model.rs（StyleOverride.radius/align/weight，均 Option + skip_serializing_if）",
+    "crates/mw-core/src/theme.rs（WEIGHT_* 常量、ResolvedStyle 三键解析与钳制、TextAlign 三档）",
+    "crates/mw-core/src/text.rs（TextMeasurer::measure 改 weight: u16）",
+    "crates/mw-core/src/scene.rs（度量传 st.weight；BoxKey 增加 weight）",
+    "crates/mw-render/src/dwrite.rs（格式缓存键 (size, weight)）",
+    "crates/mw-render/src/text.rs（TextJob/OutlinedText.weight、node_text_align 支持 Right）",
+    "crates/mw-render/src/instances.rs（corner_style：圆角只对有角形状生效）",
+    "crates/mw-shell/src/panels/inspector.rs + inspector/inspector_methods_1.rs（形状四段含椭圆、圆角 stepper、字重三段、对齐三段、U 开关）",
+    "crates/mw-shell/src/export_svg.rs（font-weight / text-anchor 同源）",
+    "crates/mw-shell/src/app_methods_1.rs（MW_STYLE_DEMO 夹具）"
+  ],
+  "scenes": [
+    "inspector-weight",
+    "inspector-align",
+    "inspector-radius",
+    "inspector-ellipse"
+  ],
+  "reshot": [
+    "inspector",
+    "inspector-narrow",
+    "inspector-empty",
+    "inspector-shape",
+    "inspector-ink",
+    "inspector-mist",
+    "inspector-sand",
+    "inspector-content",
+    "inspector-multiselect",
+    "inspector-error",
+    "inspector-stepper-edit"
+  ],
+  "evidence": {
+    "baselines": "4 张新基线 + 11 张既有检查器基线重拍，15 场全部 --tol 0 双跑零差异",
+    "knobs": "MW_STYLE_DEMO=weight=600 / align=right / radius=24 / shape=ellipse（经 Command::SetStyle）",
+    "drift": "新场景相对 inspector-shape：weight 68918 px、align 35135、radius 37238、ellipse 54140；未喂覆盖的 inspector 只有面板区（x ≥ 1506）漂移",
+    "tests": "theme 3 条 / scene 1 条 / instances 1 条 / export_svg 1 条 / format 1 条 / inspector 1 条",
+    "gates": "stage-b 177 场 / 354 次比较、stage-cm 73 场 / 146 次比较，均两遍零差异"
+  },
+  "tests": {
+    "new": [
+      "theme::tests::bold_is_a_semibold_alias_not_a_bold_seven_hundred",
+      "theme::tests::the_new_style_keys_default_to_the_old_look",
+      "theme::tests::the_new_style_keys_are_clamped_and_parsed",
+      "scene::tests::the_box_cache_remeasures_when_only_the_weight_changes",
+      "instances::tests::an_override_radius_only_applies_to_shapes_that_have_corners",
+      "export_svg::tests::the_new_style_keys_reach_the_svg",
+      "tests::the_new_style_keys_are_optional_and_default_to_the_old_look（mw-format）",
+      "inspector::tests::the_weight_and_align_segments_fit_the_narrowest_panel"
+    ],
+    "total": "见 docs/STATUS.md §1（唯一真相源）"
+  },
+  "gate": {
+    "id": "G-B3-2",
+    "judgments": 5,
+    "verdict": "第 4 条缺口已补齐，待按授权复判（4/5 → 5/5）",
+    "blocking": "无（`已验证` 仍欠实机字体/DPI 目检，与 SE-01–12 同口径）"
+  }
+}

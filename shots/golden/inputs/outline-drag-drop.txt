@@ -1,0 +1,11 @@
+# outline-drag-drop · 拖拽松手落地（docs/28 §5.6：松开后一条撤销记录）
+# 源行「纯 Rust 原生」y=148 拖到「中文排版」y=300 中部后松手。
+# 期望 trace：outline_move_drag id=… parent=…（从父级 native 换到 cjk，一次 MoveNode）。
+wait 8
+move 400 148
+wait 1
+press 400 148
+move 400 240
+move 400 300
+release 400 300
+wait 2

@@ -1,0 +1,14 @@
+# CER-16：`## ` 敲完立刻 Ctrl+Z，一次就该退回「标记之前」——
+# 与 card-instant-enter（只回车、不敲标记）逐字节相同，说明没有留下光秃秃的 `#`。
+wait 3
+click 700 276
+wait 1
+key End
+key Enter
+wait 1
+text ##
+wait 1
+text \s
+wait 2
+key ctrl+z
+wait 6

@@ -1,0 +1,160 @@
+{
+  "package": "CER-17",
+  "title": "块级输入与 Markdown 粘贴",
+  "status": "已实现（实机 IME 未核对；G-B2-2 未开）",
+  "date": "2026-10-28",
+  "contract": {
+    "design": "docs/28 §6.3",
+    "execute": "docs/29 §7 CER-17"
+  },
+  "delivered": {
+    "indexed": "docs/STATUS.md",
+    "funcs": [
+      "task_flip",
+      "clip_has_markdown_structure",
+      "starts_with_block_marker",
+      "splice_structured",
+      "ellipsis"
+    ],
+    "trace_events": [
+      "task_box_click line=<n> checked=<bool> at=<char> y=<px>",
+      "card_task_toggle at=<char> checked=<bool> line_end=<char>",
+      "card_paste at=<char> structured=<bool> clip=<..> body=<..>"
+    ]
+  },
+  "scenes": [
+    {
+      "name": "card-task-click",
+      "dir": "shots/golden/card-task-click",
+      "ppp": 1,
+      "size": "1800x1200",
+      "sha256_12": "5C2DC8BBEE76",
+      "warmup": 20,
+      "env": {
+        "MW_CARD_TASK": "1",
+        "MW_WINDOW_SIZE": "1200x1000",
+        "MW_GOLDEN_INPUT": "shots/golden/inputs/card-task-click.txt"
+      },
+      "shows": "点第一条待办方框（547,272）→ 方框由 1.2px 描边变强调色实心，正文 `[ ]`→`[x]`，其余字符不动"
+    },
+    {
+      "name": "card-paste-md",
+      "dir": "shots/golden/card-paste-md",
+      "ppp": 1,
+      "size": "1800x1200",
+      "sha256_12": "5FE1C045AAAE",
+      "warmup": 20,
+      "env": {
+        "MW_CARD_TASK": "1",
+        "MW_WINDOW_SIZE": "1200x1000",
+        "MW_GOLDEN_INPUT": "shots/golden/inputs/card-paste-md.txt"
+      },
+      "shows": "待办行尾粘 `## 小节` + 两条 `- ` 成稿 → 原行不动，成稿原样成块（不补前缀）"
+    }
+  ],
+  "control_only": [
+    {
+      "name": "card-task-text-click",
+      "dir": "target/x100/cer17/textclick",
+      "input": "shots/golden/inputs/card-task-text-click.txt",
+      "result": "方框 0 强调色 / 44 描边（与不输入一致），只挪了光标"
+    },
+    {
+      "name": "card-paste-plain",
+      "dir": "target/x100/cer17/pasteplain",
+      "input": "shots/golden/inputs/card-paste-plain-task.txt",
+      "result": "同样位置粘 `乙\\n丙` → 续行补成 `- [ ] 丙`（纯文本按当前块处理）"
+    },
+    {
+      "name": "card-task-none",
+      "dir": "target/x100/cer17/task0",
+      "input": null,
+      "result": "不输入参照帧：第一条方框 0 强调色 / 44 描边，第二条 186 / 0"
+    }
+  ],
+  "diffs": {
+    "no-input vs task-click": {
+      "px": 1788,
+      "pct": 0.083,
+      "bbox": [539, 26, 1725, 289]
+    },
+    "no-input vs text-click": {
+      "px": 528,
+      "pct": 0.024,
+      "bbox": [539, 219, 619, 289]
+    },
+    "text-click vs task-click": {
+      "px": 1747,
+      "pct": 0.081,
+      "bbox": [540, 26, 1725, 289]
+    },
+    "no-input vs paste-plain": {
+      "px": 5506,
+      "pct": 0.255,
+      "bbox": [539, 26, 1725, 497]
+    },
+    "no-input vs paste-md": {
+      "px": 6411,
+      "pct": 0.297,
+      "bbox": [539, 26, 1725, 557]
+    },
+    "paste-plain vs paste-md": {
+      "px": 6067,
+      "pct": 0.281,
+      "bbox": [540, 28, 1583, 557]
+    }
+  },
+  "checkbox_pixels": {
+    "roi": "16x16 @ x540..555；box1 y264..280（第一条，未勾选）、box2 y294..309（第二条，已勾选）",
+    "no-input": {"box1": {"accent": 0, "stroke": 44}, "box2": {"accent": 186, "stroke": 0}},
+    "text-click": {"box1": {"accent": 0, "stroke": 44}, "box2": {"accent": 186, "stroke": 0}},
+    "task-click": {"box1": {"accent": 186, "stroke": 0}, "box2": {"accent": 186, "stroke": 0}},
+    "note": "186 px = 16×16 实心框减掉对勾笔画；box2 在三种帧里恒定，说明只翻了被点中的那一条"
+  },
+  "traces": {
+    "dir": "target/x100/cer17",
+    "files": [
+      "trace-click-run1.txt",
+      "trace-md-run1.txt",
+      "trace-pasteplain.txt",
+      "trace-textclick.txt"
+    ],
+    "task_click": [
+      "event task_box_click line=2 checked=false at=8 y=272.1",
+      "event card_task_toggle at=8 checked=false line_end=14"
+    ],
+    "paste_md": "event card_paste at=14 structured=true clip=\"## 小节\\n- 乙\\n- 丙\" body=\"第一段\\n\\n- [ ] 待办一\\n## 小节\\n- 乙\\n- 丙\\n- [x] 待办二\\n\\n尾段\\n\"",
+    "paste_plain": "event card_paste at=14 structured=false clip=\"乙\\n丙\" body=\"第一段\\n\\n- [ ] 待办一乙\\n- [ ] 丙\\n- [x] 待办二\\n\\n尾段\\n\"",
+    "text_click": "无任何 task_box_click / card_task_toggle 行（0 次）"
+  },
+  "tests": {
+    "workspace": 908,
+    "note_view": 60,
+    "added": 4,
+    "names": [
+      "clicking_a_task_box_flips_only_the_box",
+      "task_flip_rejects_anything_that_is_not_the_box",
+      "pasting_markdown_keeps_its_own_structure",
+      "structured_clip_is_recognized_by_its_block_markers"
+    ]
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1",
+    "scenes": 71,
+    "comparisons": 142,
+    "result": "PASS",
+    "log": "target/x100/stage-b-gate.log"
+  },
+  "clippy": {
+    "current": 37,
+    "baseline": 37,
+    "added": 0
+  },
+  "not_done": [
+    "实机微软拼音组合态（与 CER-16 共用 IME 门）",
+    "段落行上粘贴成稿不成块（仅列表行接管）",
+    "成稿判定是启发式：行首像块标记的表格化纯文本会被当成 Markdown",
+    "写回统一小写 x：点 `- [X]` 之后是 `- [ ]`",
+    "点击命中区 24×24（方框 16×16 外扩 4px）"
+  ]
+}

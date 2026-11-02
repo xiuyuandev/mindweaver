@@ -1,0 +1,11 @@
+# CER-21 card-selection：点进正文 → Ctrl+A 全选（跨块的整段选区）→ Shift+← 收三格。
+# 期望：选区底色覆盖多块、行距不跳；收格后锚点仍在文首。
+wait 3
+click 700 300
+wait 1
+key ctrl+a
+wait 2
+key shift+ArrowLeft
+key shift+ArrowLeft
+key shift+ArrowLeft
+wait 3

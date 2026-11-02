@@ -1,0 +1,70 @@
+{
+  "package": "CER-19",
+  "title": "专注模式与打字机模式",
+  "status": "已实现",
+  "date": "2026-10-28",
+  "scenes": [
+    {
+      "name": "card-focus",
+      "dir": "shots/golden/card-focus",
+      "ppp": 1.5,
+      "env": {
+        "MW_CARD_DEMO": "1",
+        "MW_CARD_FOCUS": "1",
+        "MW_GOLDEN_INPUT": "shots/golden/inputs/card-focus.txt"
+      },
+      "shows": "Alt+Z 专注：非当前块文字乘 35% alpha，无遮罩（纯白像素改动 0）",
+      "size": "1620x1080",
+      "sha256_12": "D26BA0BC5B9B",
+      "bytes": 110031
+    },
+    {
+      "name": "card-typewriter",
+      "dir": "shots/golden/card-typewriter",
+      "ppp": 1.5,
+      "env": {
+        "MW_CARD_TALL": "1",
+        "MW_CARD_TYPEWRITER": "1",
+        "MW_WINDOW_SIZE": "1200x1000",
+        "MW_GOLDEN_INPUT": "shots/golden/inputs/card-typewriter.txt"
+      },
+      "shows": "Alt+Shift+Z 打字机：敲字后光标落在正文视口 42%（探针 ratio=0.420，两趟一致）",
+      "size": "1800x1200",
+      "sha256_12": "DC23F15FA320",
+      "bytes": 480785
+    }
+  ],
+  "controls": [
+    {
+      "name": "card-focus-off",
+      "dir": "target/x100/cer19/focus-off",
+      "ppp": 1.5,
+      "env": {
+        "MW_CARD_DEMO": "1",
+        "MW_CARD_FOCUS": "0",
+        "MW_GOLDEN_INPUT": "shots/golden/inputs/card-focus.txt"
+      },
+      "shows": "同场景不淡（对照组）",
+      "size": "1620x1080",
+      "sha256_12": "703FB926BBD4",
+      "bytes": 117783
+    },
+    {
+      "name": "card-typewriter-off",
+      "dir": "target/x100/cer19/tw-off",
+      "ppp": 1.5,
+      "env": {
+        "MW_CARD_TALL": "1",
+        "MW_WINDOW_SIZE": "1200x1000",
+        "MW_GOLDEN_INPUT": "shots/golden/inputs/card-typewriter.txt"
+      },
+      "shows": "同场景不开打字机（对照组）",
+      "size": "1800x1200",
+      "sha256_12": "75C440403055",
+      "bytes": 381924
+    }
+  ],
+  "note": "对照组不进基线目录（不参与门），只用于 A/B 像素比对；本机窗口被 with_clamp_size_to_monitor_size 夹到 1200x800 CSS。",
+  "repro": "sh target/x100/cer19/shoot.sh",
+  "report": "shots/x100/CER-19/report.md"
+}

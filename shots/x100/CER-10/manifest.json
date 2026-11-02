@@ -1,0 +1,64 @@
+{
+  "package": "CER-10",
+  "status": "已实现",
+  "date": "2026-10-26",
+  "design_contract": "docs/28 §5.7 / §5.3",
+  "execution_contract": "docs/29 §6（X65/X66/X67 范围并入）",
+  "batch": "B2-A",
+  "gate": null,
+  "scenes": ["outline-search", "outline-search-labels"],
+  "unchanged_scenes": ["outline", "outline-focus", "outline-compact", "outline-narrow", "outline-edit"],
+  "themes": ["snow"],
+  "dpi": [1.5],
+  "scripts": [],
+  "evidence": [
+    "shots/x100/CER-10/report.md",
+    "shots/golden/outline-search/shell-ppp1.50.png",
+    "shots/golden/outline-search-labels/shell-ppp1.50.png",
+    "target/x100/stage-b-gate-cer10.log"
+  ],
+  "old_hashes": {},
+  "new_hashes": {
+    "outline-search": "1544a2aac7e49a1fab55b80d030466d0afa506b1a60e64cab8e2ff2513639dbc",
+    "outline-search-labels": "616e6a7f53a7444e5e42bd4e651594ddba97f6e4a2f15b9bb9b624f27bd3c71f"
+  },
+  "drift": {
+    "outline-search": "新增基线",
+    "outline-search-labels": "新增基线",
+    "outline-focus": "0 px（逐字节不变）",
+    "outline / outline-compact / outline-narrow / outline-edit": "0 px（逐字节不变）"
+  },
+  "tests": { "passed": 817, "failed": 0 },
+  "golden": {
+    "runs": 2,
+    "diffs": 0,
+    "tol": 0,
+    "note": "两个新场景各连跑两次 0 差异；五个未受影响场景各一次 0 差异；机器门 43 组 × 2 遍见 target/x100/stage-b-gate-cer10.log"
+  },
+  "engineering": {
+    "fmt": "clean",
+    "clippy_mw_shell_new": 0,
+    "release_build": "pass"
+  },
+  "contract_audit": "§5.7 全表：Ctrl+Shift+F 筛选条、Ctrl+F 归还全局搜索；文本+任务+卡片+标签 AND；祖先 48%、命中 12% 底、计数、Enter/Shift+Enter 前后跳、Esc 清全部条件；折叠穿透且不改折叠位；聚焦模式复核",
+  "changes": {
+    "code": [
+      "crates/mw-shell/src/panels/outline.rs（Filter 状态/可见表/命中区间/条件胶囊/标签弹层/Enter 步进/祖先 48%/命中 12%）",
+      "crates/mw-shell/src/shortcuts.rs（Action::OutlineFilter = Ctrl+Shift+F）",
+      "crates/mw-shell/src/app_methods_1.rs（快捷键接线 + MW_OUTLINE_FILTER_* / MW_OUTLINE_LABEL_POPUP 钩子）",
+      "crates/mw-shell/src/app_methods_2.rs（prepare_filter + 页头 tooltip）",
+      "crates/mw-shell/src/panels/help.rs（大纲键位表更正）",
+      "scripts/x100-stage-b-gate.ps1（+2 场景，41 → 43 组）"
+    ],
+    "golden": [
+      "shots/golden/outline-search（新增）",
+      "shots/golden/outline-search-labels（新增）"
+    ]
+  },
+  "known_gaps": [
+    "条件胶囊没有键盘路径，标签弹层只能鼠标操作",
+    "任务胶囊循环到单一状态，不支持多状态同时选中",
+    "计数分母是视图总行数（聚焦模式下等于聚焦子树行数）",
+    "大小写映射改变字符数的罕见 Unicode 可能让高亮起点偏 1 字符"
+  ]
+}

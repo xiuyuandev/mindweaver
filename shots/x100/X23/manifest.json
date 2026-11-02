@@ -1,0 +1,51 @@
+{
+  "package": "X23",
+  "title": "节点卡片 / 主题形状 / 边框 / 圆角 / 阴影（现状审计）",
+  "status": "进行中（本文件只做文档与现状审计；代码零改动，golden 未拍；G-1 阴影 / G-2 新形状待用户拍板）",
+  "date": "2026-11-02",
+  "track": "X100 Stage C（docs/24 §阶段 C 第 23 条）",
+  "contract": {
+    "design": "docs/24 §阶段 C 第 98 行（X23 定义）；docs/06 §2.2 令牌表（节点圆角 10、节点不投影）；docs/28 §4.4（边框/圆角/阴影）；docs/30 §4.2（形状四段 + 圆角 stepper）与 §5.3（概念盒 1.22×1.16、圆角 10）；docs/35 §1.3 / §2.0（令牌纪律、阴影只给浮层）",
+    "execute": "docs/31 §5（本批无 X23 行，按 docs/24 阶段 C 解释执行）",
+    "upstream": "shots/x100/SE-13/report.md（检查器侧形状/圆角/椭圆已落地 + 复审修 5 处）、shots/x100/SE-10/gate.md（G-B3-2 十四项能力清单）"
+  },
+  "deliverable": "shots/x100/X23/report.md（§1 范围/非目标、§2 现状测绘、§3 差距 9 条、§4 验收草案 8 条、§5 预计基线 9 场、§6 未做/风险）",
+  "measurements": {
+    "shape_variants": 5,
+    "shape_variants_reachable_in_inspector": "4 段 + 1 个 U 开关（下划线刻意不进分段控件，240 面板放不下第 5 格）",
+    "round_radius": "Rounded/Rect 可覆盖 0–24（世界单位），Capsule = h/2，Ellipse = -1000 哨兵，Underline = 0",
+    "stroke_width": "画布节点默认 0 或 1.0（CSS px，经 css_to_world 屏幕恒定）；检查器 0–8",
+    "shadow": "画布节点 0 处（mw-render 全仓无 shadow 命中）；浮层四档在 design::elevation，走 egui",
+    "single_exit": "corner_style：wgpu / SVG / PDF / egui 编辑环四处同源；命中仅椭圆/矩形二分"
+  },
+  "gaps": [
+    "G-1 画布节点无阴影（与 docs/24 X23 标题相撞；三处合同写「节点不投影」）→ 延后（待用户拍板，可能要新增 elevation 字段）",
+    "G-2 形状只有 5 个（XMind 常用还有平行四边形/六边形/云/大括号）→ 未开始（待拍板；不加字段但属合同变更）",
+    "G-3 思维导图节点椭圆/胶囊无盒外扩（概念图有 1.22×1.16）→ 未开始",
+    "G-4 圆角上限与盒高耦合：h=36 时 WGSL 钳到 18，24 与 18 同形 → 未开始",
+    "G-5 边框色是派生（一级 fill.mix(branch,0.22)、二三级 stroke.mix(branch,0.20)），非主题字段 → 未开始（口径先行）",
+    "G-6 圆角七档 / 描边五值 / 画布只用 10+1 三套语言并存（docs/35 §1.3 G1–G4）→ 未开始",
+    "G-7 若做阴影/新形状，SVG/PDF 无现成导出通路 → 延后（依赖 G-1）",
+    "G-8 命中判定仅椭圆/矩形二分，圆角与胶囊外区域仍命中 → 未开始",
+    "G-9 概念图形状由主题决定（cm-paper/cm-mint 椭圆、cm-slate/cm-clay 圆角）→ 未开始（口径先行）"
+  ],
+  "scenes": [],
+  "scenes_planned": [
+    "x23-shape-catalog",
+    "x23-radius-range",
+    "x23-stroke-width",
+    "x23-no-shadow",
+    "x23-themes",
+    "x23-ellipse-mindmap",
+    "x23-export-parity",
+    "cm-shape-themes",
+    "inspector-radius-clamp"
+  ],
+  "evidence": {
+    "baselines": "本轮未拍任何基线；§5 的 9 场只是名单与钉住什么，落盘时每场双跑 --tol 0",
+    "code_changes": "无（crates/ 正被并行会话改动，本轮严格只读）",
+    "tests": "未跑（本轮不执行构建与测试）",
+    "gates": "未跑；门状态以 docs/STATUS.md §1 为准，本包不宣称任何门结论"
+  },
+  "blocking": "G-1（节点是否做阴影）与 G-2（新增哪几个形状）需用户拍板；G-1 若做，需新增 elevation 字段并重拍所有含画布基线"
+}

@@ -1,0 +1,69 @@
+{
+  "id": "M30",
+  "title": "画布缩略卡（小地图）接回画布",
+  "date": "2026-11-01",
+  "round": 55,
+  "status": "已实现（机器门绿；实机手感未核）",
+  "scope": [
+    "Canvas 中央面板右下角接回缩略卡：190×130，缩放条上方 8px，可折叠为 34×26 角标",
+    "只读 Scene + Camera：世界⇄卡内换算全部走 mw_ui::overview（纯几何层，共用同一份 Scene）",
+    "绘制：节点代理块（按分支色）、关系线 0.8px、当前视口框（淡强调底 + 1px 强调描边）",
+    "交互：卡内点击/拖动 → center_from_thumb 钳制后 pan_to；悬停滚轮一档缩放（zoom_around_world）",
+    "折叠按钮命中区 18 → 24（docs/13 §4.19 旧账），视觉图标仍 12px",
+    "入口：命令面板与顶栏「视图」菜单「显示/隐藏小地图」；状态落 window.json，出厂关",
+    "验收旋钮：MW_MINIMAP=1 / MW_MINIMAP_COLLAPSED=1；轨迹 minimap toggle/pan/zoom",
+    "新基线 mm-minimap / mm-minimap-collapsed 进 stage-b 门（140 → 142 场 / 280 → 284 次比较）"
+  ],
+  "files": [
+    "crates/mw-shell/src/main.rs",
+    "crates/mw-shell/src/app_methods_1.rs",
+    "crates/mw-shell/src/app_methods_2.rs",
+    "crates/mw-shell/src/app_methods_3.rs",
+    "crates/mw-shell/src/app_helpers.rs",
+    "crates/mw-shell/src/canvas_chrome.rs",
+    "crates/mw-shell/src/panels/command.rs",
+    "crates/mw-shell/src/canvas/canvas_methods_1.rs",
+    "crates/mw-shell/src/canvas/consts.rs",
+    "crates/mw-shell/src/canvas/tests.rs",
+    "scripts/x100-stage-b-gate.ps1",
+    "shots/golden/mm-minimap/shell-ppp1.00.png",
+    "shots/golden/mm-minimap-collapsed/shell-ppp1.00.png",
+    "docs/x100/polish-ledger.md"
+  ],
+  "scenes": [
+    {"name": "mm-minimap", "warmup": 8, "env": "MW_MINIMAP=1; MW_NOTES=none; MW_WINDOW_SIZE=1280x800", "vs_control": "27080 px / bbox x[1710..1907] y[988..1125]"},
+    {"name": "mm-minimap-collapsed", "warmup": 8, "env": "MW_MINIMAP=1; MW_MINIMAP_COLLAPSED=1; MW_NOTES=none; MW_WINDOW_SIZE=1280x800", "vs_control": "1184 px / bbox x[1866..1907] y[1092..1125]"},
+    {"name": "expanded-vs-collapsed", "drift": "26482 px", "bbox": "x[1710..1907] y[988..1125]"}
+  ],
+  "tests": {
+    "before": 1114,
+    "after": 1115,
+    "new": [
+      "canvas_chrome::tests::minimap_collapse_hit_area_is_at_least_24",
+      "canvas::tests::zooming_around_a_world_point_pins_it_on_screen（上一会话写的锚点单测，本轮修正 zoom_around_world 后转绿）"
+    ],
+    "existing": [
+      "canvas_chrome::tests::minimap_rect_layout（尺寸/锚点/折叠态）",
+      "canvas_chrome::tests::minimap_hides_when_the_canvas_is_too_small",
+      "canvas_chrome::tests::minimap_wheel_steps_one_zoom_gear_per_notch",
+      "mw-ui::overview::tests 20 余条纯几何单测"
+    ]
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1",
+    "result": "PASS（142 场 / 284 次比较，两遍 --tol 0）",
+    "human_gate": "未开（X20 / G-B2-2 / G-B3-1 / G-B3-2 / G-CM-2 人工判词不代判）"
+  },
+  "deliverables": [
+    "report.md",
+    "manifest.json",
+    "shell-ppp1.00.png (expanded)",
+    "shell-ppp1.00.png (collapsed)"
+  ],
+  "known_gaps": [
+    "双击缩略卡定位节点（reveal_center 路径）未做",
+    "选中环 / 根描边 / 缩略卡上的节点投影未做",
+    "实机 150%/200% DPI 观感与拖动手感未核",
+    "概念图聚焦问题带（focus_note）会一起装进卡内，未单独拍概念图金样"
+  ]
+}

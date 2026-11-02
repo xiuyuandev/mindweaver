@@ -1,0 +1,47 @@
+{
+  "id": "CER-26",
+  "title": "笔记库预览阅读面（复用卡片页阅读组件）",
+  "date": "2026-11-02",
+  "batch": "B2-C",
+  "status": "已实现（机器证据齐；G-B2-3 人工门未开）",
+  "scope": [
+    "版心 600：content::PREVIEW = page_max 680 / text_max 600 / pad_top 40 / pad_bottom 64 / narrow_side 32",
+    "不另立字阶：PAGE_TITLE 标题、META 元信息、LIST_EXCERPT 标签行、READING_BODY 正文（docs/28 §7.5 的 30/40 与 12.5 是 TYPO-01 前旧档）",
+    "正文 = 卡片页同一棵 AST：reading_job + MdPalette::from_content，完成态变淡与卡片页同源",
+    "不可编辑：painter.galley 手摆，无 TextEdit（否则抢焦点吞掉 ↑↓/J/K/Enter）",
+    "入口只有 28px 铅笔（悬停/键盘焦点）与双击标题/正文；键盘 Enter；无「打开编辑」大按钮",
+    "两栏/单栏整页阅读面：preview_wanted 请求位 + 每帧与分档合成 preview_page；返回钮整页态叫「返回列表」",
+    "滚动独立：preview_scroll 与 list_scroll 分开；切卡回顶、返回列表保留列表滚动",
+    "空预览左对齐一句 EMPTY_PREVIEW（LIST_EXCERPT + text.faint），不画大图标"
+  ],
+  "files": [
+    "crates/mw-shell/src/note_library/preview.rs",
+    "crates/mw-shell/src/note_library.rs",
+    "crates/mw-shell/src/note_view.rs",
+    "crates/mw-core/src/design.rs"
+  ],
+  "scenes": [
+    {"name": "library-preview", "sha256_12": "D29FF2019DBE", "warmup": 3, "env": "MW_LIBRARY_DEMO=preview MW_WINDOW_SIZE=1080x720", "note": "两栏整页阅读面（css 1080）"},
+    {"name": "library-tag-filter", "sha256_12": "8CD6A191A704", "warmup": 3, "env": "MW_LIBRARY_DEMO=tag-filter MW_WINDOW_SIZE=1280x800", "note": "snow 三栏停靠预览，含完成态变淡"},
+    {"name": "library-preview-ink", "sha256_12": "EF566F1C7A6E", "warmup": 3, "env": "MW_LIBRARY_DEMO=preview MW_WINDOW_SIZE=1280x800 MW_THEME=ink", "note": "阅读排版四主题之一"},
+    {"name": "library-preview-mist", "sha256_12": "7171EF9CB7E6", "warmup": 3, "env": "同上 MW_THEME=mist", "note": "阅读排版四主题之一"},
+    {"name": "library-preview-sand", "sha256_12": "6EEBEE1A338E", "warmup": 3, "env": "同上 MW_THEME=sand", "note": "阅读排版四主题之一"},
+    {"name": "library-three-pane", "sha256_12": "50A81B728495", "warmup": 3, "env": "MW_LIBRARY_DEMO=default MW_WINDOW_SIZE=1280x800", "note": "空预览左对齐一句话"}
+  ],
+  "tests": {
+    "new_or_changed": [
+      "note_library::tests::a_plain_click_opens_the_reading_page_only_outside_three_pane",
+      "note_library::tests::ticking_a_checkbox_does_not_open_the_reading_page"
+    ],
+    "supporting": [
+      "note_library::tests::double_click_needs_two_hits_on_the_same_id（CER-25 拥有）",
+      "note_library::tests::double_click_window_is_400ms（CER-25 拥有）",
+      "note_library::tests::tab_ring_two_pane_skips_the_docked_preview（CER-23 拥有）",
+      "content_kit 单测 assert_eq!(PAGE_ICON_BUTTON, 28.0)"
+    ]
+  },
+  "not_done": [
+    "预览内 [[…]] 文内链接不跳转（§7.5 未要求，卡片页才有）",
+    "阅读排版四主题只拍了 1.5ppp 一档（字阶/令牌与 ppp 无关，design 单测覆盖）"
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "id": "TYPO-01",
+  "title": "全局字体与排版打磨（打磨轮 65）",
+  "date": "2026-11-01",
+  "round": 65,
+  "status": "已实现（机器门以冻结二进制复刻并通过；人工目检/实机 IME 未核）",
+  "user_request": "打磨所有页面的字体，字号，字间距等和文字相关产生的视觉效果，目前的整个产品看着累，而且不够舒服，不够美观。",
+  "plan": "docs/x100/typography-plan-2026-11-01.md（§8.1 执行记录）",
+  "scope": [
+    "统一字体栈：DWrite 候选 Segoe UI → Microsoft YaHei UI → Microsoft YaHei → Noto Sans SC；egui 注册 Segoe UI / Segoe UI Semibold / zhisi-semibold / zhisi-bold",
+    "统一字阶：外壳 12/13/14/15/16/26，内容十四档，画布三级 16、四级 15、摘要 14、命题 13",
+    "真字重：删除全部 .strong() 与检查器 0.4px 双描，600/500 走真实字体族",
+    "文字颜色与对比度：浅色 dim/faint、暗色 faint、内容 text_faint 0.68；四套主题 page/panel 全 ≥4.5",
+    "行高与几何：大纲 46/26/22、菜单 32、命令 32、快捷键 30、搜索 46/40/30、库导航 32、状态栏 26、开始页 48、标签页 30、卡片顶栏 44",
+    "中文禁则：dwrite::wrap_paragraph 的避头尾回填改成按首个可重排位置重切 + 合法性复核",
+    "标签：统一 6px 色点 + ch.text + 8% 色底，不再用 12px 粉彩字"
+  ],
+  "not_scope": [
+    "不改主题色板、图标、布局结构；不新增依赖/crate",
+    "不碰 .zmind / Node / NoteCard 字段；不升 FORMAT_VERSION",
+    "不新增 typo-* 专项金样场景（用既有 stage-b/stage-cm 全矩阵重拍覆盖）"
+  ],
+  "files": [
+    "crates/mw-core/src/design.rs",
+    "crates/mw-core/src/theme.rs",
+    "crates/mw-core/tests/contrast.rs",
+    "crates/mw-render/src/dwrite.rs",
+    "crates/mw-render/src/glyph.rs",
+    "crates/mw-render/tests/text_measure.rs",
+    "crates/mw-shell/src/fonts.rs",
+    "crates/mw-shell/src/chrome.rs",
+    "crates/mw-shell/src/content_kit.rs",
+    "crates/mw-shell/src/main.rs",
+    "crates/mw-shell/src/menu.rs",
+    "crates/mw-shell/src/shortcuts.rs",
+    "crates/mw-shell/src/start.rs",
+    "crates/mw-shell/src/note_view.rs",
+    "crates/mw-shell/src/note_library.rs",
+    "crates/mw-shell/src/panels/outline.rs",
+    "crates/mw-shell/src/panels/command.rs",
+    "crates/mw-shell/src/panels/search.rs",
+    "crates/mw-shell/src/panels/inspector.rs",
+    "docs/x100/typography-plan-2026-11-01.md"
+  ],
+  "tests": {
+    "new_or_updated": [
+      "mw-core design：字阶单调、行高比、组件几何（TAB_H/ROW/HEAD）",
+      "mw-core tests/contrast.rs：七条分表面 AA（page/panel/canvas 4.5、panel2/hover 3.0）",
+      "mw-shell content_kit::font_for：600→BOLD、500→SEMIBOLD、其它→Proportional",
+      "mw-shell chrome：禁止 .strong() 与裸字号扫描（用 concat! 避免自匹配）",
+      "mw-shell menu/search/inspector/outline/note_view：行高与私有字号接回令牌",
+      "mw-render text_measure 12 条：family=Segoe UI、拉丁宽 26.981、CJK 1em、悬挂破折号 58",
+      "mw-render glyph 4 条：CJK 直测面改用 Microsoft YaHei，图集测试不经过 DWrite 回退",
+      "mw-render dwrite：避头尾多字标点重切与合法性复核"
+    ],
+    "total": "全量测试见 report.md §3 / §6（2026-11-01 当前工作树）"
+  },
+  "gate": {
+    "method": "冻结 target/release/mw-shell.exe（19:20:42 构建，含本包全部改动）为 target/tmp/mw-shell-typo.exe；target/tmp/run_golden.py 按 scripts/x100-stage-b-gate.ps1 / x100-stage-cm-gate.ps1 的场景表逐场复刻（同 ppp/warmup/env/--tol 0，独立 APPDATA/LOCALAPPDATA/TEMP）",
+    "why_not_script": "并行 WorkBuddy 会话在 19:28–19:55 持续改源码并重建，原门脚本 cargo golden 会按新源码重编，曾两次撞上未完成编译",
+    "stage_b": "153 场 / 306 次比较；重拍 19:36:09–19:40:31；最终两遍 153/153 零差异（19:57:46–20:01:53、20:02:06–20:05:46）",
+    "stage_cm": "72 场 / 144 次比较；重拍 20:06:01–20:07:21（补齐 7 张 CM-14 缺失基线）；两遍 72/72 零差异（20:07:47–20:09:18、20:09:44–20:11:12）",
+    "transient": "verify-c 的 card-scroll（0.131%，仅滚动条竖带）与 mm-cut-confirm（基线误抓成无确认框）单跑均复现 0 差异；mm-cut-confirm 于 19:57:35 重拍为带确认框后两遍全绿",
+    "summaries": "gate/stage-b-update.json、stage-b-verify-1.json、stage-b-verify-2.json、stage-b-verify-transient-1.json、stage-b-verify-transient-2.json、stage-cm-update.json、stage-cm-verify-1.json、stage-cm-verify-2.json",
+    "not_done": "未由原脚本产出 target/x100/stage-b-gate.log / stage-cm-gate.log；并行会话停止后应各复跑一次"
+  },
+  "evidence": {
+    "report": "shots/x100/TYPO-01/report.md",
+    "plan_record": "docs/x100/typography-plan-2026-11-01.md §8.1",
+    "render_baselines": "shots/golden/canvas-text-ppp1.00.png、mw-render text-canvas 基线（18:10 重拍）",
+    "ledger": "docs/x100/polish-ledger.md 第 65 轮",
+    "status": "docs/STATUS.md §1"
+  },
+  "deviations": [
+    "text_faint 取 0.68（计划 0.65/0.66）：0.65 在雾青/暖砂只有 4.28–4.45，达不到 4.5",
+    "未新增 fonts::regular/medium/emph 包装，直接使用 FontFamily::Name + content_kit::font_for",
+    "未新增 note_view::tag_ink，标签按「色点 + ch.text + 8% 底」落地",
+    "未新增 typo-* 场景，用既有 153 场 stage-b + 72 场 stage-cm 覆盖"
+  ],
+  "risks": [
+    "画布三级/四级 +1px 会让部分节点变高，人工门若嫌胖只需回退 design::text::CANVAS_SUB/LEAF",
+    "实机微软拼音、100/125/150/200% DPI、长中文标题换行未人工核对（M4 仍阻塞）",
+    "并行会话继续改 note_view/document 等文件；本包基线对应 19:20:42 的二进制快照"
+  ]
+}

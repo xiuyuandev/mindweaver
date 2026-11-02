@@ -1,0 +1,71 @@
+{
+  "package": "C16",
+  "title": "命题短语的空白提交口径（拒绝 + 提示，不留线团）",
+  "status": "已实现（机器门绿；实机微软拼音未核，人工门未开，不记已验证）",
+  "date": "2026-10-31",
+  "track": "打磨轮（docs/x100/polish-ledger.md 第 40 轮；docs/30 §5 / §5.4 / §5.6 / §5.9 / §5.10）",
+  "contract": {
+    "design": "docs/30 §5「禁止无链接短语的线团」、§5.4 链接短语、§5.6.4 空短语判定、§5.10 金样表；模型守卫 mw-core::Document::apply(SetRelationshipLabel)",
+    "code": [
+      "crates/mw-shell/src/canvas/canvas_methods_3.rs::PhraseCommit + phrase_commit（纯函数）",
+      "crates/mw-shell/src/canvas/canvas_methods_3.rs::rel_editor_ui（提交路径按四态分支）",
+      "crates/mw-shell/src/canvas.rs::notice（画布置、壳层取的一次性提示）",
+      "crates/mw-shell/src/canvas/canvas_methods_1.rs::take_notice",
+      "crates/mw-shell/src/main.rs（take_notice → set_toast）",
+      "crates/mw-shell/src/app_methods_2.rs::OA::SetVia（概念图空串拒绝 + 提示）",
+      "crates/mw-shell/src/panels/outline.rs（短语框开着时 editing_active 归它，Ctrl+A 不再漏选全表）",
+      "shots/golden/inputs/cm-phrase-clear.txt / cm-phrase-blank.txt / cm-outline-via-clear.txt",
+      "scripts/x100-stage-cm-gate.ps1（+3 场）"
+    ],
+    "note": "不改模型守卫、不改思维导图空串清空语义、不改 .zmind / 数据结构、无新依赖"
+  },
+  "deliverables": {
+    "report": "shots/x100/C16/report.md",
+    "manifest": "shots/x100/C16/manifest.json"
+  },
+  "scenes": [
+    {
+      "name": "cm-phrase-clear",
+      "dir": "shots/golden/cm-phrase-clear",
+      "sha256_12": "767ADE2F0134",
+      "input": "shots/golden/inputs/cm-phrase-clear.txt",
+      "evidence": "既有短语「带来」全选删除 + Enter → 轨迹 rel-label-reject reason=empty + toast；截图短语原样、选中态保留、底部提示条。与 Esc 对照只差 10760 px（提示条 x16..375 y1148..1177）"
+    },
+    {
+      "name": "cm-phrase-blank",
+      "dir": "shots/golden/cm-phrase-blank",
+      "sha256_12": "1B2F7C97AAE6",
+      "input": "shots/golden/inputs/cm-phrase-blank.txt",
+      "evidence": "新建「用户痛点 → 风险与依赖」连线 + Enter 留空 → rel-label-reject reason=blank_new，scene_rel 不再有 w=0；与 cm-default 画布 0 px 差（线团消失），铬件差 12695 px 即提示条"
+    },
+    {
+      "name": "cm-outline-via-clear",
+      "dir": "shots/golden/cm-outline-via-clear",
+      "sha256_12": "4BC6C84E24A9",
+      "input": "shots/golden/inputs/cm-outline-via-clear.txt",
+      "evidence": "大纲 Shift+F2「解决」全选删除 + Enter → outline_concept_via_reject reason=empty + toast；选中保持 1 行（修复 Ctrl+A 漏选全表 6 行）；与 cm-outline 差 34416 = 23768 键盘焦点行 + 10648 提示条"
+    }
+  ],
+  "tests": {
+    "new": [
+      "canvas::tests::blank_phrase_commit_follows_the_concept_map_contract（九条断言：未改动 / 去空白未改 / 空拒绝 / 空格拒绝 / 新建线空撤线 / 新建线空格撤线 / 新词提交 / 改动提交 / 思维导图 Set(None)）"
+    ],
+    "total": "1030 passed / 0 failed / 1 ignored（23 个套件；stage-cm 门脚本实测）；mw-shell --bins 593 / 1 ignored"
+  },
+  "gate": {
+    "script": "scripts/x100-stage-cm-gate.ps1 + scripts/x100-stage-b-gate.ps1",
+    "stage_cm_scenes": 56,
+    "stage_cm_comparisons": 112,
+    "stage_b_scenes": 121,
+    "stage_b_comparisons": 242,
+    "result": "PASS（2026-10-31：stage-cm 02:44:54–02:48:15 两遍各 56 比较全过；stage-b 02:49:47–02:56:11 两遍各 121 比较全过，既有场景零漂移）",
+    "human_gate": "未开"
+  },
+  "behaviour_change": "概念图里的命题短语：既有命题不可清空（空提交 = 保留原短语 + 提示），新建边空提交 = 撤掉该线 + 提示；空短语只作为新建边的瞬态存在。思维导图仍可用空串清掉短语。",
+  "data_model": "零新字段；不升 FORMAT_VERSION、无迁移",
+  "known_gaps": [
+    "实机微软拼音下「Ctrl+A → Delete → Enter」未核（M4 同缺口）",
+    "撤销可以把刚撤掉的空短语线恢复回来：模型层没有全局不变量，本轮不扩大处理",
+    "提示条文案只有中文，无多语言体系"
+  ]
+}

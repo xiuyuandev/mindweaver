@@ -1,0 +1,10 @@
+# CER-20 自动保存：点进正文行尾，敲两个字，停手等过去抖（这一场用 MW_CARD_AUTOSAVE=50 把阈值压短）。
+# 期望：顶栏从「编辑中」走到「保存中…」再到「已保存」，trace 里有 card_autosave + card_save_ok。
+wait 3
+click 620 272
+wait 1
+key End
+wait 1
+text 收尾
+sleep 200
+wait 4

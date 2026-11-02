@@ -1,0 +1,61 @@
+{
+  "id": "M27",
+  "title": "快捷键禁用与配置持久化收口",
+  "date": "2026-10-31",
+  "round": 50,
+  "status": "已实现（机器门绿；人工门未开）",
+  "scope": [
+    "Bindings.entries 改 Vec<(Action, Option<Chord>)>，支持未绑定；chord/hint/consume 对 None 分别返回 None/空串/false",
+    "disable / is_disabled / enable：启用恢复出厂键，被占用时返回占用者并保持禁用；冲突只在启用中的和弦之间判",
+    "shortcuts.json 用 \"none\" 表示未绑定（空串同义），坏值仍退回出厂；两遍载入先禁后改绑",
+    "设置面板每行补「禁用 / 启用」按钮与底部一句话反馈；说明文案点明被输入法占用可禁用、重新启用恢复出厂键",
+    "轨迹 shortcut set/reject/disable/enable/enable_reject/reset；验收旋钮 MW_SHORTCUTS_DEMO=1|id,id",
+    "两场新基线 shortcuts-default / shortcuts-disabled 进 stage-b 门"
+  ],
+  "files": [
+    "crates/mw-shell/src/shortcuts.rs",
+    "crates/mw-shell/src/app_methods_1.rs",
+    "shots/golden/shortcuts-default/shell-ppp1.50.png",
+    "shots/golden/shortcuts-disabled/shell-ppp1.50.png",
+    "scripts/x100-stage-b-gate.ps1",
+    "docs/02-功能需求清单.md"
+  ],
+  "scenes": [
+    {"name": "shortcuts-default", "sha256_12": "F76BCA820852", "warmup": 8, "env": "MW_SHORTCUTS_DEMO=1"},
+    {"name": "shortcuts-disabled", "sha256_12": "E32C45210BE9", "warmup": 8, "env": "MW_SHORTCUTS_DEMO=save,undo,redo"},
+    {"name": "其余 136 场", "note": "零净漂移（stage-b pass 1/pass 2 各 138 比较全过）"}
+  ],
+  "tests": {
+    "before": 1073,
+    "after": 1076,
+    "new": [
+      "shortcuts::tests::a_disabled_shortcut_frees_its_chord_and_survives_a_round_trip",
+      "shortcuts::tests::enabling_restores_the_factory_key_unless_it_is_taken",
+      "shortcuts::tests::none_and_blank_values_disable_while_broken_values_fall_back"
+    ],
+    "existing": [
+      "shortcuts::tests::defaults_cover_every_action_without_collisions（改为 Option 后仍覆盖 28 项）"
+    ]
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1 + scripts/x100-stage-cm-gate.ps1",
+    "result": "PASS（stage-b 12:41:58–12:51:06 138/276；两遍 --tol 0；stage-cm 12:51:57–12:55:03 58/116 顺序复跑，两遍全过）",
+    "human_gate": "未开（X20 / G-B2-2 / G-B3-1 / G-B3-2 人工判词不代判）"
+  },
+  "deliverables": [
+    "report.md",
+    "before.png",
+    "after-default.png",
+    "after-disabled.png",
+    "trace-after-disable.txt",
+    "trace-after-enable.txt"
+  ],
+  "known_gaps": [
+    "shortcuts.json 的 \"none\" 是新约定：老版本读到会当坏条目退回默认；不迁移、无格式版本号",
+    "重新启用恢复的是出厂键，不是禁用前的自定义键（面板首句已写明）",
+    "画布编辑键（Tab/Enter/Del/方向键）仍由手势语义固定，不可重绑，也不在设置面板里列",
+    "实机输入法占用（微软拼音）无法在本机自动核对",
+    "两场金样是静态面板；按钮点击路径靠行为脚本与轨迹，不靠像素猜测",
+    "行为脚本点的是第三行「打开」而非「保存」，两条走同一段禁用/启用代码"
+  ]
+}

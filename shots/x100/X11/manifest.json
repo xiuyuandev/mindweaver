@@ -1,0 +1,51 @@
+{
+  "round": "X11",
+  "status": "verified",
+  "referenceVersion": "26.5.1107.202609082009",
+  "date": "2026-10-24",
+  "build": {
+    "commit": null,
+    "binary": "target/release/mw-shell.exe",
+    "binaryBytes": 23273472,
+    "binarySha256": "117d615e4d68e4d58c859386a147c3fdf48a6811efc0ac19c6e5a2d4edf2fb14"
+  },
+  "scenarios": [
+    {
+      "id": "design-token-consolidation",
+      "reference": ["docs/24-X100升级路线.md", "docs/archive/16-视觉重塑基准.md"],
+      "actual": ["shots/x100/X11/actual/shell-ppp1.50.png"],
+      "trace": [
+        "shots/x100/X11/traces/tests.txt",
+        "shots/x100/X11/traces/clippy.txt",
+        "shots/x100/X11/traces/golden-run1.txt",
+        "shots/x100/X11/traces/golden-run2.txt"
+      ],
+      "result": "pass",
+      "notes": "Type scale, control metrics, seven-tier radii, dialog elevation and motion easing now come from mw-core::design. Only intended visual delta is node radius 8→10 in the shell selection ring."
+    }
+  ],
+  "tests": [
+    "cargo test --workspace -- --test-threads=1",
+    "cargo test -p mw-core design::tests",
+    "cargo test -p mw-shell chrome::tests",
+    "cargo fmt --all -- --check",
+    "cargo clippy -p mw-shell --all-targets",
+    "cargo golden --tol 0 (twice)"
+  ],
+  "totals": { "passed": 688, "failed": 0 },
+  "clippy": { "total": 3, "new": 0, "known": "export_pdf.rs" },
+  "golden": {
+    "baseline": "shots/golden/shell-ppp1.50.png",
+    "sha256": "0c8cb788c7989d80a099600958f501ee89c251abf8a1c16e712adbbe595d56ed",
+    "size": "1620x1080",
+    "ppp": 1.5,
+    "tolerance": 0,
+    "runs": 2,
+    "differences": 0
+  },
+  "knownGaps": [
+    "About 40 decorative tiny radii (1–4px progress bars and colour dots) remain raw numbers; they are not component radii and move to X13.",
+    "Menu, start page and library still write spacing per site; X13/X18 will consolidate.",
+    "Light chrome greys are not yet derived from theme tokens; X14 covers the shell rebuild."
+  ]
+}

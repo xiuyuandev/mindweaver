@@ -1,0 +1,86 @@
+{
+  "package": "M8",
+  "title": "撤销/重做节奏（新建 + 改字合成一条撤销）",
+  "status": "已实现（四张基线 + undo/redo 轨迹；实机 IME 组合期的撤销 未验证）",
+  "date": "2026-10-29",
+  "track": "打磨轮（docs/x100/polish-ledger.md M8）",
+  "contract": {
+    "design": "硬约束「文档变更只走 Command」；账本 §1 M8 行「撤销/重做粒度（每次提交一条）」",
+    "code": [
+      "crates/mw-core/src/document.rs::ChangeSet::created（新）",
+      "crates/mw-core/src/document.rs::Document::apply_coalesced（新）",
+      "crates/mw-core/src/document.rs::Document::{undo_depth, redo_depth}（新）",
+      "crates/mw-shell/src/canvas/canvas_methods_3.rs::commit_edit（fresh 节点走 apply_coalesced）",
+      "crates/mw-shell/src/canvas/canvas_methods_3.rs::{undo, redo}（undo/redo 轨迹）"
+    ]
+  },
+  "deliverables": {
+    "report": "shots/x100/M8/report.md",
+    "manifest": "shots/x100/M8/manifest.json"
+  },
+  "scenes": [
+    {
+      "name": "mm-undo-built",
+      "dir": "shots/golden/mm-undo-built",
+      "sha256_12": "3BDED658F32F",
+      "input": "shots/golden/inputs/mm-undo-built.txt",
+      "evidence": "甲 (958,640) / 乙 (1140,645) / 丙 (1348,647) 三颗都在（盒子墨色 4252 / 3210 / 2705 px）"
+    },
+    {
+      "name": "mm-undo-one",
+      "dir": "shots/golden/mm-undo-one",
+      "sha256_12": "F790CD6E3700",
+      "input": "shots/golden/inputs/mm-undo-one.txt",
+      "evidence": "一次 Ctrl+Z 后丙的矩形内 0 px（整颗消失），甲 4252 / 乙 3046 原地不动"
+    },
+    {
+      "name": "mm-undo-three",
+      "dir": "shots/golden/mm-undo-three",
+      "sha256_12": "F469E2125A9C",
+      "input": "shots/golden/inputs/mm-undo-three.txt",
+      "evidence": "三次 Ctrl+Z 后乙/丙 0 px，导出回到无子节点位置 (958,606)"
+    },
+    {
+      "name": "mm-redo-one",
+      "dir": "shots/golden/mm-redo-one",
+      "sha256_12": "4E51FDA4D475",
+      "input": "shots/golden/inputs/mm-redo-one.txt",
+      "evidence": "撤三次后一次 Ctrl+Y：甲带字回来 (958,640)，乙/丙仍不在"
+    }
+  ],
+  "trace": {
+    "files": [
+      "shots/x100/M8/trace-undo-built.txt",
+      "shots/x100/M8/trace-undo-one.txt",
+      "shots/x100/M8/trace-undo-three.txt",
+      "shots/x100/M8/trace-redo-one.txt"
+    ],
+    "undo": "`undo label=<命令名> left=<撤销后栈深>`",
+    "redo": "`redo label=<命令名> left=<重做后栈深>`",
+    "reading": "left 是整个会话的栈深（示例文档自带十几条建树命令），只用来证明「一次操作只吃掉一条」"
+  },
+  "tests": {
+    "new": [
+      "document::tests::coalesced_create_and_text_is_one_undo",
+      "document::tests::coalescing_is_opt_in_per_call"
+    ],
+    "total": "918 passed / 0 failed / 1 ignored"
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1 (+ scripts/x100-stage-cm-gate.ps1)",
+    "stage_b_scenes": 91,
+    "stage_b_comparisons": 182,
+    "cm_scenes": 46,
+    "cm_comparisons": 92,
+    "result": "PASS",
+    "note": "既有 87 张 stage-b 与 46 张 cm-* 基线逐字节未动"
+  },
+  "behaviour_change": "这次编辑里刚新建的节点，其文字提交会并进「新建节点」那条撤销：一次 Ctrl+Z 整颗收回；已有节点改名仍是一次提交一条",
+  "bug_found_and_fixed": "第一版合并把上一条的 after 整段覆盖，导致重做只把节点塞回 nodes、不挂回父节点（树上看不见）；改为按 id 合并，单测补了「重做后要挂在父节点名下」",
+  "known_gaps": [
+    "实机 IME 组合期的撤销没有证据（离屏的「打字」是 text 事件，不是真组合）",
+    "只测 Ctrl+Y，没测备用和弦 Ctrl+Shift+Z",
+    "卡片页 / 大纲 / 检查器里的撤销节奏都没测",
+    "合并只对 Editor.fresh 生效；将来若让 fresh 在别的路径长期为真，会误合并"
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "package": "CM-14",
+  "title": "概念图的「连接」体系：四个连线入口、反向连接、短语建议（对标 CmapTools）",
+  "status": "已实现（单测绿；golden 与写盘用例因本机环境跑不起来，未重拍基线，不记已验证）",
+  "date": "2026-11-01",
+  "track": "M 轨 概念图（docs/30 §5.4.2；docs/31 CM-14）",
+  "contract": {
+    "design": "docs/30 §5.4.2（本轮新增）四个连线入口 + 节点菜单语义 + 反向连接 + 短语建议；§5.7 命令表补 ReverseRelationship；§5.10 补五张验收场景",
+    "execute": "docs/31 §3 完成定义与 §6 M 轨纪律；docs/32（不改 .zmind 字段、不升 FORMAT_VERSION、不迁移）",
+    "audit": "开工前查证：begin_relationship_action() 开头对概念图 return false；概念图节点菜单无连线项；概念图「新建概念」走 AddFloatingTopic（孤立概念）。见 report.md §1"
+  },
+  "code": [
+    "mw-core/src/command.rs（Command::ReverseRelationship { from, id }，label「反向连接」）",
+    "mw-core/src/document.rs（反向连接 apply：两端快照一条撤销、箭头档位不镜像（`arrow` 恒指 `to` 端）、短语与线色保留、树图仍禁重复边）",
+    "mw-core/src/phrase.rs（新增：linking_phrases 纯函数，去重/前缀过滤/频次排序/上限 6）",
+    "mw-core/src/lib.rs（pub mod phrase + re-export）",
+    "mw-shell/src/canvas.rs（RelEdit.pick、phrase_suggest_rect、ConceptLinkIntent/concept_link_intent；四个验收夹具 ConceptHook::{LinkMode,LinkTwo,Reverse,Suggest}）",
+    "mw-shell/src/main.rs + app_methods_1.rs（夹具派发；MW_CONTEXT_DEMO=concept:<文字> 让节点菜单开在概念图上）",
+    "scripts/x100-stage-cm-gate.ps1（登记五张新场景；缺基线时 SKIP 并计数，不把没拍算成通过）",
+    "mw-shell/src/canvas/canvas_methods_3.rs（概念图放开 Ctrl+L；begin_concept_link / connect_concepts / reverse_selected_relationship；commit_relationship_link 概念图分支进短语编辑；短语建议键盘与点击采用 + 绘制）",
+    "mw-shell/src/panels/context.rs（AddLinkedConcept、ReverseRelationship 两个动作）",
+    "mw-shell/src/app_methods_2.rs（概念节点菜单三行、概念多选菜单「连接这两个概念」、关系线菜单「反向连接」）"
+  ],
+  "scenes": [
+    "cm-link-menu（夹具已就位，基线待 -Update）",
+    "cm-link-mode（夹具已就位，基线待 -Update）",
+    "cm-link-two（夹具已就位，基线待 -Update）",
+    "cm-rel-reverse（夹具已就位，基线待 -Update）",
+    "cm-phrase-suggest（夹具已就位，基线待 -Update）"
+  ],
+  "evidence": {
+    "baselines": "本轮未重拍、未新增。原因见 report.md §4.3：本机 cargo golden 拿不到 wgpu 适配器（compositor.rs:721 写死 VULKAN | GL），连未改动的 cm-default 都跑不起来。预计受影响：cm-multi-menu（多选菜单多两行）、cm-arrow-menu（关系线菜单多一行且删除下移）；cm-arrow-menu-click 因「反向连接」放在子菜单之后、子菜单 y 未动，理论零漂移",
+    "unit_tests": "reverse_relationship_swaps_ends_keeps_head_and_undoes_in_one_step / reverse_relationship_keeps_parallel_propositions_in_a_concept_map / phrase::tests::{empty_prefix_offers_nothing, candidates_are_deduped_filtered_and_ordered_by_frequency, the_current_phrase_is_excluded_but_its_siblings_survive, the_list_is_capped_and_deterministic} / phrase_suggest_drops_below_the_editor_and_flips_up_near_the_bottom / phrase_suggest_stays_inside_a_narrow_canvas / concept_link_intent_only_direct_links_exactly_two_concepts",
+    "ran": {
+      "core": "cargo test -p mw-core -- --test-threads=1 → 322 passed / 0 failed / 0 ignored",
+      "shell_canvas": "cargo test -p mw-shell --bin mw-shell -- --test-threads=1 canvas:: → 135 passed / 0 failed",
+      "shell_menu": "cargo test -p mw-shell --bin mw-shell -- --test-threads=1 menu:: → 17 passed / 0 failed",
+      "fmt": "本包改动文件干净；全库唯一未格式化的 crates/mw-shell/src/note_view.rs 属并行会话，不在本包范围",
+      "clippy": "cargo clippy -p mw-shell --all-targets：改动文件新增 0，其余仍是基线里的 35 条旧账",
+      "blocked": "全量 cargo test --workspace 被环境挡住：测试进程在 target/tmp 与用户 Temp 下 create_dir_all 一律 Os{code:5}（mw-format 16 条、mw-shell autosave/cli/export 若干条假红）"
+    },
+    "gates": "未跑。stage-cm / stage-b 都依赖 golden，本机无适配器。五张新场景已登记进 stage-cm，缺基线时脚本打印 SKIP 并计数（不静默通过）。",
+    "trace": "新增轨迹：concept_link_direct / concept_link_created / concept_link_failed reason=no-selection|too-many|self / rel_link_mode kind=concept / rel_reverse / rel_reverse_failed / rel-suggest-pick"
+  },
+  "tests": {
+    "new": [
+      "mw-core::document::tests::reverse_relationship_swaps_ends_keeps_head_and_undoes_in_one_step",
+      "mw-core::document::tests::reverse_relationship_keeps_parallel_propositions_in_a_concept_map",
+      "mw-core::phrase::tests::empty_prefix_offers_nothing",
+      "mw-core::phrase::tests::candidates_are_deduped_filtered_and_ordered_by_frequency",
+      "mw-core::phrase::tests::the_current_phrase_is_excluded_but_its_siblings_survive",
+      "mw-core::phrase::tests::the_list_is_capped_and_deterministic",
+      "mw-shell::canvas::tests::phrase_suggest_drops_below_the_editor_and_flips_up_near_the_bottom",
+      "mw-shell::canvas::tests::phrase_suggest_stays_inside_a_narrow_canvas",
+      "mw-shell::canvas::tests::concept_link_intent_only_direct_links_exactly_two_concepts"
+    ],
+    "total": "mw-core 316 → 322 passed（+6）；mw-shell canvas 132 → 135（+3）"
+  },
+  "non_goals": {
+    "数据与格式": "不新增 .zmind 字段、不改 FORMAT_VERSION、不做迁移（反向连接只是把既有边换个主人）",
+    "线型": "不做曲线/贝塞尔连线；交叉仍只用「偏 6px 的二次曲线」（docs/30 §5.4.1 不变）",
+    "短语建议范围": "只取当前文档已有短语，不做词典、不做跨文档推荐、不做模糊匹配",
+    "概念图结构": "不做 nested nodes / 分组框（要动数据契约，另开包）"
+  },
+  "open": {
+    "基线": "cm-multi-menu / cm-arrow-menu 需在有 GPU 的机器上重拍；五张新场景需先补夹具钩子与输入脚本",
+    "实机手感": "短语建议的点击采用（失焦竞争）、建议可见时方向键归下拉、Ctrl+L 直连的源端顺序，均未实机核",
+    "自查修掉的 bug": "第一版反向连接给箭头做了 Forward↔Backward 镜像；但 arrow 恒指 to 端，两端对调后 Forward 本就会把箭头送到另一颗，再翻档等于点完画面无变化。已删 mirrored()，head 原样保留，单测改为先设 Both 再反向断言仍为 Both",
+    "源端顺序": "两颗直连取「场景顺序靠前」而非「先点的」，要按点击顺序需给 Selection 加序号"
+  }
+}

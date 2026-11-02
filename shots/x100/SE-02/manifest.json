@@ -1,0 +1,56 @@
+{
+  "package": "SE-02",
+  "title": "起始页视觉与状态（异步最近文件 + 骨架 + 状态场景）",
+  "status": "已实现（视觉条款审计已在；本轮补异步加载骨架与四主题/空状态/悬停证据；实机键盘未核，不记已验证）",
+  "date": "2026-10-29",
+  "track": "P 轨 外壳体验（docs/31 §4；依赖 SE-01）",
+  "contract": {
+    "design": "docs/30 §3.3（视觉与颜色）§3.4（状态）",
+    "execute": "docs/31 §4",
+    "audit": "开工前逐条对过代码：卡底 hairline/无阴影、主卡 8% 强调底、六个结构图标、时间 secondary、空状态两行、16 单位图标测试全部已在（SE-01 顺带落地）；真缺的是加载骨架与状态/主题证据，见 shots/x100/SE-02/report.md §1"
+  },
+  "code": [
+    "crates/mw-shell/src/recent.rs::Recent::load_async / load_async_from（后台线程读盘；真实运行用）",
+    "crates/mw-shell/src/recent.rs::Recent::pending（还没读完时占位的空列表，file 仍指向默认位置）",
+    "crates/mw-shell/src/main.rs（App::recent_load / recents_pending_frames；update 里收结果 + trace `recents loaded n=`）",
+    "crates/mw-shell/src/app_methods_1.rs::App::new（harness 同步读 + `MW_RECENTS_PENDING_FRAMES` 假装没读完；真实运行 load_async）",
+    "crates/mw-shell/src/app_methods_1.rs::recents_pending（骨架开关：recent_load.is_some() || frames>0）",
+    "crates/mw-shell/src/start.rs::recents_skeleton（3 行骨架，与三行真列表同高，不吃点击）",
+    "crates/mw-shell/src/start.rs::quick_card（卡片矩形进轨迹 `quick rect`，交互脚本不用猜坐标）",
+    "crates/mw-shell/src/start.rs::show / recents_section（recents_pending 参数贯通；加载中不显示「清除列表」）"
+  ],
+  "scenes": [
+    "start", "start-narrow", "start-scroll", "start-tab-focus",
+    "start-empty", "start-skeleton", "start-concept",
+    "start-ink", "start-mist", "start-sand"
+  ],
+  "evidence": {
+    "skeleton": "shots/x100/SE-02/skeleton-diff.txt（骨架 vs 3 行真列表：px>8=12386，bbox (536,345)-(1387,514)，只在最近文件卡内；同高不跳段）",
+    "hover": "shots/x100/SE-02/hover-diff.txt（指针压概念图卡：px>8=12766，bbox=(743,199)-(953,270)，卡面外 0 差异）",
+    "themes": "start-ink / start-mist / start-sand @1.5 各一张；实测整页均色 ink(32,35,40) mist(239,244,241) sand(242,237,228) default(244,241,236)",
+    "trace": "shots/x100/SE-02/rect-trace.txt（`quick rect concept 743,199 211x72` 等）"
+  },
+  "tests": {
+    "new": [
+      "mw-shell::recent::tests::the_pending_list_is_empty_but_still_knows_where_to_write",
+      "mw-shell::recent::tests::async_load_hands_back_what_the_sync_one_would"
+    ],
+    "total": "两道门为准（见 docs/STATUS.md §1）"
+  },
+  "gate": {
+    "stage_b": "scripts/x100-stage-b-gate.ps1 → 106 场 / 212 次比较（SE-02 补 6 场）",
+    "stage_cm": "scripts/x100-stage-cm-gate.ps1（48 场，不受本包影响）",
+    "golden_update": "先用 -Update 重拍全部基线，再裸跑复核（双跑 --tol 0）"
+  },
+  "behaviour_change": [
+    "真实运行时最近文件异步读：起始页首帧画 3 行骨架（不是空白、也不是「还没有最近文件」），列表一到就换成真行",
+    "加载中最近文件区不可点、不显示「清除列表」（没有可清的东西）",
+    "骨架与三行真列表同高，到货时不跳段"
+  ],
+  "known_gaps": [
+    "骨架只在真实运行的「读盘那一瞬间」存在（本机 recent.json 很小，通常不到一帧）；金样用 MW_RECENTS_PENDING_FRAMES 钉住，真实大列表的手感没量过",
+    "start-scroll / start-tab-focus 的输入脚本坐标按 1.5 倍窗口写，与 start-concept（1.0）不一致——各自锁各自的场景",
+    "实机键盘（Tab 序/Enter 激活）是 SE-03 的事，本轮未核",
+    "四主题只锁起始页；检查器/卡片页在四主题下的表现是 SE-05+ 的事"
+  ]
+}

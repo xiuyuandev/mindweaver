@@ -1,0 +1,3 @@
+wait 3
+hover 1123 482 200
+wait 2

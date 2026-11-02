@@ -1,0 +1,12 @@
+# outline-drag-cancel · 拖拽中 Esc 取消（docs/28 §5.6）
+# 源行「纯 Rust 原生」y=148；拖到「中文排版」y=300 后按 Esc。
+# 期望 trace：outline_drag_cancel，且没有 outline_move_drag / 文档修订号不变。
+wait 8
+move 400 148
+wait 1
+press 400 148
+move 400 300
+key Escape
+wait 2
+release 400 300
+wait 2

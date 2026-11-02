@@ -1,0 +1,10 @@
+wait 3
+press middle 900 600
+move 940 620
+move 1000 660
+move 1060 700
+release middle 1060 700
+scroll 0 -120
+scroll 0 120
+wait 2
+move 1500 1000

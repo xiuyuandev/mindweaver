@@ -1,0 +1,21 @@
+﻿{
+    "generatedAt":  "2026-10-22T00:58:51",
+    "generator":  "crates/mw-format/examples/x100_fixtures.rs",
+    "files":  [
+                  {
+                      "path":  "tests/fixtures/x100/tiny-cn.zmind",
+                      "bytes":  1542,
+                      "sha256":  "11C14FF2BFA01FF4F867D64BBD22CFE6D4C4A6493C39E828526564DFCB5E93B6"
+                  },
+                  {
+                      "path":  "tests/fixtures/x100/complex-style.zmind",
+                      "bytes":  5005,
+                      "sha256":  "06EFC72D7604E911CE6C85D0A88337FA980282F29C2CF0E6AC5B8028554FB432"
+                  },
+                  {
+                      "path":  "target/x100-fixtures/perf-20k.zmind",
+                      "bytes":  423341,
+                      "sha256":  "DCEFCDF2EFFF1D607B13F120A7E3197E500D9AFC7FAF6B685168A536FD069475"
+                  }
+              ]
+}

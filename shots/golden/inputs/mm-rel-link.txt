@@ -1,0 +1,8 @@
+# M23：选中「中文排版」→ Ctrl+L → 指针移到「交互与性能」定格（虚线预览）。
+wait 3
+click 1167 503
+wait 2
+key ctrl+l
+wait 2
+move 626 634
+wait 4

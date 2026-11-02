@@ -1,0 +1,130 @@
+{
+  "package": "X24",
+  "slice": "X24（本包 = 现状审计与合同，不含实现）",
+  "title": "分支线 / 锥形宽度 / 曲线控制点 / 箭头 / 间距 / 颜色继承",
+  "status": "进行中",
+  "status_reason": "本包只交 §2 现状测绘与 §3 差距清单；12 条差距全部未实现，9 个既有场景未复跑、4 个新场景未采。按 AGENTS §3.6 只能写「进行中」，不许写「已实现」",
+  "date": "2026-11-02",
+  "updated": "2026-11-02T20:30:00+08:00",
+  "track": "Stage C 第 1 轮（docs/24 §3 阶段 C 的 X24 行；X21 / X21b 已收口）",
+  "contract": {
+    "route": "docs/24 §3「- X24 重做分支线、锥形宽度、曲线控制点、箭头、间距和颜色继承。」+ §4 执行协议（report.md 先行）",
+    "design_mindmap": "docs/06 §2.1 实拍结论「连接线按分支取色、约 2px、S 形三次曲线、端头干净」+ §2.2「分支线 根 4 / 一级 3 / 二级 2 / 更深 1.5，逐边由父端向子端收细」+ 分支色八色表",
+    "design_export": "docs/30 §5.8「Scene 是几何唯一真相源：PNG / SVG / PDF 导出自动可用，无需新代码路径」",
+    "design_conceptmap": "docs/30 §5.4（线宽 1.5 屏幕恒定 / 箭头 ≥7 css 屏幕恒定）/ §5.4.1（跨分支取色与交叉微弧）/ §5.4.3（线型 6-4 虚线、线宽三档、注记）/ §5.9（禁止曲线连接线）",
+    "design_fields": "docs/32 §3（Relationship.head 四档，几何只在 Scene 算一次）与 §12（字段提案格式）",
+    "future_round": "docs/27 §3 X45 行「分支线型/箭头/锥形覆盖：节点覆盖、主题继承、导出一致」",
+    "docs28_note": "docs/28 只规定大纲（「不靠竖线、连接线」/「禁止树形竖线、连接线、每层缩进引导线」），没有画布连线条款；不要把这两句当成「画布不许画分支线」",
+    "conflict": "docs/06 §2.2「背景纹理｜导出默认剔除」已被 docs/30 §5.8 取代（X21b 已按同源改）；其余无冲突"
+  },
+  "scope": {
+    "must": [
+      "读 docs/24 / docs/28 / docs/30 §5 / docs/32 §3 §12 并定口径（report §2.0 表）",
+      "只读测绘：分支线线型/控制点/锥形/内缩/间距/箭头/颜色继承/导出同源（report §2）",
+      "差距清单：现状→合同→影响面→是否动数据模型（report §3，12 条）",
+      "验收场景草案（可量化，report §4，14 条）与 golden 场景名单（report §5，13 个）",
+      "doc-hygiene 体检"
+    ],
+    "out_of_scope": [
+      "改任何 crates/ 代码（含测试）",
+      "改 docs/（含 docs/STATUS.md）",
+      "改 scripts/",
+      "重拍任何 golden 基线",
+      "逐分支覆盖字段落地（属 X45，需拍板，本包只提案）",
+      "层级样式默认值重校准（属 X25）"
+    ]
+  },
+  "current_code_facts": [
+    "crates/mw-core/src/layout.rs：pub fn edge_path_with(e: &Edge, shape: EdgeShape) -> Path —— 曲线=一次三次贝塞尔，控制点取两端水平/垂直中点（dx/dy = 差值/2）；Elbow=两段折线；Straight=直线。三个形态都在这一个函数里",
+    "crates/mw-core/src/layout.rs：pub const EDGE_GAP_START: f32 = 0.5;／pub const EDGE_GAP_END: f32 = 1.5;（世界单位）；组织结构图端点贴边；鱼骨/时间轴 const AXIS_GAP: f32 = 34.0;",
+    "crates/mw-core/src/model.rs：LayoutSettings { edge_shape: \"curve\"（默认）, edge_arrow: false（默认）, sibling_gap: 24.0, level_gap: 80.0 }",
+    "crates/mw-core/src/theme.rs：pub fn edge_widths(&self, child_depth) -> (f32,f32) → 基准 edge_width_at：root=edge_width_root、1=root*0.75、2=edge_width、更深=(edge_width*0.75).max(1.0)；pub taper: bool",
+    "四主题实测：snow 3.5/1.75 → 3.5·2.625·1.75·1.3125；ink 3.2/1.6 → 3.2·2.4·1.6·1.2；mist 3.3/1.65；sand 3.4/1.7。docs/06 §2.2 合同值 4/3/2/1.5（差约 -12.5%，G-08）",
+    "crates/mw-core/src/scene.rs：SceneEdge { start, end, orientation, color, width, width_end, shape, arrow, alpha } —— 没有 path（对比 SceneRelationship 有 path）",
+    "crates/mw-core/src/scene.rs：SceneEdge 取值 width,width_end = theme.edge_widths(child.geom.depth)；shape = EdgeShape::from_name(&settings.edge_shape)；arrow = settings.edge_arrow；color = child.style.branch_color",
+    "crates/mw-render/src/instances.rs：edge_path_with(&Edge{…}, e.shape) → push_curve(path, tol, e.width, e.width_end) 按弧长插值（t = 中点累计长/总长）；箭头 size = cam.css_to_world(7.0)、half = size*0.42",
+    "crates/mw-shell/src/export_svg.rs：let path = edge_path(&Edge{…})（丢 shape）→ path_elt(…, cam.css_to_world(e.width))（丢 width_end，无锥形）；树边无箭头（只有 relationship 的 r.arrow/arrow_back 走 arrow_at_zoom）",
+    "crates/mw-shell/src/export_pdf.rs：edge_path(&Edge{…})（丢 shape）→ stroke_path(…, e.width, …)（丢 width_end）；e.arrow 时 arrow_head 用 const AL: f32 = 9.0; const AW: f32 = 6.5;（世界单位，第二套箭头几何）",
+    "crates/mw-core/src/theme.rs：branch 解析 = 根 theme.ui.accent / 一级 palette_at(兄弟序号) / 子孙继承父链 / 显式 StyleOverride.branch_color 优先；深层卡片 mix(0.07)/mix(0.20) 淡染",
+    "四主题 palette 长度：snow 8、ink 6、mist 6、sand 6；值（snow 起手 #3a7d6c）与 docs/06 §2.2 八色表（#1F9E86…）逐值不同（G-12）",
+    "crates/mw-core/src/scene.rs：fn concept_rel_color —— 显式 color > 跨分支 palette_at(from_branch % len) > ui.dim；fn straight_between 6×4 世界箭头；fn bowed_straight 车道微拱；fn bow_crossings min(6,len/12)；const CONCEPT_LANE_GAP: f32 = 24.0;",
+    "crates/mw-core/src/geom.rs：pub const ARROW_MIN_CSS_LEN: f32 = 7.0; arrow_at_zoom 只放大不缩小；SVG/PDF 的关系线箭头都调 arrow_at_zoom(tri, 1.0)（同源正例）",
+    "crates/mw-core/src/scene.rs：pub const REL_DASH: [f32; 2] = [6.0, 4.0];；export_svg 写 stroke-dasharray、export_pdf 写 [6 4] 0 d（CM-16 已同源）",
+    "crates/mw-render/src/hit.rs：Target 无 edge 变体 → 思维导图分支线不可选中、无悬停（概念图关系线可选中，3px 强调画在壳层）"
+  ],
+  "gaps": [
+    { "id": "G-01", "what": "SVG 丢树边线型（edge_path 默认 Curve）", "model_change": false, "severity": "高" },
+    { "id": "G-02", "what": "SVG 丢锥形（单 stroke-width = e.width，忽略 width_end）", "model_change": false, "severity": "高" },
+    { "id": "G-03", "what": "PDF 丢树边线型", "model_change": false, "severity": "高" },
+    { "id": "G-04", "what": "PDF 丢锥形", "model_change": false, "severity": "高" },
+    { "id": "G-05", "what": "SVG 完全不画树边箭头", "model_change": false, "severity": "中" },
+    { "id": "G-06", "what": "箭头两套几何：画布 7 css 屏幕恒定 vs PDF AL=9/AW=6.5 世界单位", "model_change": false, "severity": "高" },
+    { "id": "G-07", "what": "树边几何不进 Scene（SceneEdge 无 path），导出各自现算；建议选项 B：导出改调 edge_path_with(…, e.shape)", "model_change": false, "severity": "中" },
+    { "id": "G-08", "what": "线宽档位低于 docs/06 §2.2 合同（3.5/2.625/1.75/1.3125 vs 4/3/2/1.5）", "model_change": false, "severity": "中", "note": "改常量=外观改动，需重拍" },
+    { "id": "G-09", "what": "起点/终点内缩无合同值（0.5 / 1.5 世界单位）", "model_change": false, "severity": "低", "note": "只补文档" },
+    { "id": "G-10", "what": "兄弟/层间距无合同值（24 / 80，clamp 4 / 20）", "model_change": false, "severity": "低", "note": "只补文档" },
+    { "id": "G-11", "what": "逐分支覆盖（线型/箭头/锥形）缺字段，属 docs/27 X45", "model_change": true, "severity": "中", "needs_signoff": true },
+    { "id": "G-12", "what": "四主题色板与 docs/06 §2.2 八色表逐值不同", "model_change": false, "severity": "低", "note": "建议以代码为准、把合同表标旧" }
+  ],
+  "decisions_needed": [
+    "G-11：是否允许 StyleOverride 新增 edge_shape / edge_arrow / edge_taper 三个可选键（提案见 report §3.2，按 docs/32 §12 格式）",
+    "G-08：线宽按合同抬到 4/3/2/1.5（外观改动 + 全量重拍）还是把合同改成现值",
+    "G-02/G-04：锥形是否进导出（分段近似）；若不做，须在合同里写明「导出不锥形」这个取舍"
+  ],
+  "acceptance": [
+    { "id": "AC-01", "kind": "单测", "what": "控制点公式（水平边 c1=(mid,start.y)、c2=(mid,end.y)）", "status": "未开始" },
+    { "id": "AC-02", "kind": "测试", "what": "画布/SVG/PDF 三处几何 12 点采样 ≤0.01 世界单位", "status": "未开始" },
+    { "id": "AC-03", "kind": "测试", "what": "线型传导：elbow 两段 L、straight 一段", "status": "未开始" },
+    { "id": "AC-04", "kind": "单测", "what": "锥形公式 w0+(w1-w0)t 与四主题档位", "status": "未开始" },
+    { "id": "AC-05", "kind": "测试", "what": "锥形进导出（t=0.05/0.5/0.95 实测线宽）", "status": "未开始" },
+    { "id": "AC-06", "kind": "单测", "what": "箭头 ≥7 css 且恒定；四档可分辨；Off 三处都没有", "status": "未开始" },
+    { "id": "AC-07", "kind": "测试", "what": "箭头三处同几何（PDF 不许再用 9/6.5）", "status": "未开始" },
+    { "id": "AC-08", "kind": "单测", "what": "颜色继承：一级=palette[i]、孙代继承、覆盖优先、深层卡片 mix(0.07)", "status": "部分已有（theme.rs 内继承/覆盖/mix 已有单测，缺比例断言表）" },
+    { "id": "AC-09", "kind": "单测", "what": "概念图取色：同分支=dim、跨分支=palette_at(from%len)、显式优先", "status": "已有（scene.rs cross_branch_links_borrow_the_source_branch_colour）" },
+    { "id": "AC-10", "kind": "单测", "what": "分支色对画布/一级卡片 ≥3:1", "status": "已有（crates/mw-core/tests/contrast.rs every_theme_keeps_branch_colours_visible_on_its_canvas）" },
+    { "id": "AC-11", "kind": "测试", "what": "虚线节奏 SVG 6 4 / PDF [6 4] 0 d / 画布 6-4 世界单位", "status": "部分已有（CM-16 金样与单测）" },
+    { "id": "AC-12", "kind": "逐像素", "what": "PNG vs SVG 栅格化 vs PDF 转 PNG，连线区域差 ≤2/255、超容差 ≤0.05%", "status": "未开始" },
+    { "id": "AC-13", "kind": "金样", "what": "只改导出时 9 场代表场景 --tol 0 零差异", "status": "未开始" },
+    { "id": "AC-14", "kind": "单测", "what": "四主题一致性（档位/色板长度/箭头尺寸/bbox）", "status": "未开始" }
+  ],
+  "scenes": {
+    "existing": [
+      "theme-ink", "theme-sand", "theme-mist", "mm-collapse", "mm-rel-select-arrow",
+      "cm-default", "cm-arrow-off", "cm-arrow-backward", "cm-arrow-both", "cm-rel-curve", "cm-parallel-3"
+    ],
+    "new": ["mm-edge-elbow", "mm-edge-straight", "mm-edge-arrow", "mm-edge-taper-ink", "mm-export-parity"],
+    "reshoot_expected": "取决于 G-08 的裁定：若只改导出（G-01–G-07），画布零漂移、不重拍任何既有场景；若抬线宽档位，则凡有分支线的场景全部重拍"
+  },
+  "evidence": {
+    "collected": false,
+    "behavior": { "plan": "AC-01–AC-11 的单测/测试（实现轮）" },
+    "visual": { "plan": "§5 的四个新场景 + 九个既有场景复跑" },
+    "export": { "plan": "mm-export-parity 同一文档三份产物（PNG/SVG/PDF）+ AC-12 逐像素比" },
+    "hygiene": { "plan": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/doc-hygiene.ps1（结果见 report §8 回填）" }
+  },
+  "risks": [
+    { "id": "R1", "level": "中", "what": "并行会话在改 crates/，本包引用的字面可能已漂", "fix": "引用都带字面；实现轮开工前重跑 §2 的 grep" },
+    { "id": "R2", "level": "高", "what": "抬线宽档位会漂掉 254 个目录里所有带分支线的基线", "fix": "先定「改代码还是改合同」，再决定是否重拍" },
+    { "id": "R3", "level": "中", "what": "导出锥形没有现成基线，改了看不出来", "fix": "先建 mm-export-parity 证据场" },
+    { "id": "R4", "level": "中", "what": "SceneEdge 加 path（G-07 选项 A）会碰 20k 性能账（M12/P7 已达标读数）", "fix": "默认走选项 B" },
+    { "id": "R5", "level": "低", "what": "G-12 若改成以合同八色为准，会连锁漂掉一级卡片填充（palette_fill 与 palette 手工成对）", "fix": "以代码为准、合同表标旧" },
+    { "id": "R6", "level": "低", "what": "箭头恒定在 25% 缩放下观感偏大", "fix": "按 docs/30 §5.4「只放大不缩小」执行，不按观感改" }
+  ],
+  "not_done": [
+    "§3 的 12 条差距全部未实现（本包只交合同）",
+    "文档侧合同补齐未做（G-08 取值 / G-09 内缩 / G-10 间距）：docs/ 不在写作用域",
+    "G-11 字段提案未提交用户拍板（仅 report §3.2 备好）",
+    "实机 150%/200% DPI 下的锥形与箭头观感未验（与全仓同欠）",
+    "docs/06 §2.2 的「间距滑杆」与 Ctrl+T 主题/布局面板本身未实现（属别的包）",
+    "状态仍为「进行中」"
+  ],
+  "handoff": {
+    "next": [
+      "Lead 拍三次：G-11 字段、G-08 线宽档位、G-02/04 锥形是否进导出",
+      "实现轮按 AC-01–AC-07 先做导出同源（G-01–G-07，画布零漂移），再做观感（G-08，需重拍）",
+      "按 §5 采四个新场景并登记门脚本（登记属 scripts/，需另开授权）",
+      "回填 report §8 与 docs/STATUS.md（均由对应 owner 执行）"
+    ],
+    "write_scope": "本包只写 shots/x100/X24/；crates/、docs/、scripts/、shots/golden/ 由其他 owner 落地"
+  }
+}

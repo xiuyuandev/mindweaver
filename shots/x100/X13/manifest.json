@@ -1,0 +1,89 @@
+{
+  "round": "X13",
+  "status": "verified",
+  "referenceVersion": "26.5.1107.202609082009",
+  "date": "2026-10-24",
+  "build": {
+    "commit": null,
+    "binary": "target/release/mw-shell.exe",
+    "binarySha256": "ec777a1ebcc5303b981ca781a0ec6183b6e51a008fb11d86f313c530e8a92697",
+    "binarySize": 23200768
+  },
+  "scenarios": [
+    {
+      "id": "component-library-v2",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/archive/16-视觉重塑基准.md"
+      ],
+      "actual": [
+        "shots/x100/X13/actual/shell-ppp1.50.png",
+        "shots/x100/X13/actual/library-ppp1.50.png",
+        "shots/x100/X13/actual/outline-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X13/traces/tests.txt",
+        "shots/x100/X13/traces/clippy.txt",
+        "shots/x100/X13/traces/fmt.txt",
+        "shots/x100/X13/traces/golden-measure-shell.log",
+        "shots/x100/X13/traces/golden-measure-library.log",
+        "shots/x100/X13/traces/golden-measure-theme.log",
+        "shots/x100/X13/traces/golden-measure-outline.log",
+        "shots/x100/X13/traces/golden-verify.log",
+        "shots/x100/X13/traces/hashes.txt"
+      ],
+      "result": "pass",
+      "notes": "Buttons, icon buttons, pills, outline/tool buttons, chips, segmented controls, switches, inputs, selects, menu frames and tabs now share design::component metrics and theme state colours. Local button/checkbox/ComboBox implementations were removed."
+    }
+  ],
+  "tests": [
+    "cargo test --workspace -- --test-threads=1",
+    "cargo test -p mw-shell ui_kit::tests",
+    "cargo fmt --all -- --check",
+    "cargo clippy -p mw-shell --all-targets",
+    "cargo golden --tol 0 (13 scenarios, twice)"
+  ],
+  "totals": { "passed": 704, "failed": 0 },
+  "clippy": { "total": 3, "new": 0, "known": "export_pdf.rs" },
+  "golden": {
+    "baseline": "shots/golden/shell-ppp1.50.png",
+    "sha256": "180b9b7826a1fed18377d1ebd9266fb7d36e231f0f8ba10da543b3182714752d",
+    "libraryBaseline": "shots/golden/library/shell-ppp1.50.png",
+    "librarySha256": "561fa6cea15bdb9fe38ce9a184ab7b74422a059a151c2e567fa5055b1b0d1939",
+    "outlineBaseline": "shots/golden/outline/shell-ppp1.50.png",
+    "outlineSha256": "ebce4e2ff9a25f84b3c88c4b8479fae95f502a9be14105373553d57278919c2f",
+    "size": "1620x1080",
+    "tolerance": 0,
+    "scenarios": 13,
+    "runs": 2,
+    "differences": 0,
+    "preUpdateDrift": {
+      "library@1.0": "3128 px (0.179%)",
+      "library@1.5": "7005 px (0.400%)",
+      "library@2.0": "11246 px (0.643%)",
+      "shell@1.0": "0 px",
+      "shell@1.5": "0 px",
+      "shell@2.0": "0 px",
+      "theme-ink@1.5": "0 px",
+      "theme-mist@1.5": "0 px",
+      "theme-sand@1.5": "0 px",
+      "outline@1.5": "0 px",
+      "outline-focus@1.5": "0 px",
+      "card-slash@1.5": "0 px",
+      "outline-compact@1.5": "0 px"
+    },
+    "rebaselined": [
+      "library@1.0",
+      "library@1.5",
+      "library@2.0"
+    ]
+  },
+  "knownGaps": [
+    "Title bar, app menu, document title, save status and main toolbar are deferred to X14.",
+    "Canvas hover toolbar and zoom bar are deferred to X15.",
+    "The shared menu engine (submenus, edge flipping, shortcut column, keyboard navigation) is deferred to X16; the dialog system to X17.",
+    "The tab strip only appears with two or more tabs, so no golden scenario covers it yet; click/width unit tests stand in until X19 adds a multi-tab golden.",
+    "Settings and theme studio are outside the golden matrix; their migration is covered only by compilation, unit tests and code review.",
+    "Tooltips still use egui's default hover delay and styling; they will be unified with the menu engine in X16."
+  ]
+}

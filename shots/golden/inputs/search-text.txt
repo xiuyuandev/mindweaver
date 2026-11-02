@@ -1,0 +1,11 @@
+# M29（打磨轮 52）：精确文本模式。`zw` 是「中文排版」的首字母，拼音模式命中 1 行；
+# 按 Ctrl+Shift+M 切到「精确文本」后原文里没有这两个字母，结果归零、脚注开关高亮在「精确文本」。
+# 判据：轨迹 `search_mode mode=text rows=0` 与 `search_hits q=zw rows=0`，
+# 空状态提示改成「精确文本只匹配原文…」。
+wait 8
+key ctrl+f
+wait 4
+text zw
+wait 8
+key ctrl+shift+m
+wait 8

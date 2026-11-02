@@ -1,0 +1,6 @@
+# 同一张概念图行菜单 + Esc：菜单关掉、焦点回行，不落地任何命令。
+wait 8
+rightclick 700 172
+wait 4
+key Esc
+wait 4

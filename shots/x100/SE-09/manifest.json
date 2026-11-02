@@ -1,0 +1,48 @@
+{
+  "package": "SE-09",
+  "title": "检查器键盘与无障碍（Ctrl+Shift+I、色板数字键 1–9 与 Enter、Esc 两级、28px 错误条、对比度）",
+  "status": "已实现（机器门绿；Esc 两级接线与实机手感未核，不记已验证）",
+  "date": "2026-10-30",
+  "track": "P 轨 检查器 v2（docs/31 §5；依赖 SE-06 / SE-07）",
+  "contract": {
+    "design": "docs/30 §4.3（命令失败：面板内 28px 错误条 + toast）、§4.4（Ctrl+Shift+I 开合；Tab 进分组；↑↓ 移动、Enter 选择；数字键 1–9 直选；Esc 先退出控件再退出面板）、§4.5（禁止项）",
+    "execute": "docs/31 §5 第 SE-09 行",
+    "audit": "开工前对过代码：出厂键是 F9（没有 Ctrl+Shift+I）、色板只接了 Space 没接 Enter、没有数字键、Esc 一步退到画布、命令失败只有 toast、检查器文字对比度从未量过——见 report.md §1"
+  },
+  "code": [
+    "crates/mw-shell/src/shortcuts.rs（Action::Inspector 出厂键改 Ctrl+Shift+I；新增 Action::InspectorAlt = F9）",
+    "crates/mw-shell/src/app_methods_1.rs（Inspector 与 InspectorAlt 同义；MW_INSPECTOR_FAIL=1 走真失败路径）",
+    "crates/mw-shell/src/panels/inspector.rs（esc_step/EscStep；色板数字键与 Enter；error_bar 与 report_error/clear_error；geo::ERROR_H；检查器文字 faint → dim；对比度单测）",
+    "crates/mw-shell/src/panels/inspector/inspector_methods_1.rs（show：Esc 两级接线、错误条挂在分段控件下方）",
+    "crates/mw-shell/src/main.rs（apply 失败 report_error + toast；成功 clear_error）"
+  ],
+  "scenes": [
+    "inspector-error"
+  ],
+  "evidence": {
+    "baselines": "shots/golden/inspector-error（1920×1080 @ ppp 1.5，--tol 0 双跑零差异）",
+    "trace": "event inspector_error shown=1 text=修改未生效：这条命令被文档拒绝了",
+    "contrast": "四主题 text/dim 对 panel 均 ≥ 4.5；dim 对 panel2 = 4.14（记账，立 4.0 下限）",
+    "unit_tests": "digits_pick_a_swatch_while_the_palette_holds_focus / escape_goes_through_the_control_before_the_panel / every_theme_keeps_inspector_text_readable",
+    "gates": "{{GATES}}"
+  },
+  "tests": {
+    "new": [
+      "mw-shell::panels::inspector::tests::digits_pick_a_swatch_while_the_palette_holds_focus",
+      "mw-shell::panels::inspector::tests::escape_goes_through_the_control_before_the_panel",
+      "mw-shell::panels::inspector::tests::every_theme_keeps_inspector_text_readable"
+    ],
+    "total": "全库 956 → 959 passed / 0 failed / 1 ignored（新增 3 条）；fmt 干净，clippy 指纹新增 0"
+  },
+  "knobs": {
+    "MW_INSPECTOR_FAIL": "发一条指向不存在节点的 SetStyle，让壳层走真的失败路径（错误条 + toast）"
+  },
+  "deferred": {
+    "inspector-keys 输入脚本": "Tab 步数随面板改动漂，改用单测锁命令",
+    "屏幕阅读器 / UIA": "egui 不提供，属另一个量级"
+  },
+  "open": {
+    "dim@panel2 = 4.14": "卡片候选列表的下沉底色上差 AA 0.36；修要动主题令牌或换文字色，均超出本包",
+    "Esc 两级跨帧": "无头 harness 的 egui 焦点不跨 run_ui 保留，拍不出两级；接线待实机核对"
+  }
+}

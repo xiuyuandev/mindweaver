@@ -1,0 +1,115 @@
+{
+  "package": "CER-13",
+  "status": "已实现",
+  "date": "2026-10-28",
+  "design_contract": "docs/28 §6",
+  "execution_contract": "docs/29 §7 CER-13",
+  "batch": "B2-B",
+  "gate": "G-B2-2（未过）",
+  "scenes": [
+    "card-default",
+    "card-empty",
+    "card-long",
+    "card-narrow",
+    "card-slash"
+  ],
+  "scene_dirs": {
+    "card-default": "shots/golden/card-default",
+    "card-empty": "shots/golden/card-empty",
+    "card-long": "shots/golden/card-long",
+    "card-narrow": "shots/golden/card-narrow",
+    "card-slash": "shots/golden/card-slash"
+  },
+  "themes": [
+    "snow",
+    "ink",
+    "mist",
+    "sand"
+  ],
+  "dpi": [
+    1.5
+  ],
+  "scene_dpi": {
+    "card-default": [
+      1.5
+    ],
+    "card-empty": [
+      1.5
+    ],
+    "card-long": [
+      1.5
+    ],
+    "card-narrow": [
+      1.5
+    ],
+    "card-slash": [
+      1.5
+    ]
+  },
+  "scripts": [
+    "scripts/x100-stage-b-gate.ps1",
+    "scripts/measure3.ps1"
+  ],
+  "fixtures": {
+    "card-default": "MW_CARD_DEMO=1",
+    "card-empty": "MW_CARD_EMPTY=1",
+    "card-long": "MW_CARD_LONG=1",
+    "card-narrow": "MW_CARD_LONG=1 MW_WINDOW_SIZE=900x700",
+    "card-slash": "MW_CARD_DEMO=1 MW_CARD_SLASH=1"
+  },
+  "baselines": {
+    "card-default": "95B3DFB78731",
+    "card-empty": "B69DD5EB165A",
+    "card-long": "57BBE5BD3F0C",
+    "card-narrow": "384D44E03E10",
+    "card-slash": "9E8D329D5021"
+  },
+  "measurements": {
+    "card-long": {
+      "window": "1080x720",
+      "article_expected": 720,
+      "article_left_logical": 180,
+      "wrap_right_logical": [
+        890.7,
+        892.7
+      ],
+      "measured_width_logical": [
+        710.7,
+        712.7
+      ]
+    },
+    "card-narrow": {
+      "window": "900x700",
+      "article_expected": 640,
+      "article_left_logical": 130,
+      "wrap_right_logical": [
+        764,
+        764.7
+      ],
+      "measured_width_logical": [
+        633.3,
+        634.7
+      ]
+    },
+    "four_themes": {
+      "left": 180,
+      "right": 892.7,
+      "width": 712.7,
+      "lines": 7
+    }
+  },
+  "known_gaps": [
+    "右目录已删，目录能力（浮层）延到 B2-D / Stage G",
+    "窄窗只测 900 一档，未扫 320..1040 全区间",
+    "四主题只测了几何，未做逐主题对比度审计（CER-19 负责）"
+  ],
+  "incidental_fixes": {
+    "stage_b_gate_temp": "scripts/x100-stage-b-gate.ps1 补 TEMP/TMP 重定向（与 ci.ps1、x100-stage-cm-gate.ps1 一致），修复 mw-format 8 个用例在受限令牌下的假失败",
+    "library_fixture": "crates/mw-shell/src/demo_notes.rs 改落盘到 target/tmp/mw-library-demo-v2、每次先删再种、固定 demo-01..04、写盘失败 panic + 断言张数"
+  },
+  "refreshed_baselines": {
+    "library/shell-ppp1.00.png": "352E863E8771",
+    "library/shell-ppp1.50.png": "561FA6CEA15B",
+    "library/shell-ppp2.00.png": "2A3F134B8D5B"
+  }
+}

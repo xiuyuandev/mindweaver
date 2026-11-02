@@ -1,0 +1,3 @@
+wait 4
+key ctrl+shift+n
+wait 8

@@ -1,0 +1,148 @@
+{
+  "reference": {
+    "product": "Xmind",
+    "version": "26.5.1107.202609082009",
+    "installPath": "%LOCALAPPDATA%/Programs/Xmind",
+    "capturedAt": "2026-10-18/2026-10-21",
+    "isolation": "legacy captures were manual; future captures must use scripts/x100-xmind-capture.ps1",
+    "licenseBoundary": "Compare geometry and behavior only; do not copy proprietary assets."
+  },
+  "scenarios": [
+    {
+      "id": "shell.blank",
+      "images": ["shots/reference/xmind-home2.png"],
+      "viewport": "1280x800",
+      "confidence": "medium",
+      "notes": "Blank map with floating top toolbar; no personal document content."
+    },
+    {
+      "id": "shell.canvas",
+      "images": ["shots/qa/xmind-now.png"],
+      "viewport": "1600x1000",
+      "confidence": "high",
+      "notes": "Includes desktop/taskbar; crop to Xmind window before pixel comparison."
+    },
+    {
+      "id": "selection.node-toolbar",
+      "images": ["shots/qa/xmind-nodebar.png"],
+      "viewport": "1600x1000",
+      "confidence": "high",
+      "notes": "Selected main topic, floating node toolbar, right inspector."
+    },
+    {
+      "id": "selection.topic",
+      "images": ["shots/qa/xmind-select.png", "shots/reference/xmind2026-selected.png"],
+      "viewport": "mixed",
+      "confidence": "medium",
+      "notes": "Selection-layer reference; the smaller image is cropped."
+    },
+    {
+      "id": "editing.inline",
+      "images": ["shots/qa/xmind-commit.png", "shots/reference/xmind-edit3.png"],
+      "viewport": "mixed",
+      "confidence": "medium",
+      "notes": "Inline commit/edit state; keyboard trace is still missing."
+    },
+    {
+      "id": "menu.node-context",
+      "images": ["shots/qa/xmind-context.png", "shots/reference/xmind-context.png"],
+      "viewport": "mixed",
+      "confidence": "high",
+      "notes": "Main contextual menu state and smaller crop."
+    },
+    {
+      "id": "menu.insert",
+      "images": ["shots/qa/xmind-insert.png"],
+      "viewport": "1600x1000",
+      "confidence": "high",
+      "notes": "Nested insert menu."
+    },
+    {
+      "id": "menu.export",
+      "images": ["shots/qa/xmind-export.png"],
+      "viewport": "1600x1000",
+      "confidence": "high",
+      "notes": "Export dialog/menu."
+    },
+    {
+      "id": "inspector.style",
+      "images": ["shots/qa/xmind-style.png", "shots/qa/xmind-style2.png"],
+      "viewport": "1600x1000",
+      "confidence": "high",
+      "notes": "Style inspector, shape and text sections."
+    },
+    {
+      "id": "inspector.shape",
+      "images": ["shots/qa/xmind-shapes.png", "shots/qa/xmind-shape-list.png"],
+      "viewport": "1600x1000",
+      "confidence": "high",
+      "notes": "Shape presets and open shape menu."
+    },
+    {
+      "id": "inspector.structure",
+      "images": ["shots/qa/xmind-structure.png", "shots/qa/xmind-structures.png", "shots/qa/xmind-structures-2.png", "shots/qa/xmind-structures-3.png", "shots/qa/xmind-structures-4.png"],
+      "viewport": "1600x1000",
+      "confidence": "high",
+      "notes": "Layout chooser and multiple structure previews."
+    },
+    {
+      "id": "inspector.theme",
+      "images": ["shots/qa/xmind-theme.png", "shots/qa/xmind-themes.png", "shots/qa/xmind-themes-classic.png", "shots/qa/xmind-theme-zen.png"],
+      "viewport": "1600x1000",
+      "confidence": "high",
+      "notes": "Theme picker and several theme choices."
+    },
+    {
+      "id": "presentation",
+      "images": ["shots/qa/xmind-present.png"],
+      "viewport": "1600x1000",
+      "confidence": "medium",
+      "notes": "Presentation mode state."
+    },
+    {
+      "id": "start.recent",
+      "images": ["shots/qa/xmind-recent.png", "shots/qa/xmind-launch.png"],
+      "viewport": "mixed",
+      "confidence": "low",
+      "notes": "Previous captures contain transient launch/account UI; recapture before use."
+    },
+    {
+      "id": "outline",
+      "images": ["shots/qa/xmind-canvas-tab.png", "shots/reference/xmind-context.png"],
+      "viewport": "mixed",
+      "confidence": "low",
+      "notes": "Legacy evidence was weak; superseded by live isolated Outliner captures below."
+    },
+    {
+      "id": "live.isolated-states",
+      "images": [
+        "shots/reference/xmind-26.5.1107/live/home-clean.png",
+        "shots/reference/xmind-26.5.1107/live/default-map-selected.png",
+        "shots/reference/xmind-26.5.1107/live/node-context-menu.png",
+        "shots/reference/xmind-26.5.1107/live/outline-default.png",
+        "shots/reference/xmind-26.5.1107/live/outline-multi-select.png",
+        "shots/reference/xmind-26.5.1107/live/outline-edit-empty.png",
+        "shots/reference/xmind-26.5.1107/live/outline-edit-text.png",
+        "shots/reference/xmind-26.5.1107/live/navigation-panel.png",
+        "shots/reference/xmind-26.5.1107/live/navigation-search.png",
+        "shots/reference/xmind-26.5.1107/live/presentation-default.png",
+        "shots/reference/xmind-26.5.1107/live/export-menu.png"
+      ],
+      "viewport": "native window per state; see live/manifest.json",
+      "confidence": "high",
+      "notes": "Captured with zero pre-existing Xmind processes, no login and a repository-local temporary profile."
+    }
+  ],
+  "missingStates": [
+    "clean start page at 1280x800 and 1620x1080",
+    "outliner mouse-down drag insertion preview and keyboard row menu",
+    "matched Xmind dark appearance",
+    "matched 100/125/150/200 percent DPI pairs",
+    "empty canvas and root-only states",
+    "relationship creation and editing",
+    "summary and boundary creation and span dragging",
+    "image, attachment, audio and comment inspectors",
+    "multi-canvas workbook and sheet tabs",
+    "loading, error, read-only and conflict states"
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "package": "CER-09",
+  "status": "已实现",
+  "date": "2026-10-26",
+  "design_contract": "docs/28 §5.6 / §5.2 / §5.3",
+  "execution_contract": "docs/29 §6（X64 范围并入）",
+  "batch": "B2-A",
+  "gate": null,
+  "scenes": ["outline-hover-select", "outline-drag", "outline-drag-illegal"],
+  "unchanged_scenes": ["outline", "outline-focus", "outline-compact", "outline-narrow", "outline-edit", "cm-outline"],
+  "themes": ["snow"],
+  "dpi": [1.5],
+  "scripts": [
+    "shots/golden/inputs/outline-hover-select.txt",
+    "shots/golden/inputs/outline-drag.txt",
+    "shots/golden/inputs/outline-drag-drop.txt",
+    "shots/golden/inputs/outline-drag-cancel.txt",
+    "shots/golden/inputs/outline-drag-expand.txt",
+    "shots/golden/inputs/outline-drag-illegal.txt"
+  ],
+  "evidence": [
+    "shots/x100/CER-09/report.md",
+    "shots/x100/CER-09/baseline-before/outline-hover-select-ppp1.50.png",
+    "shots/x100/CER-09/traces/",
+    "shots/golden/outline-drag/shell-ppp1.50.png",
+    "shots/golden/outline-drag-illegal/shell-ppp1.50.png"
+  ],
+  "old_hashes": {
+    "outline-hover-select": "0031d764b7896170cff01d19f5ebc3ec6dd8bbc2bba504e97fdc519a124557a7",
+    "start-tab-focus": "ad05385ea4c334076db367c5cc7499d9099d8e0f78b46f2c682f50f6c7c4b35b"
+  },
+  "new_hashes": {
+    "outline-hover-select": "0031d764b7896170cff01d19f5ebc3ec6dd8bbc2bba504e97fdc519a124557a7",
+    "outline-drag": "99cf601f647a1473b3bb71a2cd8d40622b9fbcd016ae66725644d67024f94d9c",
+    "outline-drag-illegal": "1776a77897f682dae3b419a7eafece9628014434001e6742b32097b7bc716a9a",
+    "start-tab-focus": "8fc6018a55feece083eed70655d86a046e9e0ba0f4fd9170a91e7ae66b7dcc6b"
+  },
+  "drift": {
+    "outline-hover-select": "0 px / 0.0000%（握把延迟只改出现时机；稳定帧逐字节不变）",
+    "outline-drag": "新增基线",
+    "outline-drag-illegal": "新增基线",
+    "start-tab-focus": "11.9331% / 79045 px / max 221，bbox (41,175)-(903,318)；旧基线是旧开始页空最近文件状态，与 MW_START_DEMO=1 场景不一致，按 §5 重拍"
+  },
+  "tests": { "passed": 815, "failed": 0 },
+  "golden": {
+    "runs": 2,
+    "diffs": 0,
+    "tol": 0,
+    "note": "三个场景各连跑两次 0 差异；六个未受影响场景各一次 0 差异；机器门 41 组 × 2 遍 = 82/82 全 0 差异（target/x100/stage-b-gate-cer09.log，finished 2026-10-26 12:19:04）"
+  },
+  "engineering": {
+    "fmt": "clean",
+    "clippy_mw_shell_new": 0,
+    "release_build": "pass",
+    "fixture_roundtrip": "x100_fixtures 2 passed"
+  },
+  "contract_audit": "§5.6 全表：握把 120ms（选中即时）、三区 0.25/0.75、幽灵 90%、Child 6% 底、非法红 1px + NoDrop、自动展开 500ms、边缘自动滚动 24px、Esc 取消、多选一次撤销、跨父级展开目标父级；另补 §5.3 拖拽源 40%",
+  "changes": {
+    "code": [
+      "crates/mw-shell/src/panels/outline.rs（GRIP_DELAY/grip_ready/drop_zone、grip_since、拖拽源 40%、Child 非法红框、Esc 取消、5 条 trace）",
+      "crates/mw-shell/src/app_methods_2.rs（outline_expand_parent trace）",
+      "scripts/x100-stage-b-gate.ps1（+3 场景，38 → 41 组）"
+    ],
+    "golden": [
+      "shots/golden/inputs/outline-hover-select.txt（hover 160ms 保持）",
+      "shots/golden/inputs/outline-drag.txt（新增）",
+      "shots/golden/inputs/outline-drag-drop.txt（新增）",
+      "shots/golden/inputs/outline-drag-cancel.txt（新增）",
+      "shots/golden/inputs/outline-drag-expand.txt（新增）",
+      "shots/golden/inputs/outline-drag-illegal.txt（新增）"
+    ]
+  },
+  "known_gaps": [
+    "4px 拖拽阈值仍由 egui 默认（约 6px）近似",
+    "禁止光标用 CursorIcon::NoDrop（egui 无 Forbidden）",
+    "握把 16×20 盒 / 距列左 8 未重做（§5.2 归 CER-05，当前 2×3 点阵）",
+    "自动滚动/自动展开/多选拖拽未各拍拖拽中截图，由既有单测 + trace 覆盖"
+  ]
+}

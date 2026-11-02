@@ -1,0 +1,81 @@
+{
+  "package": "CER-21",
+  "title": "B2-B 证据包与 G-B2-2",
+  "status": "已实现（证据与门清单齐备；G-B2-2 八判词未判）",
+  "date": "2026-10-29",
+  "contract": {
+    "design": "docs/28 §6 卡片笔记页、§9 证据与验收",
+    "execute": "docs/29 §7 CER-21"
+  },
+  "deliverables": {
+    "report": "shots/x100/CER-21/report.md",
+    "gate": "shots/x100/CER-21/gate.md",
+    "manifest": "shots/x100/CER-21/manifest.json"
+  },
+  "added": {
+    "scenes": ["card-code", "card-selection"],
+    "fixtures": ["MW_CARD_CODE"],
+    "script_verbs": ["sclick（Shift+点击，跨块扩选/缩选）"],
+    "inputs": ["shots/golden/inputs/card-selection.txt"]
+  },
+  "scenes": [
+    { "name": "card-empty", "sha256_12": "7E5A2665439E" },
+    { "name": "card-default", "sha256_12": "8645FCEDB4D1" },
+    { "name": "card-code", "sha256_12": "4538E9B095ED", "new": true },
+    { "name": "card-tags", "sha256_12": "FC2792EF8CEF" },
+    { "name": "card-focus", "sha256_12": "94AA5DE08CBA" },
+    { "name": "card-typewriter", "sha256_12": "69D425ABFE83" },
+    { "name": "card-slash", "sha256_12": "2BDD4F12CB41" },
+    { "name": "card-ime-preedit", "sha256_12": "836E4F35358E" },
+    { "name": "card-ime-commit", "sha256_12": "D9B029206B67" },
+    { "name": "card-selection", "sha256_12": "4B6FE15E5DF4", "new": true },
+    { "name": "card-conflict", "sha256_12": "F6136E31812B" },
+    { "name": "card-narrow", "sha256_12": "60DBB34D81A1" }
+  ],
+  "selection_evidence": {
+    "script": "shots/golden/inputs/card-selection.txt",
+    "steps": "点进正文 → Ctrl+A → Shift+← ×3",
+    "selection_pixels": 32319,
+    "note": "选区底色跨块铺开（183,205,179 系），收格后正文文本不变"
+  },
+  "section6_audit": {
+    "6.1": "达成（目录浮层未做）",
+    "6.2": "达成（图片未渲染）",
+    "6.3": "达成",
+    "6.4": "达成",
+    "6.5": "达成（Ctrl+/ 未接线）",
+    "6.6": "达成",
+    "6.7": "达成（文档内卡片仍走模态）",
+    "6.8": "部分（Ctrl+Y / Ctrl+Shift+O / Ctrl+/ / Tab 未做或未验证）",
+    "6.9": "部分（三条时间判据达标；块级缓存未上、图片懒加载无从谈起）",
+    "6.10": "达成",
+    "6.11": "达成（11 类场景齐）",
+    "6.12": "达成（跨块复制只有推理）"
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1",
+    "scenes": 79,
+    "comparisons": 158,
+    "result": "PASS",
+    "log": "target/x100/stage-b-gate.log"
+  },
+  "tests": { "workspace": 912 },
+  "clippy": { "current": 37, "baseline": 37, "added": 0 },
+  "human_gate": {
+    "id": "G-B2-2",
+    "status": "未开",
+    "checklist": "shots/x100/CER-21/gate.md",
+    "judgments": 8,
+    "judged": 0,
+    "note": "AI 不代写判词；八条通过前 B2-B 各包只记 `已实现`"
+  },
+  "known_gaps": [
+    "目录浮层 Ctrl+Shift+O 未做（Heading 解析与测试仍在）",
+    "图片不渲染：![alt](url) 只作为文本排版，无解码/懒加载",
+    "键盘缺口：Ctrl+/、Ctrl+Y 重做、Tab 焦点移动",
+    "文档内卡片的冲突仍是模态，不是行内条",
+    "跨块复制的内容正确性只有推理，需实机剪贴板核对",
+    "实机微软拼音未核对（与 CER-16/17 共用 IME 门）",
+    "块级缓存未上（20k 实测远低于预算）"
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "package": "CM-18",
+  "title": "概念分组（groups 顶层键）",
+  "status": "已实现（单测绿；基线未拍，不记已验证）",
+  "date": "2026-11-01",
+  "track": "M 轨 概念图（docs/30 §5.5.1；docs/32 §13）",
+  "contract": {
+    "design": "docs/30 §5.5.1（本轮新增）：组框派生、圆角虚线、名字在框外、点框线选成员、一个概念只属一组；§5.2 记下第二个字段例外（顶层键 groups）",
+    "execute": "docs/32 §13 的字段方案（空数组不写、不升 FORMAT_VERSION、不做迁移）",
+    "audit": "来源是 CM-15 复审第 ⑰ 项；用户 2026-11-01 拍板「批准分组 v1」。并行会话曾在拍板前发现这批改动并记为 STATUS §6 第 11 条，现已按①拍板分支收口"
+  },
+  "code": [
+    "mw-core/src/model.rs（ConceptGroup { id, label, members, color }）",
+    "mw-core/src/document.rs（Document.groups；ChangeSet.before/after_groups + with_groups + merge + revert/reapply；五条命令的 apply；validate 分组不变量；DeleteNodes 剪枝）",
+    "mw-core/src/command.rs（CreateGroup / DeleteGroup / SetGroupLabel / SetGroupColor / MoveGroup + 撤销文案）",
+    "mw-core/src/scene.rs（SceneGroup + Scene.groups；GROUP_PAD=24 / GROUP_LABEL_H=14；矩形由 union_of 派生）",
+    "mw-render/src/instances.rs（rect_dashed 画分组框；GROUP_RADIUS/GROUP_W/GROUP_DASH）",
+    "mw-render/src/hit.rs（Target::Group，只命中框线 BAND；优先级压在最底层）",
+    "mw-format/src/lib.rs（FileDoc.groups，空数组不写；from_parts_full）",
+    "mw-shell/src/export_svg.rs（rect_elt + stroke-dasharray）",
+    "mw-shell/src/export_pdf.rs（fill_round 6% 底 + q…[6 4] 0 d…Q 虚线描边）",
+    "mw-shell/src/canvas/canvas_methods_2.rs（点框线=选中成员；右键目标 ContextTarget::Group）",
+    "mw-shell/src/canvas/canvas_methods_3.rs（paint_group_labels；create/delete/set_color/select_members；create_group_by_text 夹具）",
+    "mw-shell/src/panels/context.rs + app_methods_2.rs（分组菜单四项 + 概念多选菜单首行「创建分组」）",
+    "mw-shell/src/canvas.rs + main.rs + app_methods_1.rs（ConceptHook::Group + MW_CONCEPT_GROUP）",
+    "scripts/x100-stage-cm-gate.ps1（登记 cm-group）"
+  ],
+  "scenes": [
+    "cm-group（夹具已就位，基线待 -Update）"
+  ],
+  "evidence": {
+    "baselines": "未重拍、未新增（本机无 wgpu 适配器）。另：cm-multi-menu 与 cm-submenu-bottom 因概念多选菜单首行多出「创建分组」而确定性漂移，需一并按最终形态重拍（STATUS §6 第 11 条）",
+    "unit_tests": "groups_wrap_members_and_ungroup_keeps_the_concepts / deleting_a_concept_prunes_groups_and_drops_the_ones_left_too_small / moving_a_group_moves_every_member_in_one_step / groups_are_concept_map_only / scene::tests::a_group_box_wraps_its_members_with_padding / groups_are_written_only_when_present",
+    "ran": {
+      "core": "cargo test -p mw-core --lib -- --test-threads=1 → 336 passed / 0 failed",
+      "format": "cargo test -p mw-format --lib -- --test-threads=1 groups → 1 passed",
+      "shell": "cargo check -p mw-shell --all-targets → 通过",
+      "fmt": "本包改动文件干净（mw-ui/src/drill_click.rs 属并行会话）",
+      "clippy": "改动文件无新增告警"
+    },
+    "gates": "未跑（依赖 golden）。cm-group 缺基线会被 SKIP 并计数",
+    "trace": "group_create members=N / group_delete <id> / group_create_reject reason=few / select group members=N / context group <id>"
+  },
+  "tests": {
+    "new": [
+      "mw-core::document::tests::groups_wrap_members_and_ungroup_keeps_the_concepts",
+      "mw-core::document::tests::deleting_a_concept_prunes_groups_and_drops_the_ones_left_too_small",
+      "mw-core::document::tests::moving_a_group_moves_every_member_in_one_step",
+      "mw-core::document::tests::groups_are_concept_map_only",
+      "mw-core::scene::tests::a_group_box_wraps_its_members_with_padding",
+      "mw-format::tests::groups_are_written_only_when_present"
+    ],
+    "total": "mw-core 330 → 336；mw-format 31 → 32"
+  },
+  "non_goals": {
+    "重命名": "v1 名字只有「分组 N」；行内改名要再引一个编辑态，单独一轮",
+    "拖成员进出组": "靠建组时摘旧组 + 删概念时剪枝维持「一个概念只属一组」",
+    "组框手动缩放": "矩形是派生量；要缩放得引入 rect 覆盖，docs/32 §13 已列为下一版",
+    "嵌套组": "不做",
+    "检查器分组页": "没有分组选中道，颜色走右键菜单 5 档"
+  },
+  "open": {
+    "基线": "cm-group 待 -Update；cm-multi-menu / cm-submenu-bottom 需按最终形态重拍（子菜单仍要完整在窗内）",
+    "实机手感": "框线命中带宽沿用边界的 BAND，实机是否好点未核",
+    "组框与概念重叠": "成员贴得很近时框可能压到相邻概念的边，未做避让"
+  }
+}

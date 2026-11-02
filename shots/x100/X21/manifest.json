@@ -1,0 +1,145 @@
+{
+  "package": "X21",
+  "slice": "X21a",
+  "title": "相机 / 缩放进度 / 滚轮锚点 / Shift 换轴（画布底色·点阵纹理·导出同源已划给 X21b）",
+  "status": "进行中",
+  "status_reason": "代码正在由另一棒落地（读码 2026-11-02 17:2x 已见大部分收口）；单测未跑、金样 mm-zoom-wheel 未采、zoom_anchor 轨迹未采、两道门未跑，按 AGENTS §3.6 只能写「进行中」",
+  "date": "2026-11-02",
+  "updated": "2026-11-02T17:26:07+08:00",
+  "track": "Stage C 第 1 轮（docs/24 §3 阶段 C X21 行；G-B2-4 于 2026-11-02 授权代判通过后解锁）",
+  "lead_corrections": [
+    "锚点语义保持不变：缩放条/命令面板 = 视口中心，键盘/滚轮 = 画布内指针；「锚点收口是行为变更」作废，旧 R3（点过缩放条/命令面板的 mm-* 场景取景会漂）删除，改为「本轮零外观改动，既有基线不重拍」",
+    "轨迹名定死 zoom_anchor，字段 src=wheel|pinch|key|button|minimap|reset / at=(x,y) / world=(x,y) / zoom=…；编辑期锁住写 zoom_blocked src=… editing=1 且不写 zoom_anchor；drift 字段取消",
+    "docs/06 的 0.95^Δ 已由 Lead 更正为「跟 egui zoom_delta 的 exp(0.005×Δ)，一格≈1.28×」；报告不再记「疑 docs 与实现不符」，只留「已更正，见 docs/06 那一行」"
+  ],
+  "contract": {
+    "route": "docs/24 §3「- X21 重做相机、画布底色、纹理、缩放进度和滚轮锚点。」；§4 执行协议（report.md 先行、四类证据、双跑哈希）",
+    "design": "缩放条几何与命中：docs/24「X15 验收口径」+ docs/06 §3 布局表第 ⑥ 行；滚轮/双指/Shift 换轴/编辑期锁缩放：docs/06 §5 第 148–149 行 + §7 编辑态（148 行已于 2026-11-02 更正步进口径）",
+    "execute": "docs/24 §4 执行协议（本包只交报告与计划，不跳步、不跑 cargo/golden）",
+    "status_source": "docs/STATUS.md §1（场次与比较数唯一真相源）",
+    "decision": "Lead 拍板 A–F 六条（团队任务）+ 2026-11-02 三处口径修正（见 lead_corrections）；本包只把决定写成可验收合同，不重新设计"
+  },
+  "decisions": {
+    "A": "缩放读数单一出口 format_zoom(zoom)：pct>=10 取 0 位小数、<10 取 1 位，缩放条与 MW_STATS 浮层共用（读码已落地于 canvas/consts.rs）；合同另要求非有限印「—」并按四舍五入后的 pct 判档，现状是裸 pct>=10.0 且无 finite 档，判据待 Lead 拍（R3）",
+    "B": "缩放入口收成一条：ZoomSrc 六值 + zoom_step_at(anchor,factor,src) 唯一手势入口 + zoom_by(factor,src)（视口中心锚，按钮/面板）+ zoom_reset_action() 唯一 100%；倍率只有 ZOOM_STEP(1.2) 一个来源；Ctrl+0 已改调 zoom_reset_action；编辑期锁收在该入口一处早退",
+    "C": "新轨迹 zoom_anchor src=wheel|pinch|key|button|minimap|reset at=(x,y) world=(x,y) zoom=…；判据「同一世界点在缩放前后屏幕位置一致」由 at/world/zoom 三个字段自证（drift 字段按 Lead 口径取消）；编辑期锁写 zoom_blocked src=… editing=1 且不写 zoom_anchor（现状仍写 zoom_anchor … locked=1，待改，R1）",
+    "D": "docs/06 §5「横向 Shift 切换轴向」落地为纯函数 wheel_pan(scroll, shift)：不按 Shift 原样透传；按了且纵向有量则纵向搬横轴、纵向清零；纵向恰好为 0 保留原横向分量（纵向优先，不是旧草稿的「两轴相加」）",
+    "E": "非目标：画布底色 #FBFBFC / 四主题点阵纹理表 / SVG·PDF 点阵同源——已由另一棒接手，证据落 shots/x100/X21b/，本包不再跟踪",
+    "F": "本轮零外观改动，既有基线不重拍；新证据只有 mm-zoom-wheel 一张；验收 = 单测跑绿 + mm-zoom-wheel --tol 0 双跑 + zoom_anchor 轨迹样例 + stage-b/stage-cm 双跑零差异 + fmt/clippy/test/release"
+  },
+  "scope": {
+    "must": [
+      "format_zoom 纯函数 + 两处共用（main.rs 缩放条、stats.rs 性能浮层）",
+      "ZoomSrc / zoom_step_at / zoom_by / zoom_reset_action 收口 10 个既有调用点（见 report §1.2 表）",
+      "zoom_anchor 轨迹（src/at/world/zoom）与 zoom_blocked 编辑期口径",
+      "wheel_pan 纯函数 + 接进 canvas_methods_2 §4 平移分支",
+      "golden：mm-zoom-wheel（本轮唯一新增画面证据）"
+    ],
+    "recommended_p2": ["mm-zoom-reset", "mm-zoom-fit-20k（format_zoom <10% 档的唯一画面证据）", "mm-pan-shift"],
+    "out_of_scope": [
+      "画布底色 #FBFBFC（X21b）",
+      "四主题点阵纹理表（X21b）",
+      "点阵在 SVG/PDF 同源（X21b）",
+      "相机手感（仍以 egui 0.37 zoom_delta/scroll_zoom_speed 为唯一来源，不做缩放动画）",
+      "缩放区间（MIN_ZOOM 0.1 / MAX_ZOOM 5.0 / FIT_MIN_ZOOM 0.005 / FIT_MAX_ZOOM 1.5 不动）",
+      "状态栏缩放读数、缩放档位下拉、百分比可键入",
+      "任何 .zmind / Node / StyleOverride 字段与格式变更",
+      "重拍既有基线（本轮零外观改动）"
+    ]
+  },
+  "current_code_facts": [
+    "canvas/consts.rs：pub(crate) fn format_zoom(zoom: f32) -> String { let pct = zoom*100.0; if pct >= 10.0 { {pct:.0}% } else { {pct:.1}% } } —— 裸判、无 !pct.is_finite() 档（NaN→NaN%、∞→inf%）",
+    "canvas/consts.rs：wheel_pan 已落地，shift 时纵向优先（scroll.y != 0 → (scroll.y,0)，否则 (scroll.x,0)）",
+    "canvas/consts.rs：ZoomSrc 六值 Wheel/Pinch/Key/Button/Minimap/Reset + as_str() = wheel/pinch/key/button/minimap/reset",
+    "canvas/consts.rs：zoom_step_camera 纯核（病态因子 NaN/0/负 返回 false；下界 MIN_ZOOM.min(当前值)；返回是否真的动了）",
+    "canvas_methods_1.rs：zoom_step_at(anchor, factor, src) 唯一手势入口；trace_zoom_anchor 写 zoom_anchor src=… at=(x,y) world=(x,y) zoom={:.4}，编辑期分支写 … locked=1（口径要求 zoom_blocked src=… editing=1，R1）",
+    "canvas_methods_1.rs：zoom_by(factor, src) 以视口中心为锚转调 zoom_step_at；zoom_reset_action() 是唯一 100% 实现，写 zoom_anchor src=reset", 
+    "canvas_methods_2.rs：键盘 Ctrl± 走 ZOOM_STEP + zoom_step_at(at, factor, Key)，at = local.unwrap_or(视口中心)；local 只过滤 rect.contains（未过滤 pointer_over_overlay，R4）",
+    "canvas_methods_2.rs §4：滚轮/pinch 走 zoom_step_at(p, zoom_delta, Wheel|Pinch)，入口处已判 pointer_over_overlay 早退；平移分支走 wheel_pan(scroll, i.modifiers.shift)",
+    "canvas_methods_3.rs：Num0 分支已改 dirty |= self.zoom_reset_action()，不再直写 camera.zoom = 1.0",
+    "main.rs：缩放条 −/+ 走 canvas.zoom_by(±ZOOM_STEP, Button)，百分比走 zoom_reset_action()，读数用 format_zoom；小地图走 zoom_step_at(screen, factor, Minimap) 后仍多写一行 minimap zoom factor=…（R1）",
+    "app_methods_2.rs：A::ZoomIn/ZoomOut 走 zoom_by(±ZOOM_STEP, Button)；A::ResetZoom 走 zoom_reset_action()",
+    "stats.rs：浮层读数改调 crate::canvas::format_zoom(snap.zoom)",
+    "golden_input.rs：scroll / scroll_lines 已把当前立起的修饰键写进 Event::MouseWheel{modifiers}，并有单测 scroll_carries_the_held_modifiers_for_ctrl_wheel_zoom（原 R1 风险解除）",
+    "已存在的 X21 相关单测 8 条：zoom_anchor_keeps_the_world_point_under_the_cursor / zoom_step_pins_the_screen_anchor_on_every_entry / format_zoom_switches_precision_at_ten_percent / wheel_pan_switches_axis_only_with_shift / zoom_reset_returns_to_hundred_percent_once / zoom_src_names_are_the_trace_contract / ctrl_zero_shares_the_single_reset_path / scroll_carries_the_held_modifiers_for_ctrl_wheel_zoom"
+  ],
+  "code_touchpoints": [
+    "crates/mw-shell/src/canvas/consts.rs（format_zoom / wheel_pan / ZoomSrc / zoom_step_camera / zoom_at_anchor）",
+    "crates/mw-shell/src/canvas/canvas_methods_1.rs（zoom_step_at / zoom_by / zoom_reset_action / trace_zoom_anchor）",
+    "crates/mw-shell/src/canvas/canvas_methods_2.rs（键盘、滚轮/pinch、平移分支接线）",
+    "crates/mw-shell/src/canvas/canvas_methods_3.rs（Num0 → zoom_reset_action）",
+    "crates/mw-shell/src/main.rs（缩放条三处 + 小地图）",
+    "crates/mw-shell/src/app_methods_2.rs（命令面板 ZoomIn/ZoomOut/ResetZoom）",
+    "crates/mw-shell/src/stats.rs（format_zoom）",
+    "crates/mw-shell/src/golden_input.rs（滚轮认修饰键）",
+    "crates/mw-shell/src/canvas/tests.rs（X21 单测）",
+    "shots/golden/inputs/mm-zoom-wheel.txt（未落地）",
+    "scripts/x100-stage-b-gate.ps1（mm-zoom-wheel 未登记）"
+  ],
+  "scenes": {
+    "new": ["mm-zoom-wheel"],
+    "new_missing": ["shots/golden/inputs/mm-zoom-wheel.txt", "shots/golden/mm-zoom-wheel/", "scripts/x100-stage-b-gate.ps1 登记项"],
+    "recommended": ["mm-zoom-reset", "mm-zoom-fit-20k", "mm-pan-shift"],
+    "reshoot_expected": "无：本轮零外观改动（锚点语义与改动前一致），既有基线一张都不重拍；除新增 mm-zoom-wheel 外 stage-b/stage-cm 的期望是零差异"
+  },
+  "acceptance": [
+    { "id": "AC-1", "kind": "单测", "what": "format_zoom 边界表", "status": "7 例已有（0.005/0.05/0.1/0.996/1.0/5.0/12.345）；NaN→—、∞→—、9.95% 档欠，且档位判据待拍（R3）" },
+    { "id": "AC-2", "kind": "结构断言", "what": "倍率来源唯一：无 1.2 / 1.0/1.2 字面量，全部走 ZOOM_STEP", "status": "读码已达成；未成单测，靠机械自查 grep" },
+    { "id": "AC-3", "kind": "单测", "what": "wheel_pan 表（纵向优先 + 横向零头保留 + 不按 Shift 原样）", "status": "已有 wheel_pan_switches_axis_only_with_shift" },
+    { "id": "AC-4", "kind": "单测", "what": "锚点选择：无画布指针 → 视口中心；有 → 指针", "status": "未落地：无独立纯函数，逻辑是 local.unwrap_or(center)，只能读码 + 轨迹覆盖" },
+    { "id": "AC-5", "kind": "结构断言", "what": "复位唯一：Ctrl+0 与缩放条百分比都调 zoom_reset_action，全文无 camera.zoom = 1.0", "status": "已有 ctrl_zero_shares_the_single_reset_path" },
+    { "id": "AC-6", "kind": "单测+轨迹", "what": "锚点不漂：任意屏幕点缩放前后反投影 ≤0.01 css px", "status": "单测已有 zoom_step_pins_the_screen_anchor_on_every_entry；轨迹样例欠" },
+    { "id": "AC-7", "kind": "轨迹", "what": "Ctrl+0 出 zoom_anchor src=reset … zoom=1.0000 且 world=相机中心", "status": "欠" },
+    { "id": "AC-8", "kind": "金样", "what": "mm-zoom-wheel 与基线 --tol 0 双跑零差异，读数等于轨迹 zoom", "status": "欠（脚本 / 基线 / 门脚本登记三件都缺）" },
+    { "id": "AC-9", "kind": "单测+金样", "what": "Shift 换轴：wheel_pan 单测 + mm-pan-camera 复跑哈希不变", "status": "单测已有；复跑欠" },
+    { "id": "AC-10", "kind": "工程", "what": "stage-b / stage-cm 两遍零差异；fmt；clippy 新增 0；cargo test（TEMP→target/tmp）；release", "status": "欠" }
+  ],
+  "evidence": {
+    "collected": false,
+    "note": "四类证据一张未采；cargo 与 golden 本包均不运行（纪律：报告先行，且 golden 归另一 owner）",
+    "checklist": [
+      { "id": "EV-1", "item": "单测跑绿（TEMP→target/tmp），日志 gate-test.log；读码可见 8 条 X21 相关单测", "done": false },
+      { "id": "EV-2", "item": "补欠的单测：format_zoom NaN/∞/9.95%（判据先定）、AC-4 锚点选择（或如实记只由读码+轨迹覆盖）", "done": false },
+      { "id": "EV-3", "item": "金样 mm-zoom-wheel：输入脚本 + 基线 + --tol 0 双跑 + 登记 scripts/x100-stage-b-gate.ps1", "done": false },
+      { "id": "EV-4", "item": "zoom_anchor 轨迹样例 trace-zoom.log（wheel/key/button/minimap/reset 各一行 + 编辑期 zoom_blocked 一行）", "done": false },
+      { "id": "EV-5", "item": "stage-b 双跑 + stage-cm 双跑零差异（零外观改动 ⇒ 除新增场景外任何差异都是回归）", "done": false },
+      { "id": "EV-6", "item": "mm-pan-camera 复跑哈希不变（Shift 换轴改了平移分支）", "done": false },
+      { "id": "EV-7", "item": "fmt / clippy 新增 0 / release 构建日志", "done": false }
+    ],
+    "behavior": { "plan": "X21 相关 8 条单测 + trace-zoom.log（zoom_anchor / zoom_blocked）" },
+    "visual": { "plan": "shots/golden/mm-zoom-wheel/ 基线（本轮零外观改动，其余基线不重拍）" },
+    "regression": { "plan": "stage-b 与 stage-cm 全量双跑；除 mm-zoom-wheel 外期望逐字节不变" },
+    "engineering": { "plan": "fmt / clippy 新增 0 / 全量串行测试 / release 构建 → gate-*.log" },
+    "counts": "以 docs/STATUS.md §1 为准并注明日期；本包不写死场次（STATUS §1 记 173/346，SE-13 manifest 记 177/354，已列为 R7）"
+  },
+  "risks": [
+    { "id": "R1", "level": "中", "what": "轨迹口径未落地：编辑期写的是 zoom_anchor … locked=1，口径要求 zoom_blocked src=… editing=1 且不写 zoom_anchor；小地图仍双写旧的 minimap zoom factor=；钳位无独立行", "fix": "代码侧改三处；本包只写口径，不代改代码" },
+    { "id": "R2", "level": "中", "what": "零外观改动必须被证明：收口动了 10 个调用点，锚点/钳位写错会漂，但口径已定「不重拍基线」", "fix": "stage-b / stage-cm 双跑零差异当证据；任何差异按回归处理，不许顺手重拍" },
+    { "id": "R3", "level": "中", "what": "format_zoom 未达合同：无 NaN/∞ 档（会印 NaN%/inf%）；档位判据是裸 pct>=10.0（9.95% → 9.9%），旧合同要求四舍五入（9.95% → 10%）", "fix": "Lead 拍一次：改代码（加 finite 档 + 四舍五入判据）或改合同（接受裸判、非有限档延后）" },
+    { "id": "R4", "level": "低", "what": "键盘锚点少一道闸门：Ctrl+= 用的 local 只过滤 rect.contains，没过滤 pointer_over_overlay，指针停在缩放条上按键盘会把锚点落在浮层上", "fix": "可选修；只有轨迹/锚点差异，不影响既有基线" },
+    { "id": "R5", "level": "低", "what": "zoom_anchor 在滚轮热路径上，format! 未门控会拖慢大文档", "fix": "已有 if trace::is_enabled() 门，保持" },
+    { "id": "R6", "level": "低", "what": "mm-zoom-wheel 预测读数 74%（exp(-0.3)）依赖 egui 平滑排空帧数", "fix": "wait 20 起步；实测不符改剧本帧数并如实记录，不许改代码凑数" },
+    { "id": "R7", "level": "低", "what": "场次口径已漂：STATUS §1 stage-b 记 173/346，SE-13 manifest 记 177/354", "fix": "回报 Lead 回填 STATUS §1；本包不写死场次、不改 docs" }
+  ],
+  "known_mismatches_report_vs_code": [],
+  "not_done": [
+    "四类证据未采集（单测未跑、mm-zoom-wheel 未拍、zoom_anchor 轨迹未采、fmt/clippy/test/release 与两道门未跑）",
+    "format_zoom 的 <10% 档没有画面证据（除非加拍 mm-zoom-fit-20k；交互下限 10%，只有取景能到 0.5%）",
+    "触控板真实手感（pinch / 双指 / exp(0.005×Δ) 实机）与 150%/200% DPI 未验，与全仓其它包同口径欠账",
+    "编辑期锁的按钮/面板路径只有代码收口，无自动化（Canvas 需要 wgpu，无 GPU 夹具）",
+    "AC-4 的锚点选择没有单测（无独立纯函数）",
+    "状态仍为「进行中」；代码由另一棒落地中，人工门未过，不许写「已实现」/「已验证」"
+  ],
+  "handoff": {
+    "next": [
+      "代码侧按 R1 改轨迹口径（zoom_blocked / 撤小地图旧行 / 钳位）",
+      "Lead 拍 R3（format_zoom 判据与 NaN/∞ 档）",
+      "采 mm-zoom-wheel（输入脚本 + 基线 + --tol 0 双跑）并登记门脚本",
+      "采 trace-zoom.log 与 stage-b / stage-cm 双跑日志、mm-pan-camera 复跑",
+      "勾 evidence.checklist 并回填 collected=true",
+      "状态 进行中 → 已实现（已验证 等人工门）"
+    ],
+    "write_scope": "本包只写 shots/x100/X21/；crates/、docs/、scripts/、shots/golden/、其它 shots/x100/* 由其他 owner 落地",
+    "x21b": "画布底色 / 点阵纹理 / 导出同源已由另一棒接手，合同 shots/x100/X21b/report.md，证据落 shots/x100/X21b/"
+  }
+}

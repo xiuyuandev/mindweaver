@@ -1,0 +1,69 @@
+{
+  "id": "M29",
+  "title": "全局搜索匹配方式（默认拼音 / 精确文本可切）",
+  "date": "2026-10-31",
+  "round": 52,
+  "status": "已实现（机器门绿；人工门未开）",
+  "scope": [
+    "mw-core::search::MatchMode 枚举（Pinyin 默认，Text 精确文本大小写不敏感）",
+    "SearchIndex::hits 与 relationship_hits 支持 MatchMode 参数；Text 模式下不建也不读拼音键",
+    "Document::search_with_mode / search_relationships_with_mode 透传",
+    "SearchBar 新增 mode 状态，搜索框脚注右侧两段式开关「精确文本 / 拼音」",
+    "快捷键 Ctrl+Shift+M 在搜索条内切换匹配方式（轨迹 search_mode mode=text|pinyin rows=<n>）",
+    "新基线 search-text 进 stage-b 门（139 → 140 场）；既有八张搜索基线因脚注开关有意重拍，每张仅差 2028 px",
+    "docs/02 §3 P0 验收项回填"
+  ],
+  "files": [
+    "crates/mw-core/src/search.rs",
+    "crates/mw-core/src/document.rs",
+    "crates/mw-shell/src/panels/search.rs",
+    "crates/mw-shell/src/main.rs",
+    "crates/mw-shell/src/canvas/canvas_methods_1.rs",
+    "crates/mw-shell/src/note_store.rs",
+    "scripts/x100-stage-b-gate.ps1",
+    "shots/golden/search-text/shell-ppp1.00.png",
+    "shots/golden/inputs/search-text.txt",
+    "docs/02-功能需求清单.md"
+  ],
+  "scenes": [
+    {"name": "search-text", "warmup": 8, "env": "MW_NOTES=none; MW_GOLDEN_INPUT=shots/golden/inputs/search-text.txt"},
+    {"name": "search-note", "drift": "2028 px / 0.116%", "bbox": "x[915..1016] y[162..181]"},
+    {"name": "search-link", "drift": "2028 px / 0.116%", "bbox": "x[915..1016] y[162..181]"},
+    {"name": "search-collapsed", "drift": "2028 px / 0.088%", "bbox": "x[1065..1166] y[162..181]"},
+    {"name": "search-replace", "drift": "2028 px / 0.088%", "bbox": "x[1065..1166] y[332..351]"},
+    {"name": "search-replace-one", "drift": "2028 px / 0.088%", "bbox": "x[1065..1166] y[210..229]"},
+    {"name": "search-focus-jump", "drift": "2028 px / 0.088%", "bbox": "x[1065..1166] y[162..181]"},
+    {"name": "search-rel", "drift": "2028 px / 0.088%", "bbox": "x[1065..1166] y[162..181]"},
+    {"name": "search-rel-jump", "drift": "2028 px / 0.088%", "bbox": "x[1065..1166] y[162..181]"}
+  ],
+  "tests": {
+    "before": 1081,
+    "after": 1086,
+    "new": [
+      "search::tests::text_mode_ignores_pinyin_and_initials",
+      "search::tests::text_mode_still_matches_notes_links_and_relationships",
+      "search::tests::text_mode_does_not_build_pinyin_keys",
+      "search::tests::match_mode_defaults_to_pinyin_and_text_is_case_insensitive",
+      "panels::search::tests::search_bar_toggles_mode_and_clears_the_current_row"
+    ],
+    "existing": [
+      "search::tests 覆盖 MatchMode 参数透传"
+    ]
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1",
+    "result": "PASS（140 场 / 280 次比较，两遍 --tol 0）",
+    "human_gate": "未开（X20 / G-B2-2 / G-B3-1 / G-B3-2 / G-CM-2 人工判词不代判）"
+  },
+  "deliverables": [
+    "report.md",
+    "manifest.json",
+    "search-after-text.png",
+    "trace-mode.txt"
+  ],
+  "known_gaps": [
+    "窄窗（width < 400）时开关未实拍缩减版「文本 / 拼音」",
+    "单次搜索的临时选择，不落盘持久化",
+    "实机微软拼音/输入法键盘手感未核对"
+  ]
+}

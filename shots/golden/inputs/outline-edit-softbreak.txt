@@ -1,0 +1,7 @@
+# outline-edit-softbreak · Shift+Enter 行内换行（docs/28 §5.4）
+# End 先把选区塌成末尾光标，再 Shift+Enter 追加软换行：行高 32→56。
+wait 12
+key End
+wait 1
+key Shift+Enter
+wait 2

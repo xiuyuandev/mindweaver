@@ -1,0 +1,13 @@
+# M21（打磨轮 44）：`Ctrl+H` 展开替换行、焦点进替换框；当前行显示替换预览。
+# 查询「排版」只有一个标题命中（中文排版），路径组还有它的三颗子节点。
+wait 8
+key ctrl+f
+wait 4
+text 排版
+wait 8
+key Enter
+wait 8
+key ctrl+h
+wait 4
+text 排布
+wait 8

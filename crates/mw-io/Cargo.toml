@@ -1,0 +1,14 @@
+[package]
+name = "mw-io"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "织思 MindWeaver —— 导入导出（Markdown / 大纲文本 / OPML / FreeMind）"
+
+[dependencies]
+mw-core = { path = "../mw-core" }
+mw-format = { path = "../mw-format" }
+quick-xml = "0.31"
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+zip = "9"

@@ -1,0 +1,74 @@
+{
+  "id": "CER-34",
+  "title": "全量回归、重拍与 G-B2-4（B2-D 收口包）",
+  "date": "2026-11-02",
+  "batch": "B2-D",
+  "status": "已实现（G-B2-4 八判词 2026-11-02 按用户授权代判通过；不记已验证：实机拼音/系统 DPI 欠账）",
+  "scope": [
+    "docs/29 §9 CER-34：全量回归；受影响基线重拍并记录旧哈希/漂移；双跑 --tol 0；tests/fmt/clippy/release；docs/x100/stage-b2-report.md；manifest.json；文档回填；门清单；复核 X20 外壳",
+    "按用户 2026-11-02 授权代拍板：CER-31 F1/F2/F4（卡片页向合同 640 对齐、配色同源、版心走 content::CARD）与 CER-32 F6（库是归档唯一真相源）"
+  ],
+  "files": [
+    "shots/x100/CER-34/report.md",
+    "shots/x100/CER-34/gate.md",
+    "shots/x100/CER-34/manifest.json",
+    "shots/x100/CER-34/stage-b-gate-2026-11-02-final.log",
+    "shots/x100/CER-34/stage-cm-gate-2026-11-02.log",
+    "shots/x100/CER-34/hashes-final-2026-11-02.tsv",
+    "shots/x100/CER-34/side-by-side/content-surfaces-snow.png",
+    "docs/x100/stage-b2-report.md"
+  ],
+  "code_changes": [
+    "mw-shell/note_view.rs：show() 接 Theme；页面底色与 MdPalette 改走 content_metrics；版心改 content::CARD.column；删除 from_chrome",
+    "mw-shell/main.rs：卡片页调用点按当前画布主题传入 Theme",
+    "mw-shell/note_store.rs：sync_document 保留库里的 archived；新增单测",
+    "mw-core/design.rs：新增 CARD 四点断点单测",
+    "scripts/golden-sweep.sh：env 改 /usr/bin/env（本机 ~/.local/bin/env shim 会让全场假红）",
+    "cargo fmt --all：并行会话遗留文件与本次改动一起格式化，无语义变化"
+  ],
+  "golden": {
+    "stage_b": { "registered_scenes": 173, "passes": 2, "comparisons": 346, "tol": 0, "result": "两遍零差异" },
+    "stage_cm": { "registered_scenes": 73, "passes": 2, "comparisons": 146, "tol": 0, "result": "两遍零差异" }
+  },
+  "baselines": {
+    "reshoot_stage_b": [
+      "card-* 35 场（含 card-ime-preedit/commit、card-20k、card-code）",
+      "cm-card-link"
+    ],
+    "reshoot_stage_cm": ["cm-multi-menu", "cm-submenu-bottom", "cm-group（首次生成）"],
+    "reshoot_matrix": "shots/x100/CER-33/matrix/card/ 12 张（4 主题 × 3 DPI）+ card-contact.png",
+    "drift": "92.585%–99.995%（36 场 stage-b，整页换底/正文 720→640）；cm 2 场 2.913% / 16.288% 为 CM-18 已拍板漂移",
+    "hashes": "shots/x100/CER-34/hashes-final-2026-11-02.tsv"
+  },
+  "gates": {
+    "x11_x19_evidence": "PASS",
+    "powershell_syntax": "PASS",
+    "fmt": "PASS",
+    "clippy_mw_shell_new": 0,
+    "tests": "1279 passed / 0 failed / 1 ignored",
+    "release_build": "PASS",
+    "stage_b_gate": "PASS（173/173 两遍）",
+    "stage_cm_gate": "PASS（73/73 两遍）",
+    "machine_gate": "PASS",
+    "human_gate_g_b2_4": "通过（2026-11-02 授权代判，8 条）"
+  },
+  "release": {
+    "built_at": "2026-11-02T12:51:12+08:00",
+    "bytes": 25737728,
+    "sha256": "3811fb3011a23652df8cb2d9fb31b5ef172531be663656d373c381573cf61fa6"
+  },
+  "reuse": [
+    "shots/x100/CER-31/report.md：F1–F5 一致性审计（F1/F2/F4 已落地）",
+    "shots/x100/CER-32/report.md：L1–L10 联动矩阵与 F6–F8（F6/F8 已修）",
+    "shots/x100/CER-33/matrix/：36 张三表面 × 四主题 × 三 DPI 矩阵（卡片 12 张已按最终树重拍）",
+    "shots/x100/CER-33/report.md §4.2：四条性能探针与预算",
+    "shots/x100/CER-30/gate.md：G-B2-3 八判词授权代判记录"
+  ],
+  "not_done": [
+    "实机微软拼音未核对；系统 DPI 缩放切换未测",
+    "5 分钟任务无实机录屏",
+    "CER-32 承诺的 card-jump-collapsed 专项金样未拍",
+    "卡片页图片不渲染（B2-B 已知缺口）",
+    "概念图嵌套概念 / 命名样式 / .cxl 互导（不属 B2-D）"
+  ]
+}

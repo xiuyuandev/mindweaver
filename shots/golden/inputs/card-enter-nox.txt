@@ -1,0 +1,8 @@
+# 对照：只按一次回车（没有第二次「退出」），打字应落在带 “- ” 的新项里。
+wait 3
+click 700 276
+wait 1
+key End
+key Enter
+wait 1
+text 正文一句

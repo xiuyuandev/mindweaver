@@ -1,0 +1,11 @@
+# CM-11：选中「用户痛点」，Ctrl+C / Ctrl+V。
+# 副本必须是独立概念（没有父子线），整体偏移 (32,44)，并保持选中；末帧指针移开避免悬停污染。
+wait 8
+click 538 404
+wait 2
+key ctrl+c
+wait 2
+key ctrl+v
+wait 10
+move 1600 1100
+wait 2

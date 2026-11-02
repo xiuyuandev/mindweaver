@@ -1,0 +1,19 @@
+# outline-keys · §5.5 结构命令键盘全链路（MW_TRACE 证据）
+# boot 选中根；先 ArrowDown 到子行「纯 Rust 原生」，再逐个按键。
+wait 12
+key ArrowDown
+wait 2
+key Ctrl+Enter
+wait 2
+key Tab
+wait 2
+key Shift+Tab
+wait 2
+key Alt+.
+wait 2
+key Ctrl+]
+wait 3
+key Ctrl+[
+wait 2
+key Alt+Shift+.
+wait 2

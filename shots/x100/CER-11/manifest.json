@@ -1,0 +1,73 @@
+{
+  "package": "CER-11",
+  "status": "已实现",
+  "date": "2026-10-26",
+  "design_contract": "docs/28 §5.8",
+  "execution_contract": "docs/29 §6（X70 范围并入）",
+  "batch": "B2-A",
+  "gate": null,
+  "scenes": ["outline-20k", "outline-20k-deep"],
+  "unchanged_scenes": ["outline", "outline-focus", "outline-compact", "outline-narrow", "outline-edit", "outline-search", "outline-search-labels", "outline-hover-select", "outline-drag"],
+  "themes": ["snow", "ink", "mist", "sand"],
+  "dpi": [1.0, 1.5, 2.0],
+  "scripts": ["scripts/x100-outline-20k.ps1", "shots/golden/inputs/outline-20k-scroll.txt"],
+  "evidence": [
+    "shots/x100/CER-11/report.md",
+    "shots/x100/CER-11/perf.txt",
+    "shots/x100/CER-11/probe.log",
+    "shots/x100/CER-11/stats.log",
+    "shots/x100/CER-11/matrix/",
+    "shots/golden/outline-20k/shell-ppp1.00.png",
+    "shots/golden/outline-20k-deep/shell-ppp1.00.png",
+    "target/x100/stage-b-gate-cer11.log"
+  ],
+  "old_hashes": {},
+  "new_hashes": {
+    "outline-20k": "2700c935b215215113853947585d1fb78ac080b0190d28076456e571cab4bf3c",
+    "outline-20k-deep": "50f2152f9c11313b3f67e8e656a7851da848f87e1690691114524e0ebe44319b"
+  },
+  "drift": {
+    "outline-20k": "新增基线",
+    "outline-20k-deep": "新增基线",
+    "outline / outline-focus / outline-compact / outline-narrow / outline-edit / outline-search / outline-search-labels / outline-hover-select / outline-drag": "0 px（逐字节不变）"
+  },
+  "perf": {
+    "probe": "first_screen=23.0ms; scroll p50=0.11ms p95=0.13ms max=0.38ms; collapse=0.17ms expand=0.17ms; laid_rows=52",
+    "stats": "fps 56.2-58.7; ui_p50 0.63-0.72ms; ui_p95 0.95-1.81ms; visible 33/20001",
+    "budgets": "首屏 <=100ms、滚动 >=55fps、单次折叠/展开 <=16ms、只排视口 ±10 行（52 行）"
+  },
+  "tests": { "passed": 818, "failed": 0 },
+  "golden": {
+    "runs": 2,
+    "diffs": 0,
+    "tol": 0,
+    "note": "两个 20k 场景各双跑 0 差异；九个未受影响场景各一次 0 差异；机器门 45 组 × 2 遍 = 90/90 通过、0 差异，见 target/x100/stage-b-gate-cer11.log"
+  },
+  "engineering": {
+    "fmt": "clean",
+    "clippy_mw_shell_new": 0,
+    "release_build": "pass"
+  },
+  "contract_audit": "§5.8：行虚拟化（show_viewport + 上下 10 行 overscan + 上下空白补高）、20k 首屏/滚动/折叠预算全达标、远距跳转用 vertical_scroll_offset、三 DPI × 四主题矩阵；折叠/展开增量（缓存 resolve_all + collect_rows 共用）",
+  "changes": {
+    "code": [
+      "crates/mw-shell/src/panels/outline.rs（虚拟化、row_layout_height、collect_rows、apply_collapse、styles 缓存、探针）",
+      "crates/mw-shell/src/panels/focus.rs（seen HashSet，O(n²) → O(n)）",
+      "crates/mw-shell/src/session.rs（sample_20k）",
+      "crates/mw-shell/src/app_methods_1.rs（MW_OUTLINE_20K / MW_OUTLINE_SCROLL_TO）",
+      "crates/mw-shell/src/app_methods_2.rs（OA::Toggle 增量折叠）",
+      "scripts/x100-stage-b-gate.ps1（+2 场景，43 → 45 组）",
+      "scripts/x100-outline-20k.ps1（新）"
+    ],
+    "golden": [
+      "shots/golden/outline-20k（新增）",
+      "shots/golden/outline-20k-deep（新增）"
+    ]
+  },
+  "known_gaps": [
+    "筛选态与概念图的折叠/展开仍走全量重建（约 29ms），仅三者叠加时超 16ms",
+    "行高前缀每帧 O(n) 累加，未做前缀缓存",
+    "探针只测 UI 构建 CPU；GPU 上屏由 stats wall fps 兜底（离屏无 vsync）",
+    "20k 下编辑/IME 组合场景未拍"
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "id": "M7b",
+  "title": "框选的 Alt 减选与自由套索——证据闭环",
+  "date": "2026-11-01",
+  "round": 62,
+  "status": "已实现（两张基线已拍并双跑零差异；整门待复跑）",
+  "scope": [
+    "核对真实语义：Alt+空白拖 = DragKind::Lasso（矩形框选带 Alt 在指针上不可达）",
+    "核对真实语义：套索松手走 apply_marquee 的 subtract 分支，Alt 圈空时不清空选择",
+    "新轨迹 marquee picked=N selected=M path=lasso（只加在套索松手分支，矩形行原样）",
+    "两份输入脚本：shots/golden/inputs/mm-lasso.txt、shots/golden/inputs/mm-marquee-alt.txt",
+    "单测：lasso_pick 的屏幕→世界换算、apply_lasso 的五种结算（含 Alt 圈空保留选择）"
+  ],
+  "semantics": {
+    "lasso_entry": "canvas_methods_2.rs 按下分支：primary && !middle && !space && !editing && hot.is_none() && alt → kind = DragKind::Lasso；采样点距上一点 >2px 才 push",
+    "lasso_pick": "每个节点取世界盒中心，camera.world_to_screen 后再用射线法 point_in_polygon；少于 3 点 = 空",
+    "release": "clear_foreign_selection(Node,'lasso') 之后按 apply_marquee 结算；subtract(alt) 优先于 additive(ctrl/shift)",
+    "key_finding": "Lasso 只在按下时带 Alt 才出现，而 subtract 也读同一个 Alt，所以真实手势里套索恒为减选：不能建立新选择；空组里套索徒手圈中 N 颗也是 selected=0",
+    "marquee_alt_is_dead": "DragKind::Marquee 带 subtract=true 不可达（按下带 Alt 已被改判成 Lasso），矩形的 preview 也走不到 subtract 分支"
+  },
+  "files": [
+    "crates/mw-shell/src/canvas.rs",
+    "crates/mw-shell/src/canvas/canvas_methods_2.rs",
+    "crates/mw-shell/src/canvas/tests.rs",
+    "shots/golden/inputs/mm-lasso.txt",
+    "shots/golden/inputs/mm-marquee-alt.txt",
+    "shots/x100/M7b/trace-lasso.txt",
+    "shots/x100/M7b/trace-marquee-alt.txt",
+    "shots/x100/M7b/trace-marquee-add-control.txt"
+  ],
+  "scenes": [
+    {
+      "name": "mm-lasso",
+      "dir": "shots/golden/mm-lasso",
+      "ppp": "1.0",
+      "warmup": 30,
+      "env": "MW_NOTES=none; MW_GOLDEN_INPUT=shots/golden/inputs/mm-lasso.txt",
+      "sha256_12": "870979712E6C",
+      "pins": "Alt 拖出的套索多边形（1.2px 强调色折线）停在松手前；输入脚本末尾不 release",
+      "trace": "marquee picked=2 selected=0 path=lasso 的结算证据另存 shots/x100/M7b/trace-lasso-commit.txt（同坐标 + release）"
+    },
+    {
+      "name": "mm-marquee-alt",
+      "dir": "shots/golden/mm-marquee-alt",
+      "ppp": "1.0",
+      "warmup": 30,
+      "env": "MW_NOTES=none; MW_GOLDEN_INPUT=shots/golden/inputs/mm-marquee-alt.txt",
+      "sha256_12": "209ADC44E298",
+      "pins": "先框 3 颗再套索减 1 颗：末帧剩 2 个选中环",
+      "trace": "marquee picked=3 selected=3 → marquee picked=1 selected=2 path=lasso"
+    }
+  ],
+  "control": {
+    "name": "mm-marquee-add（既有基线，回归对照）",
+    "result": "✓ 无超容差差异（1620×1080，容差 0）",
+    "trace": "marquee picked=1 selected=1（矩形行未加 path 字段，口径不变）"
+  },
+  "tests": {
+    "mw_shell_before": 631,
+    "mw_shell_after": 637,
+    "mine": 2,
+    "new": [
+      "canvas::tests::lasso_pick_maps_the_polygon_through_the_camera",
+      "canvas::tests::lasso_subtract_only_removes_looped_nodes"
+    ],
+    "note": "mw-shell 另 +4 来自并行代理对 outline/start 的改动，不由本包引入"
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1",
+    "rows": "mm-lasso / mm-marquee-alt 两行已加（Ppp 1.0、Warmup 30、MW_NOTES=none）",
+    "result": "两张基线 --tol 0 双跑零差异；整门与 SE-12/M31/C21 一起复跑",
+    "human_gate": "未开"
+  },
+  "known_gaps": [
+    "本轮按约定不拍基线：两张脚本的图还没有，mm-lasso 末帧是「什么都没选中」，mm-marquee-alt 末帧是 winit + uniform grid 两环",
+    "套索进行中没有「松手会选中谁」的实时预览（marquee_preview 只服务矩形），也没有填充",
+    "套索中心口径（节点中心在多边形内）与 docs/02 §2 的「包围盒相交」不一致，只在报告里记录，未改行为",
+    "docs/06 §5 的「Alt+拖拽 = 记录自动布局偏移」与实现相反（Alt+拖空白是套索），未改 docs",
+    "M7 报告与门脚本注释里「mm-marquee 框住四个节点 / mm-marquee-add 加到五颗」是 ppp 1.5 时代的数字；现在门内 ppp 1.0 的落定相机是另一套坐标（mm-marquee picked=1、mm-marquee-add picked=1），基线本身零漂移，过期的是注释与报告"
+  ]
+}

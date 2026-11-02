@@ -1,0 +1,11 @@
+# mm-new-cancel · 新建后反悔：`Esc` 把这次编辑建出来的节点一起收回去
+# 对照组是 mm-new-child（同样两下，但没有 Esc）：那张上有一个空盒子，这张没有。
+wait 3
+click 876 552
+wait 4
+key Tab
+wait 2
+text 草稿
+wait 2
+key Escape
+wait 6

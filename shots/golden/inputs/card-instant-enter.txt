@@ -1,0 +1,7 @@
+# 对照：只回车另起一行，不敲任何标记（不进基线，给 undo 场景做逐字节比对）。
+wait 3
+click 700 276
+wait 1
+key End
+key Enter
+wait 6

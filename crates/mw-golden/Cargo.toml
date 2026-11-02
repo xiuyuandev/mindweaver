@@ -1,0 +1,9 @@
+[package]
+name = "mw-golden"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "golden image 比对基建：容差、基线命名、差异热力图只有一份定义（docs/13 §7）"
+
+[dependencies]
+image = { version = "0.25", default-features = false, features = ["png"] }

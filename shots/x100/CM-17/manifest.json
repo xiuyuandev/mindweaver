@@ -1,0 +1,54 @@
+{
+  "package": "CM-17",
+  "title": "多选命题：批量删除 / 改箭头 / 改线型 / 改线宽",
+  "status": "已实现（单测绿；基线未拍，不记已验证）",
+  "date": "2026-11-01",
+  "track": "M 轨 概念图（docs/30 §5.4.4）",
+  "contract": {
+    "design": "docs/30 §5.4.4（本轮新增）：选中模型、加选/减选手势、批量页只给能批量做的事、只给单条的两项（短语/注释）、未做项（框选线、Shift 范围）",
+    "execute": "不动 .zmind：`Canvas.relationship` 从 `Option<RelationshipSel>` 换成 `RelationshipSelection`",
+    "audit": "来源是 CM-15 复审第 ⑳ 项；改造面 45 处 `self.relationship` 用法"
+  },
+  "code": [
+    "mw-shell/src/canvas.rs（RelationshipSelection：select_only / toggle / primary / contains / retain_alive；字段类型替换）",
+    "mw-shell/src/canvas/canvas_methods_2.rs（加选/减选手势 rel_additive；批量删除、批量箭头；relink 只认主选；访问器 relationship_selections / relationship_count）",
+    "mw-shell/src/canvas/canvas_methods_3.rs（批量线型、批量反向 + 选中集换主人；rebuild 里逐条 retain_alive；强调绘制改 contains；MultiRel 夹具）",
+    "mw-shell/src/panels/inspector.rs + inspector_methods_1.rs（Extras.relationships；relationships_body 批量页）",
+    "mw-shell/src/app_methods_2.rs（菜单文案「删除 N 条」、多选时禁用改短语；Extras 传多选集）",
+    "mw-shell/src/canvas.rs + main.rs + app_methods_1.rs（ConceptHook::MultiRel + MW_CONCEPT_MULTI_REL）",
+    "scripts/x100-stage-cm-gate.ps1（登记 cm-rel-multi）"
+  ],
+  "scenes": [
+    "cm-rel-multi（夹具已就位，基线待 -Update）"
+  ],
+  "evidence": {
+    "baselines": "未重拍、未新增（本机 cargo golden 拿不到 wgpu 适配器）。另：cm-arrow-menu 已因 CM-16 的「线型」子菜单待重拍，本包又改了菜单文案与禁用态，一并按最终形态拍",
+    "unit_tests": "relationship_selection_toggles_and_keeps_the_last_one_as_primary（shell） / batching_relationship_style_is_one_undo（core）",
+    "ran": {
+      "core": "cargo test -p mw-core --lib -- --test-threads=1 → 330 passed / 0 failed（含并行会话新增）",
+      "shell": "cargo test -p mw-shell --bin mw-shell -- canvas:: → 136 passed / 0 failed",
+      "fmt": "本包改动文件干净（mw-ui/src/drill_click.rs 属并行会话，未碰）",
+      "clippy": "cargo clippy -p mw-shell --all-targets：改动文件新增 0"
+    },
+    "gates": "未跑（依赖 golden，本机无适配器）。缺基线场景由门脚本 SKIP 并计数",
+    "trace": "select relationship <from> <id> additive=1 n=N / delete relationship … × N / relationship head … / rel_reverse …"
+  },
+  "tests": {
+    "new": [
+      "mw-shell::canvas::tests::relationship_selection_toggles_and_keeps_the_last_one_as_primary",
+      "mw-core::document::tests::batching_relationship_style_is_one_undo"
+    ],
+    "total": "mw-shell canvas 135 → 136；mw-core 323 → 330（含并行会话）"
+  },
+  "non_goals": {
+    "框选命中关系线": "橡皮筋仍只框节点；要做需给 marquee 加线-矩形相交判定，另开一包",
+    "Shift 范围选择": "没做",
+    "混合态显示": "批量页不画当前值（多选时值可能不同，画勾会撒谎）",
+    "短语与注释": "只对单条开放；多选时不给入口"
+  },
+  "open": {
+    "基线": "cm-rel-multi 待 -Update；cm-arrow-menu 一并按最终形态重拍",
+    "手感": "加选时指针要压在 1.5px 的线上（7px 命中环是既有口径），实机未核",
+    "批量反向的撤销文案": "Batch 取第一条的标签，显示「反向连接」而不是「反向 N 条」"
+  }
+}

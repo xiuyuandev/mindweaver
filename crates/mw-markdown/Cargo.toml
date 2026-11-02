@@ -1,0 +1,6 @@
+[package]
+name = "mw-markdown"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "卡片笔记的 Markdown 解析：纯 CPU、无 GUI，阅读页/编辑器预览/导出共用"

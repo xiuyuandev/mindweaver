@@ -1,0 +1,111 @@
+{
+  "package": "CER-12",
+  "status": "已实现",
+  "date": "2026-10-26",
+  "design_contract": "docs/28 §5、§9",
+  "execution_contract": "docs/29 §2、§6、§10",
+  "batch": "B2-A",
+  "gate": "G-B2-1（待用户）",
+  "scenes": [
+    "outline-default",
+    "outline-hover-select",
+    "outline-edit-ime",
+    "outline-focus",
+    "outline-search",
+    "outline-drag",
+    "outline-narrow",
+    "outline-20k",
+    "outline-wrap"
+  ],
+  "scene_dirs": {
+    "outline-default": "shots/golden/outline",
+    "outline-hover-select": "shots/golden/outline-hover-select",
+    "outline-edit-ime": "shots/golden/outline-edit-ime",
+    "outline-focus": "shots/golden/outline-focus",
+    "outline-search": "shots/golden/outline-search",
+    "outline-drag": "shots/golden/outline-drag",
+    "outline-narrow": "shots/golden/outline-narrow",
+    "outline-20k": "shots/golden/outline-20k",
+    "outline-wrap": "shots/golden/outline-wrap"
+  },
+  "themes": ["snow", "ink", "mist", "sand"],
+  "dpi": [1.0, 1.5, 2.0],
+  "scene_dpi": {
+    "outline-default": [1.5],
+    "outline-wrap": [1.5, 2.0],
+    "outline-20k": [1.0]
+  },
+  "scripts": [
+    "scripts/x100-cer12-outline-gate.ps1",
+    "shots/golden/inputs/outline-hover-select.txt",
+    "shots/golden/inputs/outline-edit-ime.txt",
+    "shots/golden/inputs/outline-drag.txt"
+  ],
+  "evidence": [
+    "shots/x100/CER-12/report.md",
+    "shots/x100/CER-12/gate.md",
+    "shots/x100/CER-12/hashes.txt",
+    "shots/x100/CER-12/matrix/",
+    "shots/x100/CER-12/narrow/",
+    "shots/x100/CER-12/wrap/trace.txt",
+    "docs/x100/stage-b2-report.md",
+    "target/x100/cer12-outline-gate.log",
+    "target/x100/stage-b-gate.log"
+  ],
+  "old_hashes": {},
+  "new_hashes": {
+    "outline-default": "cab0bdddeedc465c330098ea10ada6bd2541708abc98d44e6f87517e4bdaac49",
+    "outline-hover-select": "0031d764b7896170cff01d19f5ebc3ec6dd8bbc2bba504e97fdc519a124557a7",
+    "outline-edit-ime": "9a869ce548159d15df3705b6357491ee4bfc4f625b08b45d0df7f8d5873ba6eb",
+    "outline-focus": "1841d0d16a671d3776023dd18de9253f451f6c0d5612a90c9c16e3810d136551",
+    "outline-search": "1544a2aac7e49a1fab55b80d030466d0afa506b1a60e64cab8e2ff2513639dbc",
+    "outline-drag": "99cf601f647a1473b3bb71a2cd8d40622b9fbcd016ae66725644d67024f94d9c",
+    "outline-narrow": "b0a178f7b84bc26863ecfbf52d774c5c88d0c86a9b314466420ab3b8e1e5ce06",
+    "outline-20k": "2700c935b215215113853947585d1fb78ac080b0190d28076456e571cab4bf3c",
+    "outline-wrap-1.5": "ea771190bbf1bd7cb99e1886ad7478fad1146ed0a7216ab61ec23ac19c771f3e",
+    "outline-wrap-2.0": "4be636a0249c7d0c048b2b056fd51c78bdca728f1108c1f0b0c85678c9a04b3c"
+  },
+  "drift": {
+    "note": "本包不改既有基线：9 个大纲场景与既有 PNG 逐像素 0 差异（含 outline-edit-ime 的指针泄漏修复）；新增 shots/golden/outline-wrap/（1.5 与 2.0 两张）"
+  },
+  "tests": { "passed": 824, "failed": 0 },
+  "golden": {
+    "runs": 2,
+    "diffs": 0,
+    "tol": 0,
+    "note": "9 场景 / 10 组 × 2 遍两遍哈希一致；12 张矩阵与 2 张窄窗逐张 --update 后复跑 0 差异；全量 47 组 × 2 遍 = 94/94"
+  },
+  "engineering": {
+    "fmt": "clean",
+    "clippy_mw_shell_new": 0,
+    "release_build": "pass"
+  },
+  "contract_audit": "docs/28 §5.1–§5.11 逐条核对见 stage-b2-report.md §4；11 条全部达成（§5.2 长文换行 2026-10-26 补齐），另有 7 条已知偏差",
+  "changes": {
+    "code": [
+      "crates/mw-shell/src/golden.rs（金样模式停掉光标闪烁 +1 单测；修 outline-edit-ime 双跑 126 px 漂移）",
+      "crates/mw-shell/src/panels/outline.rs（§5.2 长文换行：measure_wraps 行数缓存、row_layout_height 每行 +24、row_text_job 换行不截断、hit_bands 按行拆底带；+5 单测）",
+      "crates/mw-shell/src/session.rs（Session::sample_wrap：outline-wrap 夹具）",
+      "crates/mw-shell/src/app_methods_1.rs（MW_OUTLINE_WRAP=1 实拍钩子）",
+      "crates/mw-shell/src/main.rs + golden_input.rs（离屏且脚本不含指针动作时每帧清桌面指针，修 hover 泄漏）"
+    ],
+    "scripts": [
+      "scripts/x100-cer12-outline-gate.ps1（新：9 场景 / 10 组双跑 + 矩阵 + 窄窗，每遍清空隔离 profile）",
+      "scripts/x100-stage-b-gate.ps1（47 组：新增 outline-wrap 1.5/2.0）"
+    ],
+    "golden": [
+      "新增 shots/golden/outline-wrap/shell-ppp1.50.png、shell-ppp2.00.png；既有基线零改动",
+      "新增 shots/x100/CER-12/matrix/（12 张）、shots/x100/CER-12/narrow/（2 张）、shots/x100/CER-12/wrap/trace.txt"
+    ]
+  },
+  "known_gaps": [
+    "§5.2 握把仍是 2×3 点阵，16×20 盒 / 距列左 8 未重做",
+    "§5.6 拖拽阈值用 egui 默认约 6px（合同 4px）；非法光标用 NoDrop",
+    "§5.6 自动滚动/自动展开/多选拖拽无拖拽中截图（仅单测/trace）",
+    "§5.7 筛选胶囊无键盘路径、任务胶囊单态、标签弹层仅鼠标",
+    "筛选态/概念图折叠仍全量重建（约 29ms，20k 叠加时超 16ms）",
+    "微软拼音人工实测待用户",
+    "20k 只在 1.0 DPI 拍基线，20k 下编辑/IME 未拍",
+    "带指针脚本的场景仍可能被真实鼠标移动打断（纯键盘/IME 脚本已由 harness 兜住）"
+  ]
+}

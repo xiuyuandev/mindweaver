@@ -1,0 +1,62 @@
+{
+  "package": "M15",
+  "title": "画布交互十项修复（软换行 / 打字即编辑 / 删除确认 / 折叠拖入 / 全选 / 撤销节奏 / 缩放区间与锚点 / 概念图 Tab / Esc 层级）",
+  "status": "已实现（十条全部落地；机器门槛绿；人工门未开，不记已验证）",
+  "date": "2026-10-30",
+  "track": "打磨轮（docs/x100/polish-ledger.md 相关行；写权仅 canvas*.rs + mw-ui）",
+  "_note": "2026-10-31 打磨轮 36 按 report.md 回填；不新增结论。本包不动外观、不重拍 golden，故 scenes 为空。",
+  "contract": {
+    "design": "docs/x100/polish-ledger.md 审计出的十条画布交互缺陷（P0 1–3 / P1 4–8 / P2 9–10）；报告 §1 有逐条现象表",
+    "code": [
+      "crates/mw-shell/src/canvas_methods_3.rs::take_exact_key / soft_newline_insert / insert_soft_newline（Shift+Enter 软换行）",
+      "crates/mw-shell/src/canvas_methods_3.rs::TypeStart / type_char / take_type_start / type_to_edit（选中即打字）",
+      "crates/mw-shell/src/canvas.rs::DeleteConfirm + canvas_methods_3.rs::delete_confirm_plan / delete_selected / delete_now / confirm_delete_ui（删除确认）",
+      "crates/mw-ui/src/drag.rs::move_commands（拖进折叠父节点时同一 Batch 追加 SetCollapsed{false}）",
+      "crates/mw-shell/src/canvas_methods_3.rs::select_all_indices / select_all_visible（思维导图 Ctrl+A）",
+      "crates/mw-shell/src/canvas.rs::Editor::fresh_depth + canvas_methods_3.rs::cancel_fresh_node（Esc 后不多一条撤销）",
+      "crates/mw-shell/src/canvas/consts.rs::MIN_ZOOM=0.1 / MAX_ZOOM=5.0（FIT_MIN_ZOOM 仍 0.005）",
+      "crates/mw-shell/src/canvas_methods_2.rs::show（Ctrl± 与工具条缩放统一走 zoom_at_anchor）",
+      "crates/mw-shell/src/canvas_methods_3.rs::concept_relative_command / add_concept_relative（概念图 Tab/Enter 走 AddLinkedConcept）",
+      "crates/mw-shell/src/canvas_methods_3.rs::CanvasEsc / esc_plan（关系线 → 聚焦栈 → 多选）"
+    ]
+  },
+  "deliverables": {
+    "report": "shots/x100/M15/report.md",
+    "manifest": "shots/x100/M15/manifest.json"
+  },
+  "scenes": [],
+  "scenes_note": "不做外观改动：确认框复用既有 dialog 组件，不新增视觉规格，因此不重拍 golden、不新增基线。构图证据是 11 条单测与两条既有 canvas 基线零漂移。",
+  "tests": {
+    "new": [
+      "exact_key_taking_leaves_shift_combos_for_their_own_handler",
+      "soft_newline_inserts_at_caret_and_keeps_caret_after_the_break",
+      "type_to_edit_takes_one_char_and_leaves_the_rest_of_the_queue",
+      "type_to_edit_ignores_space_and_control_chars",
+      "delete_confirm_counts_the_whole_subtree_and_skips_leaf_only_deletes",
+      "select_all_visible_skips_what_folding_hid",
+      "cancelling_a_fresh_node_edit_leaves_no_extra_undo_step",
+      "zoom_range_is_ten_percent_to_five_hundred",
+      "concept_relative_never_produces_a_tree_child",
+      "escape_walks_relationship_then_focus_then_selection",
+      "dropping_into_a_collapsed_parent_expands_it_in_the_same_undo_step（mw-ui）"
+    ],
+    "total": "mw-shell --bins 588 passed / 0 failed / 1 ignored（canvas 过滤 121 passed）；mw-ui 42 passed"
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1 + scripts/x100-stage-cm-gate.ps1",
+    "stage_b_scenes": 118,
+    "stage_b_comparisons": 236,
+    "stage_cm_scenes": 49,
+    "stage_cm_comparisons": 98,
+    "result": "PASS（无视觉改动，既有基线零漂移；日志已被后续轮次覆盖，以 docs/STATUS.md §1 为准）",
+    "human_gate": "未开（交互手感需实机）"
+  },
+  "behaviour_change": "删除带子节点会先弹确认（叶子仍一键删）；选中后直接打字进编辑；Shift+Enter 软换行；Ctrl+A 全选可见节点；缩放交互区间 10%–500% 且 Ctrl± 保锚点；概念图 Tab/Enter 不再产生 parent_id",
+  "known_gaps": [
+    "Ctrl+A 的快捷键帮助面板文案未补（shortcuts.rs 在本轮写权之外）",
+    "Ctrl+X 剪切带子节点的分支仍不确认（剪贴板语义变更，另开一轮）",
+    "IME 组合中途进编辑（TypeStart::Compose）仍只做离屏等效，实机微软拼音未核",
+    "画布确认框不在壳层 overlay::State 里，Esc 由画布自己 consume；将来纳入 overlay 可退化",
+    "概念图 Enter 与 Tab 同义（都是加一条命题，落点右/下），刻意不造『树的兄弟』"
+  ]
+}

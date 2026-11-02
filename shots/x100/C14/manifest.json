@@ -1,0 +1,58 @@
+{
+  "package": "C14",
+  "title": "概念图语义收口（树入口封堵 / 命题可见 / 平行边 / 空短语 / 箭头键盘路径）",
+  "status": "已实现（9 条新单测全绿；机器门绿；人工门未开）",
+  "date": "2026-10-30",
+  "track": "打磨轮（docs/x100/polish-ledger.md 第 34 轮的前半；docs/30 §5 / docs/32 §3）",
+  "_note": "2026-10-31 打磨轮 36 按 report.md 回填；不新增结论。本包不重拍 golden（命题分组只在概念图+概念选中+内容页出现），故 scenes 为空；平行边绘制问题已在第 34 轮补齐（bowed_straight 分车道）。",
+  "contract": {
+    "design": "docs/30 §5（概念图不是树：parent_id=None + pos，连接走 relationships）、§5.4/§5.9；docs/32 §3（箭头四档）",
+    "code": [
+      "crates/mw-core/src/document.rs::MoveNode / AddNode / InsertSubtree（概念图里拒绝写 parent_id，文档不变、撤销栈不动）",
+      "crates/mw-core/src/document.rs::AddLinkedConcept / RetargetLinkToNewConcept（只有概念图可发）",
+      "crates/mw-core/src/document.rs::AddRelationship / SetRelationshipTarget（概念图删掉 (from,to) 唯一检查，思维导图保留；自连仍禁）",
+      "crates/mw-core/src/document.rs::SetRelationshipLabel（概念图里清空 → Invalid「概念图的连接短语必填」；新建时 label None 仍合法）",
+      "crates/mw-shell/src/panels/inspector/inspector_methods_1.rs::propositions_section（内容页『命题』组：出/入摘要、行点击选线、× 删除、空态）",
+      "crates/mw-shell/src/panels/inspector/inspector_methods_1.rs（关系线页数字键 1–4 选箭头档 + 必填 hint）",
+      "crates/mw-shell/src/panels/inspector.rs::Action（补 #[derive(Debug)]，供测试断言）"
+    ]
+  },
+  "deliverables": {
+    "report": "shots/x100/C14/report.md",
+    "manifest": "shots/x100/C14/manifest.json"
+  },
+  "scenes": [],
+  "scenes_note": "命题分组只在概念图且选中概念、内容页时出现；默认基线场景（思维导图检查器）不受影响，故本轮不新增/不重拍。第 34 轮补画布分车道后再按两道门统一验证。",
+  "tests": {
+    "new": [
+      "move_node_is_rejected_in_concept_maps",
+      "add_node_is_rejected_in_concept_maps",
+      "insert_subtree_is_rejected_in_concept_maps",
+      "add_linked_concept_is_concept_map_only",
+      "parallel_propositions_between_the_same_pair_are_independent",
+      "self_link_is_still_rejected",
+      "clearing_the_phrase_is_rejected_in_concept_maps",
+      "concept_maps_show_their_own_propositions（内容页一帧断言『命题』/出 1 · 入 1/→ 导致 乙；思维导图一帧无『命题』）",
+      "digit_keys_pick_the_arrow_head（3→Backward、1→Off、4→Both；当前档不重发）"
+    ],
+    "total": "mw-core 248 passed（含新增 7 条）+ contrast.rs 7 passed；mw-shell --bins 588 passed / 0 failed / 1 ignored（含新增 2 条）"
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1 + scripts/x100-stage-cm-gate.ps1",
+    "stage_b_scenes": 118,
+    "stage_b_comparisons": 236,
+    "stage_cm_scenes": 49,
+    "stage_cm_comparisons": 98,
+    "result": "PASS（本轮无视觉改动；日志已被后续轮次覆盖，以 docs/STATUS.md §1 为准）",
+    "human_gate": "未开"
+  },
+  "behaviour_change": "概念图里 MoveNode/AddNode/InsertSubtree 被拒（不再静默变树节点）；同一对概念之间允许多条命题；概念图清空连接短语被拒（新建可暂空）；检查器内容页新增『命题』组；关系线箭头支持数字键 1–4",
+  "data_model": "零新字段：多对多关系与平行边本来就由 Node.relationships 承载；不升 FORMAT_VERSION、无迁移",
+  "known_gaps": [
+    "平行边在画面上曾完全重合——第 34 轮已在 scene.rs 按无向对分车道修复（gap=min(24,len/6) 二次贝塞尔），本包报告 §7 第 1 条为当时的跨范围记账",
+    "大纲拖拽在概念图里会弹『修改未生效』（MoveNode 护栏生效后；壳层 OA::Move 未分流）",
+    "画布上清空短语会走失败分支、提示是通用文案（canvas rel_edit 提交路径未做『就地不发命令』）",
+    "Action 派生 Debug 只为测试断言（无运行时负担）",
+    "真机输入脚本与 golden 本轮未做（由门统一验证）"
+  ]
+}

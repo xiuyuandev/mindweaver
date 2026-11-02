@@ -1,0 +1,9 @@
+# outline-hover-select · hover 与 selected 同帧共存（docs/28 §5.3）
+# 行距 32：标题 44 后，wgpu 四层合成器行中心 y=212，纯 Rust 原生行中心 y=148。
+# 顺序：先点击 wgpu 行（选中 7% 持久），再悬停 纯 Rust 原生 行（hover 4%）。
+# CER-09：握把要悬停满 120ms 才露出，所以 hover 带 400ms 保持（原来的 160ms 只比阈值多 40ms，门里一忙就飘），基线停在握把已出现的稳定帧。
+wait 8
+click 400 212
+wait 4
+hover 400 148 900
+wait 10

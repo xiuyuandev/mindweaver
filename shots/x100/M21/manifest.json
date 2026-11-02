@@ -1,0 +1,81 @@
+{
+  "package": "M21",
+  "title": "Ctrl+H 逐个替换与替换预览",
+  "status": "已实现（机器门绿；人工门未开，不记已验证）",
+  "date": "2026-10-31",
+  "track": "打磨轮（docs/x100/polish-ledger.md 第 44 轮；docs/02 §4 查找替换）",
+  "contract": {
+    "design": "docs/02 §4「查找替换」P2——替换节点标题文本，逐个/全部；替换预览；docs/06 搜索条一节的同族交互",
+    "code": [
+      "crates/mw-core/src/search.rs::replace_char_range（按字符区间 [start,end) 替换，越界/逆序返回 None）",
+      "crates/mw-shell/src/panels/search.rs::Action::ReplaceOne / replace_target / replace_target_fields",
+      "crates/mw-shell/src/panels/search.rs::SearchBar::replace_current + pending_advance + settle_after_refresh（前进一行、到底绕回、不在命中则按原下标夹取）",
+      "crates/mw-shell/src/panels/search.rs（Ctrl+H 开替换行时焦点进替换框；Ctrl+Enter 替换当前、Ctrl+Shift+Enter 全部；替换/全部替换两个按钮；当前行预览 `→ 新标题`）",
+      "crates/mw-shell/src/app_methods_2.rs::SA::ReplaceOne（一条 Command::SetText + search_replace_one 轨迹 + node_visible 后 select_node_keep_focus 不抢键盘）",
+      "crates/mw-shell/src/canvas/canvas_methods_1.rs::node_visible",
+      "crates/mw-shell/src/note_view.rs::card_now_ms + mark_saved（金样定钟 MW_CARD_NOW_MS，修 card-autosave 按 UTC 跨日腐烂）",
+      "scripts/x100-stage-b-gate.ps1（+2 场 search-replace / search-replace-one；card-autosave 加 MW_CARD_NOW_MS）",
+      "shots/golden/inputs/search-replace.txt（48 帧）、shots/golden/inputs/search-replace-one.txt（58 帧）"
+    ],
+    "note": "不改 Node / NoteCard / .zmind 字段；替换走既有 SetText 命令与撤销栈；搜索结果与排序不变"
+  },
+  "deliverables": {
+    "report": "shots/x100/M21/report.md",
+    "manifest": "shots/x100/M21/manifest.json",
+    "trace": "shots/x100/M21/trace.txt",
+    "diff": "shots/x100/M21/diff.txt",
+    "screens": [
+      "shots/x100/M21/replace.png",
+      "shots/x100/M21/replace-one.png"
+    ]
+  },
+  "scenes": [
+    {
+      "name": "search-replace",
+      "dir": "shots/golden/search-replace",
+      "sha256_12": "8A6F28044B44",
+      "input": "shots/golden/inputs/search-replace.txt",
+      "evidence": "Ctrl+F → 排版 → Enter → Ctrl+H → 排布；当前行第二行显示 `→ 中文排布`，页脚 Enter 定位 · Ctrl+Enter 替换当前 · Ctrl+Shift+Enter 全部；改前同脚本 3964 px（0.1720%）差，全部在搜索卡片内"
+    },
+    {
+      "name": "search-replace-one",
+      "dir": "shots/golden/search-replace-one",
+      "sha256_12": "7BCAAB250C9F",
+      "input": "shots/golden/inputs/search-replace-one.txt",
+      "evidence": "再按 Ctrl+Enter：轨迹 search_replace_one chars=4 before_chars=4 + toast 已替换 1 处；标题变「中文排布」、相机居中、搜索条与替换行仍开着（无 focus canvas）；与上一场 78247 px（3.3961%）差，含结果清空与相机重排"
+    }
+  ],
+  "tests": {
+    "new": [
+      "search::tests::replace_char_range_replaces_a_cjk_slice",
+      "search::tests::replace_char_range_rejects_invalid_ranges",
+      "panels::search::tests::replace_target_only_accepts_title_literal_hits",
+      "panels::search::tests::replace_current_emits_one_command_and_parks_the_next_row",
+      "panels::search::tests::settle_after_refresh_moves_past_the_replaced_row_and_wraps",
+      "panels::search::tests::replace_current_starts_at_the_first_row_and_clears_on_query_change",
+      "panels::search::tests::replace_current_refuses_pinyin_and_note_rows"
+    ],
+    "existing": [
+      "search::tests::replace_all_changes_every_occurrence_and_counts",
+      "panels::search::tests::enter_starts_at_first_then_wraps",
+      "panels::search::tests::relationship_results_jump_to_the_edge"
+    ],
+    "total": "1065 passed / 0 failed / 1 ignored（mw-core 单测 278 + contrast 7；mw-shell --bins 603）"
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1 + scripts/x100-stage-cm-gate.ps1",
+    "stage_b_scenes": 126,
+    "stage_b_comparisons": 252,
+    "stage_cm_scenes": 58,
+    "stage_cm_comparisons": 116,
+    "result": "PASS（stage-b 08:48:29–08:55:25、stage-cm 08:55:46–08:58:52，均两遍 --tol 0、126/252 与 58/116 全过；fmt 干净、clippy 基线新增 0）",
+    "human_gate": "未开（X20 / G-B3-2 人工判词不代判）"
+  },
+  "behaviour_change": "替换行从「只有一个全部替换」变成「逐个 + 全部」：Ctrl+Enter 替换当前行、Ctrl+Shift+Enter 全部；Ctrl+H 展开时焦点直接进替换框；节点标题的字面命中在当前行显示 `→ 替换后的标题`；逐个替换后当前行前进到被替换行的下一行（到底绕回，不再命中则按原下标夹取），焦点留在搜索条里，一条 Ctrl+Z 只回这一步。备注/链接/拼音命中没有替换入口，但仍可跳转。",
+  "known_gaps": [
+    "空替换串 = 删除命中段，与全部替换一致",
+    "替换后文本仍含查询词时该行会留在结果里，连续 Ctrl+Enter 会绕圈（与全部替换语义不同）",
+    "替换后的相机居中不随 Ctrl+Z 回退（与既有节点跳转一致）",
+    "实机 IME 与 Ctrl+Shift+Enter 在中文输入法下的归属未实机验证（与 M4 同一缺口）"
+  ]
+}

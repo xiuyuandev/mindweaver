@@ -1,0 +1,10 @@
+# cm-outline-via · 大纲里按 Shift+F2 改「概念 + 边」的短语（docs/30 §5.6.1）
+# 预置：MW_CONCEPT_OUTLINE=1（示例概念图进全屏大纲）+ MW_OUTLINE_SELECT=用户痛点。
+# 流程：Shift+F2 立起短语框（预填现有短语）→ 打两个字 → 退格删一个 → 停在框里。
+wait 3
+key shift+F2
+wait 3
+text 场景
+wait 2
+key Backspace
+wait 4

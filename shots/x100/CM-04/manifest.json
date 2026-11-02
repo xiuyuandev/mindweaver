@@ -1,0 +1,51 @@
+{
+  "package": "CM-04",
+  "title": "自由摆放与整理布局（五件事）",
+  "status": "已实现（本包范围；G-CM-1 门未开）",
+  "date": "2026-10-26",
+  "track": "M 轨 概念图（docs/31 §6；依赖 CM-02）",
+  "_note": "补记（2026-11-01，打磨轮 60 收口时补齐）：本包当时只留了 report.md，没有 manifest；这里按报告原文回填，不新增结论。",
+  "contract": {
+    "design": "docs/30 §5.5 §5.7 §5.9",
+    "execute": "docs/31 §6",
+    "code": [
+      "Command::MoveConcept { id, x, y }：允许 parent_id = None 的任意节点（含根），只在 kind == \"conceptMap\" 的文档里成立",
+      "概念图拖拽一律按「落 pos」处理，不再走 plan_moves 挂成子节点",
+      "mw_core::concept_layout::arrange(sizes, edges, current)：最长路径分层 + 父重心排序 + 层内等距 + 24 轮松弛；一条 Batch 一次撤销",
+      "重叠闪示：落点与任何概念相交时给被拖概念画 1px content::warn 描边，0.25s 后随帧老化消失"
+    ]
+  },
+  "fixes": [
+    "概念图主概念（根）拖不动 → MoveConcept 允许根",
+    "概念图里拖到节点上会改树结构 → 概念图拖拽不走 MoveNode",
+    "没有「整理布局」入口 → 空白右键「整理布局」"
+  ],
+  "tests": {
+    "total_at_the_time": "796 passed / 0 failed（concept_layout 5 条 + move_concept_only_works_in_concept_maps 1 条；fmt 干净、mw-shell clippy 新增 0）"
+  },
+  "gate": {
+    "machine": "当时 34 组比较 ×2 遍 --tol 0 全 0 差异（target/x100/stage-b-gate.log，2026-10-26 02:13:54；摘要 shots/x100/CM-04/gate-summary.txt）",
+    "human": "G-CM-1 未开"
+  },
+  "scenes": [
+    {
+      "name": "cm-arrange",
+      "dir": "shots/golden/cm-arrange",
+      "env": "MW_CONCEPT_DEMO=1 MW_CONCEPT_ARRANGE=1",
+      "note": "启动即整理，取景按新包围盒；1920×1200 @1.0"
+    },
+    {
+      "name": "cm-arrange-click",
+      "dir": "shots/x100/CM-04",
+      "inputs": "shots/x100/CM-04/inputs/cm-arrange-click.txt",
+      "note": "走真实右键菜单点「整理布局」；与 cm-arrange 基线逐字节相同（56BC40170F3DE479…），trace menu_open anchor=700,620 entries=12 → concept-arrange n=6 moved=6"
+    }
+  ],
+  "known_gaps": [
+    "拖拽落 pos 没有脚本化场景（只有 MoveConcept 单测与人工试用），留 CM-08",
+    "重叠提示没有 golden（0.25s 瞬时描边与帧率耦合）",
+    "整理结果不做过渡动画",
+    "整理只处理整图；选中子集的整理/对齐走既有「排列」子菜单",
+    "入口只有空白处右键；单概念右键菜单仍为思维导图口径，整套留给 CM-05"
+  ]
+}

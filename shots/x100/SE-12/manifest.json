@@ -1,0 +1,74 @@
+{
+  "id": "SE-12",
+  "title": "起始页内容模板（空白 / 读书笔记 / 会议记录 / 产品规划）",
+  "date": "2026-11-01",
+  "round": 61,
+  "status": "已实现（单测与 clippy 绿；11 张 start* 基线已重拍并双跑零差异；整门待复跑）",
+  "scope": [
+    "TEMPLATES 6 → 10：结构模板 1–6 不变，新增内容模板 7–10（空白 / 读书笔记 / 会议记录 / 产品规划）",
+    "内容模板全走 Template::session()（Document::new + Command::SetLayout + SetText / InsertSubtree），不绕过 Command",
+    "空白模板是真正的空文档：根文字为空、无子级、mindmap",
+    "模板区分两组（组标题「结构模板」「内容模板」，非控件），仍用同一张网格：同尺寸、同间距、断点仍是 3/2/1 列",
+    "数字键直选扩成 1–9 + 0（0 = 第 10 张）；纯函数 start::template_hotkey(idx)",
+    "回填 docs/02 §1 开始页行、docs/30 §3.1/§3.2/§3.5/§3.8"
+  ],
+  "files": [
+    "crates/mw-shell/src/start.rs",
+    "crates/mw-shell/src/app_methods_1.rs",
+    "docs/02-功能需求清单.md",
+    "docs/30-外壳体验与概念图设计规范.md"
+  ],
+  "scenes": [
+    {
+      "name": "start（及 10 张 start* 同族）",
+      "status": "已重拍 + 双跑 --tol 0 零差异",
+      "note": "模板区 2 行 → 4 行是整页有意重排；曾试 start-templates-content（1440×1120），离屏 harness 无视 MW_WINDOW_SIZE（固定 1620×1080/1920×1200 物理画布），与 start 逐字节相同（sha256 017FFA810F99…），已删。",
+      "pins": "「结构模板 / 内容模板」两行组标题、10 张卡的位置、第 10 张右上的「0」键帽"
+    }
+  ],
+  "affected_baselines": [
+    "start",
+    "start-narrow",
+    "start-scroll",
+    "start-tab-focus",
+    "start-empty",
+    "start-skeleton",
+    "start-concept",
+    "start-ink",
+    "start-mist",
+    "start-sand",
+    "start-missing"
+  ],
+  "tests": {
+    "crate": "mw-shell",
+    "before": 631,
+    "after": 635,
+    "ignored": 1,
+    "new": [
+      "start::tests::templates_cover_six_structures_and_four_content_starters",
+      "start::tests::blank_content_template_is_a_really_empty_mindmap",
+      "start::tests::content_templates_build_their_documented_starting_tree",
+      "start::tests::template_number_keys_cover_1_to_9_and_zero_for_the_tenth"
+    ],
+    "existing": [
+      "start::tests::every_template_builds_a_valid_document_with_its_layout",
+      "start::tests::cards_stay_between_180_and_the_page_width",
+      "start::tests::layout_is_the_single_source_of_breakpoints",
+      "start::tests::concept_template_builds_a_map_of_floating_concepts"
+    ]
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1",
+    "result": "11 张 start* 已重拍并在同一构建上二次 --tol 0 全过；整门与 M31/M7b/C21 一起复跑",
+    "human_gate": "未开"
+  },
+  "deliverables": [
+    "report.md",
+    "manifest.json"
+  ],
+  "known_gaps": [
+    "实机 125%/150% 下第 10 张「0」键帽与组标题的字形未人工核对",
+    "空白模板的空根主题在画布上的视觉（空文字框）未机器验证",
+    "内容模板只是标题层级，不含备注/标签/卡片"
+  ]
+}

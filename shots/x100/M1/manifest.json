@@ -1,0 +1,84 @@
+{
+  "package": "M1/M2",
+  "title": "新建节点后的编辑态（Tab 建子 / Enter 建同级 / Esc 收回）",
+  "status": "已实现（四张基线进门；实机手感与实机 IME 仍 未验证）",
+  "date": "2026-10-29",
+  "track": "打磨轮（docs/x100/polish-ledger.md M1、M2）",
+  "contract": {
+    "design": "docs/07 §3.2 事件行为表：`Enter` 提交编辑 → 触发语义（新建同级）；`Tab` 提交编辑 → 新建子节点；组合期两者归 IME（R2）",
+    "execute": "docs/x100/polish-ledger.md §3 第 2 条",
+    "code": [
+      "crates/mw-shell/src/canvas.rs::commit_follow_up（新纯函数 + 单测）",
+      "crates/mw-shell/src/canvas.rs::Editor.fresh",
+      "crates/mw-shell/src/canvas/canvas_methods_2.rs（编辑态吃 Tab、提交后再建节点、editor_open/editor_close 轨迹）",
+      "crates/mw-shell/src/canvas/canvas_methods_3.rs::cancel_edit（fresh 节点用 DeleteNodes 收回）"
+    ]
+  },
+  "deliverables": {
+    "report": "shots/x100/M1/report.md",
+    "manifest": "shots/x100/M1/manifest.json"
+  },
+  "scenes": [
+    {
+      "name": "mm-new-child",
+      "dir": "shots/golden/mm-new-child",
+      "sha256_12": "33CF6DC855B3",
+      "input": "shots/golden/inputs/mm-new-child.txt",
+      "key": "Tab",
+      "evidence": "新节点 (990,641) 75×42；编辑环 (986,637)-(1069,687) 416 px 强调色 (47,111,94)"
+    },
+    {
+      "name": "mm-new-chain",
+      "dir": "shots/golden/mm-new-chain",
+      "sha256_12": "68F3BE31D043",
+      "input": "shots/golden/inputs/mm-new-chain.txt",
+      "key": "Tab ×2（中间打字）",
+      "evidence": "甲 (987,641) 76×42 已提交；乙盒子 (1157,646) 76×33，环 (1152,641)-(1237,682) 388 px，盒内墨色 84 px"
+    },
+    {
+      "name": "mm-new-cancel",
+      "dir": "shots/golden/mm-new-cancel",
+      "sha256_12": "F1D4DAA8C141",
+      "input": "shots/golden/inputs/mm-new-cancel.txt",
+      "key": "Tab → 打字 → Esc",
+      "evidence": "(985,635)-(1075,690) 内 0 px 节点底/环；唯一强调环是根选中环 (827,522)-(924,581) 253 px"
+    },
+    {
+      "name": "mm-enter-sibling",
+      "dir": "shots/golden/mm-enter-sibling",
+      "sha256_12": "F4F9B851E1D0",
+      "input": "shots/golden/inputs/mm-enter-sibling.txt",
+      "key": "Enter",
+      "evidence": "新同级 (425,615) 76×33（原节点 y=587 之下），环 (421,610)-(505,651) 384 px"
+    }
+  ],
+  "trace": {
+    "files": [
+      "shots/x100/M1/trace-mm-new-child.txt",
+      "shots/x100/M1/trace-mm-new-chain.txt",
+      "shots/x100/M1/trace-mm-new-cancel.txt",
+      "shots/x100/M1/trace-mm-enter-sibling.txt"
+    ],
+    "editor_open": "`editor_open id=<id> z=<zoom> node=(x,y,w,h) edit=(x,y,w,h) in_view=<0|1>`（编辑器每帧占的矩形与节点盒对齐、是否整个在视口内）",
+    "editor_close": "退出编辑时补一行，避免轨迹停在最后一条 editor_open 上",
+    "reveal": "既有 `reveal idx=… cam=… z=… node=… vp=…`（七层 Tab 链里七次 in_view=1、屏幕 x 停在 1490）"
+  },
+  "tests": {
+    "new": ["edit_time_enter_and_tab_build_the_next_node_on_a_mind_map_only"],
+    "total": "913 passed / 0 failed / 1 ignored"
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1",
+    "scenes": 87,
+    "comparisons": 174,
+    "result": "PASS",
+    "cm_gate": "44 场 / 88 次比较 PASS（概念图 Enter 语义未变）"
+  },
+  "known_gaps": [
+    "连按 Tab 的实机手感（新编辑器抢焦点那一帧、系统键重复的节奏）无证据",
+    "实机微软拼音组合期 Tab/Enter 归 IME 只有离屏证据（全员共用缺口）",
+    "Esc 收回节点在撤销栈里是两步（建一条、收回一条），记为 M8 的输入",
+    "只拍 ppp 1.0，150/200% 未拍",
+    "in_view 只看编辑器矩形，IME 候选窗位置离屏拍不到"
+  ]
+}

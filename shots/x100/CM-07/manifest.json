@@ -1,0 +1,63 @@
+{
+  "package": "CM-07",
+  "status": "已实现",
+  "date": "2026-10-26",
+  "design_contract": "docs/30 §5.6（大纲按生成树展开）、§5.8（导出与往返）",
+  "execution_contract": "docs/31 §6（CM-07）",
+  "batch": "M 轨 M2（CM-06..08）",
+  "gate": "G-CM-2（未开）",
+  "scenes": ["cm-outline"],
+  "themes": ["snow"],
+  "dpi": [1.0],
+  "scripts": [],
+  "evidence": [
+    "shots/x100/CM-07/report.md",
+    "shots/x100/CM-07/manifest.json",
+    "shots/golden/cm-outline/shell-ppp1.00.png",
+    "target/x100/stage-b-gate.log"
+  ],
+  "old_hashes": {
+    "shots/golden/cm-default/shell-ppp1.00.png": "5b0d9dc4da7c680e24173b29ebbaa6afba482b156d4e8b3862d47958a8874cb0",
+    "shots/golden/cm-card-link/shell-ppp1.00.png": "b7d11182b516c57734e85c77d67f1d820b6abe8b30e179200482e624908627a4"
+  },
+  "new_hashes": {
+    "shots/golden/cm-outline/shell-ppp1.00.png": "16ced6ab807687ec71e5251a98a89f7ede299717f18fa1a207a3da2cef0365c1"
+  },
+  "tests": { "passed": 813, "failed": 0 },
+  "golden": {
+    "runs": 2,
+    "diffs": 0,
+    "tol": 0,
+    "note": "38 组比较 ×2 遍全 0 差异；新增 cm-outline 双跑一致；树文档的 outline* / library / 其余 36 组逐字节未变（概念图分支在 is_concept_map() 之后才分叉）"
+  },
+  "engineering": {
+    "fmt": "clean",
+    "clippy_mw_shell_new": 0,
+    "clippy_mw_shell_historical": "export_pdf.rs 3 + panels/outline.rs:3084 1（均为本包之前既有）",
+    "release_build": "pass",
+    "stage_gate": "scripts/x100-stage-b-gate.ps1 PASS（0 差异，38 comparisons ×2）"
+  },
+  "changes": {
+    "code": [
+      "crates/mw-core/src/concept_tree.rs（新增：concept_rows + root_order + 5 tests）",
+      "crates/mw-core/src/lib.rs（重导出 concept_rows / ConceptRow）",
+      "crates/mw-io/src/export.rs（concept_label / concept_children / CONCEPT_NOTE；markdown / outline / opml / freemind 四条走生成树 + 1 test）",
+      "crates/mw-shell/src/panels/outline.rs（Row.via、concept_map 字段、rebuild_concept、rebuild 分叉、NewConcept、树语义按键与拖拽不接、行首短语前缀 + 1 test）",
+      "crates/mw-shell/src/app_methods_2.rs（NewConcept 落地、OutlineHeader.concept、页头标注、右上计数、页脚「个概念」）",
+      "crates/mw-shell/src/canvas/canvas_methods_1.rs（insert_floating_world 抽取 + add_concept_below）",
+      "crates/mw-shell/src/app_methods_1.rs（MW_CONCEPT_OUTLINE 演示入口）",
+      "crates/mw-shell/src/export_svg.rs（概念图零新增导出路径的守卫测试）"
+    ],
+    "docs": [
+      "scripts/x100-stage-b-gate.ps1 增 cm-outline（37→38 组）",
+      "shots/x100/CM-07/report.md + manifest.json"
+    ],
+    "wiring": "大纲与四种文本导出共用 `mw_core::concept_tree::concept_rows` 一张投影；PNG/SVG/PDF 未改一行（仍吃 Scene）"
+  },
+  "known_gaps": [
+    "大纲不能建/删连线（Tab 与 Shift+Tab 在概念图下不接）：§5.9 要求先有短语编辑态，本包未做「行尾就地输短语」",
+    "孤立概念在文本导出里是并列的多个顶层（不为它编造父级）",
+    "Node.collapsed 在概念图大纲里可折，但画布没有折叠点，入口只有一处",
+    "长标题 + 短语前缀会提前省略，前缀本身不做省略"
+  ]
+}

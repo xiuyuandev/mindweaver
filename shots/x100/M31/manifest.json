@@ -1,0 +1,57 @@
+{
+  "id": "M31",
+  "title": "「设为根主题」（把选中的主题提为中心主题）",
+  "date": "2026-11-01",
+  "round": 64,
+  "status": "已实现（机器门待复跑；实机键鼠未核）",
+  "scope": [
+    "新命令 Command::SetRoot { id }：新根摘出原父级、旧根整棵树追加到新根孩子末尾、root_id 换新，ChangeSet::with_root 记前后根（一次撤销）",
+    "自由主题提根时交出 pos（思维导图里只有自由主题能带坐标）",
+    "概念图 / 已是根 / 未知 id 三种拒绝路径",
+    "Canvas::set_root_primary() / set_root_for(id)：落命令、轨迹 set-root id=… ok=…、成功后 fit 一次",
+    "入口：画布节点右键菜单与大纲行菜单（单选、非根行）",
+    "新基线 mm-set-root 进 stage-b 门"
+  ],
+  "files": [
+    "crates/mw-core/src/command.rs",
+    "crates/mw-core/src/document.rs",
+    "crates/mw-shell/src/canvas/canvas_methods_1.rs",
+    "crates/mw-shell/src/panels/context.rs",
+    "crates/mw-shell/src/panels/outline.rs",
+    "crates/mw-shell/src/app_methods_2.rs",
+    "scripts/x100-stage-b-gate.ps1",
+    "shots/golden/inputs/mm-set-root.txt",
+    "shots/golden/mm-set-root/shell-ppp1.00.png"
+  ],
+  "scenes": [
+    {
+      "name": "mm-set-root",
+      "ppp": "1.0",
+      "warmup": 20,
+      "env": "MW_NOTES=none; MW_GOLDEN_INPUT=shots/golden/inputs/mm-set-root.txt",
+      "sha256_12": "B95E11237D8F",
+      "trace": "menu_open anchor=1167,503 entries=21 → menu_nav key=down×11 label=设为根主题 → set-root id=… ok=1"
+    }
+  ],
+  "tests": {
+    "new": [
+      "document::tests::set_root_rewires_the_tree_and_undoes_in_one_step",
+      "document::tests::set_root_from_grandchild_keeps_the_ancestor_chain_under_the_old_root",
+      "document::tests::set_root_clears_the_free_position_of_the_promoted_topic",
+      "document::tests::set_root_rejects_concept_maps_the_root_itself_and_missing_ids"
+    ],
+    "note": "四条都在 mw-core::document::tests；`cargo test -p mw-core --lib set_root` 4/4 通过"
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1",
+    "result": "待整门复跑（本轮与 SE-12 / M7b / C21 一起进门）",
+    "human_gate": "未开（X20 人工判词不代判）"
+  },
+  "known_gaps": [
+    "没有快捷键（菜单 + 行菜单已可发现）",
+    "不弹确认框（可一步撤销）",
+    "旧根在新根孩子里的插入位置固定为末尾",
+    "概念图不提供入口",
+    "实机键鼠节奏与 IME 未核"
+  ]
+}

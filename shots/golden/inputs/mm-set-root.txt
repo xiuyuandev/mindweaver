@@ -1,0 +1,33 @@
+# M31（打磨轮 64）：右键「中文排版」→ 菜单里选「设为根主题」（Home + 11×↓，第 12 行）。
+# 落地后旧根「织思」整棵树挂到它下面，取景按新根重新 fit。
+wait 20
+rightclick 1167 503
+wait 4
+key Home
+wait 1
+key ArrowDown
+wait 1
+key ArrowDown
+wait 1
+key ArrowDown
+wait 1
+key ArrowDown
+wait 1
+key ArrowDown
+wait 1
+key ArrowDown
+wait 1
+key ArrowDown
+wait 1
+key ArrowDown
+wait 1
+key ArrowDown
+wait 1
+key ArrowDown
+wait 1
+key ArrowDown
+wait 1
+key Enter
+wait 8
+move 1500 1100
+wait 4

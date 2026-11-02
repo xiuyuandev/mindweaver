@@ -1,0 +1,98 @@
+{
+  "package": "CM-09",
+  "status": "已实现",
+  "date": "2026-10-26",
+  "design_contract": "docs/30 §5.3.1 / §5.4.1 / §5.6.1 / §5.9 / §5.10（CM-09 落地口径）",
+  "execution_contract": "docs/31 §6（CM-09）、§8（golden 协议）、§11（本轮变更记录）",
+  "batch": "M 轨 M3（概念图收口，补 G-CM-2 的 5 条缺口）",
+  "gate": "G-CM-2 复判",
+  "gate_state": "机器门 PASS（13 场景 ×2 遍 --tol 0）；人工复判未开（G-CM-2 待用户判词）",
+  "gaps": {
+    "①大纲改结构": "concept_tree via_id/branch + outline ViaEdit/PendingVia + Shift+Delete/Shift+F2",
+    "②概念省略 tooltip": "SceneNode.truncated + Canvas::paint_concept_tip（400ms/下方 8px/320 宽）",
+    "③卡片圆点": "SceneNode.has_card + mw-render CONCEPT_CARD_DOT_R=5px + 圆点 hover 提示",
+    "④跨分支取色": "scene::concept_rel_color（来源分支色，显式色优先，不写回文档）",
+    "⑤交叉微弧": "scene::bow_crossings/segments_cross/bowed_between（≤6px）"
+  },
+  "scenes": [
+    "cm-arrange",
+    "cm-card-link",
+    "cm-card-link-back",
+    "cm-crosslink",
+    "cm-default",
+    "cm-label-ime",
+    "cm-link-create",
+    "cm-narrow",
+    "cm-node-edit",
+    "cm-outline",
+    "cm-outline-link",
+    "cm-outline-unlink",
+    "cm-outline-via"
+  ],
+  "themes": [
+    "snow"
+  ],
+  "dpi": [
+    1,
+    1.5
+  ],
+  "scripts": [
+    "scripts/x100-stage-cm-gate.ps1"
+  ],
+  "gate_script_flag": "-Update 为本包新增（分场景重拍基线，第二遍仍逐像素复核）",
+  "evidence": [
+    "shots/x100/CM-09/report.md",
+    "shots/x100/CM-09/manifest.json",
+    "target/x100/cm09-gate8.log",
+    "target/x100/cm09-update2.log"
+  ],
+  "old_hashes": {
+    "shots/golden/cm-default/shell-ppp1.00.png": "5b0d9dc4da7c680e24173b29ebbaa6afba482b156d4e8b3862d47958a8874cb0",
+    "shots/golden/cm-narrow/shell-ppp1.50.png": "fc7f31f1a4c49138e2d429a919adfa1c067d3db4f4015b0b9e33b0d4646d872c",
+    "shots/golden/cm-arrange/shell-ppp1.00.png": "56bc40170f3de479e820324669b63c67c8f9b1193b40f1ae606ed9272ac2ab92",
+    "shots/golden/cm-crosslink/shell-ppp1.00.png": "f2e948d1b9ac0eca26a113e18e8aa0214c617652ed8df799a18f0ead0e5b7966",
+    "shots/golden/cm-card-link/shell-ppp1.00.png": "b7d11182b516c57734e85c77d67f1d820b6abe8b30e179200482e624908627a4",
+    "shots/golden/cm-card-link-back/shell-ppp1.00.png": "1ee059f441784f90fafc291b7c9112bb482364f6e354186144f20ff1896b6e91",
+    "shots/golden/cm-outline/shell-ppp1.00.png": "16ced6ab807687ec71e5251a98a89f7ede299717f18fa1a207a3da2cef0365c1",
+    "shots/golden/cm-node-edit/shell-ppp1.00.png": "2c390c94d6dbd179a1dec4157b36f6d73d90bf5f0677d9904da217bd54bc270d",
+    "shots/golden/cm-link-create/shell-ppp1.00.png": "98b6729cf088c19984f6c75a8bfe1af53ffb4ed811503c886ef73560f89beaa0",
+    "shots/golden/cm-label-ime/shell-ppp1.00.png": "40cd7202a2646b3e09276b0bc5e2a5e3d6070a2a656db978e28251e3d54e83b8"
+  },
+  "new_hashes": {
+    "shots/golden/cm-arrange/shell-ppp1.00.png": "465244327f489214188f4379e48d1d69be04380e61ce0e65e227ac8ed94a41ba",
+    "shots/golden/cm-card-link/shell-ppp1.00.png": "b7d11182b516c57734e85c77d67f1d820b6abe8b30e179200482e624908627a4",
+    "shots/golden/cm-card-link-back/shell-ppp1.00.png": "dc9a25e9628e50bcc0b773d90c28802d48ac3e89ab2f9385ee7a3d38a1e3b269",
+    "shots/golden/cm-crosslink/shell-ppp1.00.png": "b34d9c261759cd73658da8c3789dcf20016a6823afeb054ddecb868a019b3d77",
+    "shots/golden/cm-default/shell-ppp1.00.png": "954f0f34e5ed3bc28076975828003235295e1720606e6436689e91e5ee1f5bf6",
+    "shots/golden/cm-label-ime/shell-ppp1.00.png": "9af8f52829d2dccc35c1a1ccf3c055b9e87d8a3bbbc4beb857fd6844e6933833",
+    "shots/golden/cm-link-create/shell-ppp1.00.png": "be4bd30feab778801738a7c7095a222d5419690fbfbeda8f9cfd23b9fda30f79",
+    "shots/golden/cm-narrow/shell-ppp1.50.png": "8f26590f41c23eee7fa656342b80ddeee50141de3c641a223dcb101d88f6917f",
+    "shots/golden/cm-node-edit/shell-ppp1.00.png": "824f72a41ab22ad56356b6fb67ee51bc0fce7435bc8a0abb7e0bd7018bc68e3a",
+    "shots/golden/cm-outline/shell-ppp1.00.png": "16ced6ab807687ec71e5251a98a89f7ede299717f18fa1a207a3da2cef0365c1",
+    "shots/golden/cm-outline-link/shell-ppp1.00.png": "0d09470dc5c9ab87d5bee8ca6f576cfc88f39aa21abac98d1f8a39e91639c53b",
+    "shots/golden/cm-outline-unlink/shell-ppp1.00.png": "8413de7a2e26e67961e4c96157e73eac64008986ba035bef60b21159cadf96d7",
+    "shots/golden/cm-outline-via/shell-ppp1.00.png": "98fe97a68cae557ffb5eaf6122b5643c2f244a0b8581bb176102e3e51ae6ff56"
+  },
+  "changed_baselines": [
+    "shots/golden/cm-arrange/shell-ppp1.00.png",
+    "shots/golden/cm-card-link-back/shell-ppp1.00.png",
+    "shots/golden/cm-crosslink/shell-ppp1.00.png",
+    "shots/golden/cm-default/shell-ppp1.00.png",
+    "shots/golden/cm-label-ime/shell-ppp1.00.png",
+    "shots/golden/cm-link-create/shell-ppp1.00.png",
+    "shots/golden/cm-narrow/shell-ppp1.50.png",
+    "shots/golden/cm-node-edit/shell-ppp1.00.png"
+  ],
+  "unchanged_baselines": [
+    "shots/golden/cm-card-link/shell-ppp1.00.png",
+    "shots/golden/cm-outline/shell-ppp1.00.png"
+  ],
+  "pending_golden_scenes": [],
+  "notes": [
+    "12 张 cm-* 逐张双跑 --tol 0 无差异（-Update 的第 2 遍即是复核）。",
+    "2026-10-26 夜口径统一后**全部 12 张重拍**：关系线宽 1.6→1.5、箭头 9×8.4→6×4（圆角保持令牌值 10，改的是文档）。",
+    "`shots/golden/canvas-ppp1.00.png`、`shots/golden/text-canvas-*.png` 由 mw-render/offscreen 与 text_render 的 golden 测试用 `MW_GOLDEN_UPDATE=1` 重写；文本基线漂 3/540000 像素、最大差 8，是线宽的 AA 差。",
+    "cm-card-link 零漂移是因为该场景停在卡片页，画布被盖住；圆点证据在 cm-card-link-back。",
+    "2026-10-26 夜重开 cm-outline-via（第 13 个场景）：短语框以前在离屏里被夹具抢焦点抢没，改成 `MW_OUTLINE_SELECT` 只武装一次 + `RowKey::Delete` 在 `via_edit.is_some()` 时不执行之后，能稳定停在带文字的短语框上。"
+  ]
+}

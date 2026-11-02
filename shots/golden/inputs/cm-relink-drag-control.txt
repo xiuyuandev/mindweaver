@@ -1,0 +1,7 @@
+wait 8
+click 756 429
+wait 4
+press 700 500
+move 900 380
+move 980 300
+wait 6

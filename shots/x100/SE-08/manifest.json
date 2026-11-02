@@ -1,0 +1,47 @@
+{
+  "package": "SE-08",
+  "title": "作用域与批量编辑（分组标题右侧「本节点 / 含子树」+ 500ms 合并撤销 + inspector-multiselect）",
+  "status": "已实现（机器门绿；键盘路径归 SE-09，实机手感未核，不记已验证）",
+  "date": "2026-10-30",
+  "track": "P 轨 检查器 v2（docs/31 §5；依赖 SE-06 样式组、SE-07 内容组）",
+  "contract": {
+    "design": "docs/30 §4.1（分组标题 28：chevron + 名称 + 右侧摘要）、§4.2「作用域」（分组标题右侧两段文字切换「本节点 / 含子树」11.5/16，选中 8% 底 + 强调色文字）、§4.3（500ms 内同类连续操作合并为一条撤销；改动即时反映，不设「应用」按钮）、§4.6（inspector-multiselect 场景）",
+    "execute": "docs/31 §5 第 SE-08 行",
+    "audit": "开工前对过代码：作用域存在但在样式页顶上单独一行「作用 / 当前节点 / 含子树」；没有 500ms 合并；没有多选场景旋钮——见 report.md §1"
+  },
+  "code": [
+    "crates/mw-shell/src/panels/inspector.rs（geo::SCOPE_W/SCOPE_H；group_header 增加 scope 参数与「点在开关上不算点行」；新增 group_scoped；style_gesture_key / same_gesture / STYLE_MERGE_MS）",
+    "crates/mw-shell/src/panels/inspector/inspector_methods_1.rs（style_body：删掉页顶「作用」行，颜色与「形状与文字」两组改走 group_scoped）",
+    "crates/mw-shell/src/canvas/canvas_methods_1.rs（apply_command_coalesced：走 Document::apply_coalesced 后重建 Scene）",
+    "crates/mw-shell/src/main.rs（Shell.style_gesture；IA::Apply 按手势键 + 500ms 决定普通 apply 还是合并）",
+    "crates/mw-shell/src/app_methods_1.rs（MW_SELECT_DEMO=multi：选中「纯 Rust 原生」+ 父级 + 第一个子级）"
+  ],
+  "scenes": [
+    "inspector-multiselect"
+  ],
+  "evidence": {
+    "baselines": "shots/golden/inspector-multiselect（1920×1080 @ ppp 1.5，--tol 0 双跑零差异）",
+    "drift": "样式页六张按预期重拍：inspector 59055 px / 2.848%、inspector-narrow 56253 / 2.713%、inspector-shape 43983 / 2.121%、inspector-ink 63195 / 3.048%、inspector-mist 62522 / 3.015%、inspector-sand 62521 / 3.015%；包围盒全在面板内（画布 0 px）；inspector-empty 与 inspector-content 零漂移",
+    "new_shot": "inspector-multiselect = MW_INSPECTOR=1 MW_SELECT_DEMO=multi：对象行「3 个节点」，样式组标题右侧「本节点 / 含子树」两段（本节点为选中态）",
+    "unit_tests": "the_scope_switch_lives_in_the_group_header / style_gestures_merge_only_on_the_same_ids_within_500ms",
+    "gates": "stage-b PASS（两遍各 116 比较 = 232，2026-10-30 06:29，`inspector-multiselect` 首次进门）；stage-cm PASS（两遍各 48 = 96，06:32，`cm-arrow-inspector` 零漂移）"
+  },
+  "tests": {
+    "new": [
+      "mw-shell::panels::inspector::tests::the_scope_switch_lives_in_the_group_header",
+      "mw-shell::panels::inspector::tests::style_gestures_merge_only_on_the_same_ids_within_500ms"
+    ],
+    "total": "全库 954 → 956 passed / 0 failed / 1 ignored（新增 2 条）；fmt 干净，clippy 指纹新增 0"
+  },
+  "knobs": {
+    "MW_SELECT_DEMO=multi": "选中「纯 Rust 原生」再补选父级与第一个子级，给 inspector-multiselect 当靶子"
+  },
+  "deferred": {
+    "作用域开关的键盘路径": "§4.4 归 SE-09（Tab 进开关、←→ 切换）",
+    "实机手感": "连点 stepper 的撤销次数、真手拖面板时开关是否跟随，均未人工核对"
+  },
+  "open": {
+    "两个「子树」开关并存": "检查器的临时作用域（改完即止）与节点上持久的 StyleOverride.apply_text_to_subtree（文字色继承）含义不同、措辞接近；要不要合并语义得先在 docs/30 定，本轮不动模型",
+    "合并窗口的粒度": "以「同一批 id + 500ms」为准，不区分具体属性；同一节点上先调字号再立刻调边宽会被并成一条撤销（实测窗口内几乎不会发生，但语义上确实如此）"
+  }
+}

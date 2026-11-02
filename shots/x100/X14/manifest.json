@@ -1,0 +1,137 @@
+{
+  "round": "X14",
+  "status": "verified",
+  "referenceVersion": "26.5.1107.202609082009",
+  "date": "2026-10-24",
+  "build": {
+    "commit": null,
+    "binary": "target/release/mw-shell.exe",
+    "binarySha256": "e211b9442534940cff82b9cafd7b4a5d19aafc016355cebcfc161ea3615f4312",
+    "binarySize": 23191040
+  },
+  "scenarios": [
+    {
+      "id": "titlebar-document-title-save-state-toolbar",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/archive/16-视觉重塑基准.md"
+      ],
+      "actual": [
+        "shots/x100/X14/actual/shell-ppp1.00.png",
+        "shots/x100/X14/actual/shell-ppp1.50.png",
+        "shots/x100/X14/actual/shell-ppp2.00.png",
+        "shots/x100/X14/actual/shell-ppp1.50-drift.png",
+        "shots/x100/X14/actual/shell-ppp2.00-final.png"
+      ],
+      "trace": [
+        "shots/x100/X14/traces/tests.txt",
+        "shots/x100/X14/traces/clippy.txt",
+        "shots/x100/X14/traces/fmt.txt",
+        "shots/x100/X14/traces/golden-measure.log",
+        "shots/x100/X14/traces/golden-rebaseline.log",
+        "shots/x100/X14/traces/golden-verify.log",
+        "shots/x100/X14/traces/hashes.txt"
+      ],
+      "result": "pass",
+      "notes": "48px bar with brand, five dynamic menu triggers, 28px tool buttons, right-aligned document title, four-state save chip and 46x48 window controls. The save chip survives one responsive step longer than the title; both hide only when space is exhausted."
+    },
+    {
+      "id": "app-menu-open-close",
+      "reference": [
+        "docs/24-X100升级路线.md"
+      ],
+      "actual": [
+        "shots/x100/X14/actual/titlebar-file-menu-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X14/traces/titlebar-file-menu.txt",
+        "shots/x100/X14/traces/golden-rebaseline.log"
+      ],
+      "result": "pass",
+      "notes": "Scripted click at (120, 27) opens the File menu: 30px rows, radius 6, 16px icons, right-aligned shortcuts, hairline separators and the shared menu frame."
+    },
+    {
+      "id": "golden-matrix-pointer-determinism",
+      "reference": [
+        "docs/26-X100完成定义与验收规范.md"
+      ],
+      "actual": [
+        "shots/x100/X14/actual/library-ppp1.50.png",
+        "shots/x100/X14/actual/library-ppp2.00.png",
+        "shots/x100/X14/actual/theme-ink.png",
+        "shots/x100/X14/actual/theme-mist.png",
+        "shots/x100/X14/actual/theme-sand.png",
+        "shots/x100/X14/actual/outline.png",
+        "shots/x100/X14/actual/outline-focus.png",
+        "shots/x100/X14/actual/outline-compact.png"
+      ],
+      "trace": [
+        "shots/x100/X14/traces/golden-measure.log",
+        "shots/x100/X14/traces/golden-rebaseline.log",
+        "shots/x100/X14/traces/golden-verify.log",
+        "shots/x100/X14/traces/hashes.txt"
+      ],
+      "result": "pass",
+      "notes": "Offscreen runs without an input script now clear the pointer every frame. This removed inherited hover from two old library baselines and made all 13 scenarios pass twice at tolerance 0 after rebaselining."
+    }
+  ],
+  "tests": [
+    "cargo test --workspace -- --test-threads=1",
+    "cargo test -p mw-shell title_cluster -- --test-threads=1",
+    "cargo fmt --all -- --check",
+    "cargo clippy -p mw-shell --all-targets",
+    "cargo golden --tol 0 (13 scenarios, twice)"
+  ],
+  "totals": { "passed": 706, "failed": 0 },
+  "clippy": { "total": 3, "new": 0, "known": "export_pdf.rs" },
+  "golden": {
+    "baseline": "shots/golden/shell-ppp1.50.png",
+    "sha256": "7828931bb99008f2812ea21fc3624e302f48dc9c73fe416c23c1907f4e6793c1",
+    "libraryBaseline": "shots/golden/library/shell-ppp1.50.png",
+    "librarySha256": "3844221cbebf0fe4447678f250ef50fdacb0013ae8c1811b463a9d0cb42177ea",
+    "outlineBaseline": "shots/golden/outline/shell-ppp1.50.png",
+    "outlineSha256": "4242cc7746f0a6640fe71a3810b9ecaef7a161a06c79b32cbeaa407eb73fb21b",
+    "size": "1620x1080",
+    "tolerance": 0,
+    "scenarios": 13,
+    "runs": 2,
+    "differences": 0,
+    "preUpdateDrift": {
+      "shell@1.0": "58178 px (3.325%)",
+      "shell@1.5": "114024 px (6.517%)",
+      "shell@2.0": "160797 px (9.191%)",
+      "library@1.0": "0 px",
+      "library@1.5": "3728 px (0.213%, stale hover)",
+      "library@2.0": "264 px (0.015%, stale hover)",
+      "theme-ink@1.5": "143254 px (8.188%)",
+      "theme-mist@1.5": "112861 px (6.451%)",
+      "theme-sand@1.5": "113062 px (6.462%)",
+      "outline@1.5": "119978 px (6.857%)",
+      "outline-focus@1.5": "105833 px (6.049%)",
+      "card-slash@1.5": "0 px",
+      "outline-compact@1.5": "118689 px (6.784%)"
+    },
+    "rebaselined": [
+      "shell@1.0",
+      "shell@1.5",
+      "shell@2.0",
+      "library@1.0",
+      "library@1.5",
+      "library@2.0",
+      "theme-ink@1.5",
+      "theme-mist@1.5",
+      "theme-sand@1.5",
+      "outline@1.5",
+      "outline-focus@1.5",
+      "card-slash@1.5",
+      "outline-compact@1.5"
+    ]
+  },
+  "knownGaps": [
+    "The shared menu engine (submenus, screen-edge flipping, shortcut column alignment, keyboard navigation) is deferred to X16; menu open/close is guarded by a scripted capture and click tests, not a golden baseline.",
+    "The dialog system is deferred to X17; About/Document Info still use existing overlays.",
+    "Narrow-window title/save-chip priority is covered by a unit test, but the golden matrix has no 640x460 titlebar baseline.",
+    "The toolbar has no overflow menu; all seven tool buttons remain visible at the minimum window width of 640px.",
+    "Offscreen goldens now intentionally exclude hover states; hover remains covered by MW_GOLDEN_INPUT scripts and component tests."
+  ]
+}

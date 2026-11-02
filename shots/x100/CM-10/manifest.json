@@ -1,0 +1,75 @@
+{
+  "package": "CM-10",
+  "title": "对标 CmapTools 的差距清单（八条）",
+  "status": "已实现（①–⑧ 全部已实现；§3 自定打磨项 10 项全部收口，证据齐备，机器门绿；人工门未复判，不记已验证）",
+  "date": "2026-10-27",
+  "track": "M 轨 概念图打磨（用户 2026-10-27 新目标；docs/30 §12）",
+  "_note": "补记（2026-10-29，打磨轮 17）：本包当时只留了 report.md 与 review.md，没有 manifest；这里按报告原文回填，不新增结论。逐项证据与「判断 → 证据 → 未做」骨架在 report.md §2（40 个小节）。",
+  "contract": {
+    "design": "docs/30 §12（差距清单）",
+    "execute": "docs/31 §6",
+    "code": [
+      "commit_link 落空分支 → 原子命令 AddLinkedConcept（概念 + 边一条记录）",
+      "commit_relink 落空分支 → 原子命令 RetargetLinkToNewConcept",
+      "Command::SetRelationshipHead + Relationship.head（四档 Off/Forward/Backward/Both，默认 Forward = 原行为）",
+      "LayoutSettings.focus_question + Command::SetFocusQuestion（画布带 / 检查器 / 三处导出 / 大纲页带）",
+      "大纲改结构：Tab/Shift+Delete/Shift+F2（Batch[AddFloatingTopic, AddRelationship] 等）"
+    ]
+  },
+  "scenes": [
+    "cm-link-blank",
+    "cm-link-create",
+    "cm-link-drag",
+    "cm-link-drag-pointer",
+    "cm-label-ime",
+    "cm-rel-adjacent",
+    "cm-rel-curve",
+    "cm-rel-hover",
+    "cm-relink-blank",
+    "cm-relink-drag",
+    "cm-arrange",
+    "cm-crosslink",
+    "cm-narrow",
+    "cm-default",
+    "cm-blank-menu",
+    "cm-multi-menu",
+    "cm-card-link",
+    "cm-card-link-back",
+    "cm-focus-question",
+    "cm-focus-question-edit",
+    "cm-focus-question-hover",
+    "cm-focus-long",
+    "cm-outline",
+    "cm-outline-focus",
+    "cm-outline-focus-edit",
+    "cm-outline-link",
+    "cm-outline-unlink",
+    "cm-outline-via",
+    "cm-outline-label-many",
+    "cm-arrow-off",
+    "cm-arrow-backward",
+    "cm-arrow-both",
+    "cm-arrow-menu",
+    "cm-arrow-inspector",
+    "cm-relink-select-only"
+  ],
+  "evidence": {
+    "detail": "shots/x100/CM-10/report.md §2（40 个小节，每节「判断 → 证据 → 未做」）",
+    "tests_named": [
+      "mw-core::add_linked_concept_undoes_in_one_step（撤销后节点 2→1、边 1→0；重做一步回来；pos 原样存下）"
+    ],
+    "highlight": "cm-focus-question-hover 与静态版差 8636 px，边界精确等于带子矩形 832..1087 × 58..91"
+  },
+  "gate": {
+    "machine": "scripts/x100-stage-cm-gate.ps1（场景数随包增长，当前场次与比较数以 docs/STATUS.md §1 为准）",
+    "human": "G-CM-2 未通过（未复判）"
+  },
+  "behaviour_change": "概念图拖到空白处会就地长出概念并连线（一步撤销）；关系线可四档箭头；概念图可写聚焦问题（画布 / 检查器 / 三处导出 / 大纲）；大纲可改结构",
+  "known_gaps": [
+    "鼠标多帧微动没有脚本证据（cm-link-drag-pointer 只走一次按下→拖动→松开）",
+    "聚焦问题带子不封顶行数：问题极长时画布顶部那条带子会压掉一大块画面（取舍）",
+    "大纲页聚焦问题编辑的光标闪烁相位进了基线（cm-outline-focus-edit x 799–800 两列），换 --warmup 会漂",
+    "箭头菜单「点这一行」只有键盘证据（cm-arrow-menu-key），没有鼠标点击基线",
+    "实机微软拼音仍未人工核对（与全项目同一笔账）"
+  ]
+}

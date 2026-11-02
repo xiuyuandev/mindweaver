@@ -1,0 +1,69 @@
+{
+  "package": "CM-13",
+  "title": "关系线箭头改为屏幕恒定尺寸（低缩放下不再消失）",
+  "status": "已实现（机器证据齐；实机低缩放观感未核）",
+  "date": "2026-10-30",
+  "track": "打磨轮（docs/x100/polish-ledger.md 第 33 轮；docs/30 §5.4 关系线）",
+  "_note": "2026-10-31 打磨轮 36 按 report.md 回填；不新增结论。sha256 为回填当日基线（第 34 轮 C14 又改了平行命题几何，但单命题场景不受影响）。",
+  "contract": {
+    "design": "箭头四档语义是『命题朝哪边』的唯一线索；树连线箭头已屏幕恒定 7 css px，关系线必须同口径",
+    "code": [
+      "crates/mw-render/src/instances.rs::screen_arrow（以尖端为锚等比放大，k = max(1, css_to_world(7)/世界长度)）",
+      "crates/mw-render/src/instances.rs::ARROW_CSS_LEN = 7.0",
+      "crates/mw-render/src/instances.rs::relationship_bounds（用放大后的三角形算包围盒，防误裁）"
+    ]
+  },
+  "deliverables": {
+    "report": "shots/x100/CM-13/report.md",
+    "manifest": "shots/x100/CM-13/manifest.json"
+  },
+  "scenes": [
+    {
+      "name": "cm-default",
+      "dir": "shots/golden/cm-default",
+      "sha256_12": "5D8CB1E2F423",
+      "env": "MW_CONCEPT_DEMO=1; MW_WINDOW_SIZE=1280x800",
+      "warmup": 6,
+      "ppp": "1.0",
+      "evidence": "100% 档 k≈1.17，箭头变大 17%（每箭头约 6–14 px）"
+    },
+    {
+      "name": "cm-link-create",
+      "dir": "shots/golden/cm-link-create",
+      "sha256_12": "A811DD220000",
+      "env": "MW_CONCEPT_DEMO=1; MW_CONCEPT_LINK='用户痛点|风险与依赖'; MW_WINDOW_SIZE=1280x800",
+      "warmup": 10,
+      "ppp": "1.0",
+      "evidence": "新建命题线的端点箭头，随线身一起按同一函数放大"
+    },
+    {
+      "name": "cm-arrow-menu",
+      "dir": "shots/golden/cm-arrow-menu",
+      "sha256_12": "6647F8B8A673",
+      "env": "MW_CONCEPT_ARROW=backward; MW_CONCEPT_ARROW_MENU=1; MW_WINDOW_SIZE=1280x800",
+      "warmup": 8,
+      "ppp": "1.0",
+      "evidence": "反向箭头的尖端锚定不变，只放大三角形"
+    }
+  ],
+  "tests": {
+    "new": [],
+    "note": "报告未列新增单测；screen_arrow 是纯函数（世界三角形 + 相机 → 世界三角形），验收靠两道 golden 与包围盒一致性"
+  },
+  "gate": {
+    "script": "scripts/x100-stage-cm-gate.ps1 + scripts/x100-stage-b-gate.ps1",
+    "stage_cm_scenes": 49,
+    "stage_cm_comparisons": 98,
+    "stage_b_scenes": 118,
+    "stage_b_comparisons": 236,
+    "result": "PASS（当轮两道门绿；具体日志已被后续轮次覆盖，以 docs/STATUS.md §1 为准）",
+    "drift": "只在箭头像素：100% k≈1.17、50% k≈2.33、30% k≈3.89；31% 缩放下箭头从 1.8 css px 回到可辨"
+  },
+  "behaviour_change": "关系线箭头在屏幕上的长度不再随缩放缩小（只放大不缩小，高缩放下保持世界尺寸）；Scene 数据不变，导出路径同样受益",
+  "known_gaps": [
+    "未改箭头形态（CmapTools 式细长箭头会动 Scene 几何，本轮不碰）",
+    "起点圆点 REL_START_R 本来就屏幕恒定，未受影响",
+    "极端低缩放（<20%）箭头会明显比线粗、『头重脚轻』；取舍是宁可偏大也不让语义消失",
+    "实机 GPU 下箭头抗锯齿与低缩放观感未单独量"
+  ]
+}

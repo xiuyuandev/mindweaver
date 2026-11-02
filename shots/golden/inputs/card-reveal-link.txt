@@ -1,0 +1,7 @@
+# CER-16：光标停进 `[织思](https://example.com/doc)` 这个链接片段 → 括号与 URL 露出。
+wait 3
+click 700 244
+wait 1
+key Home
+key ArrowRight
+key ArrowRight

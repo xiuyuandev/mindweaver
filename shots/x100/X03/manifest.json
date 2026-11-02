@@ -1,0 +1,17 @@
+﻿{
+    "round": "X03",
+    "status": "implemented",
+    "referenceVersion": "26.5.1107.202609082009",
+    "date": "2026-10-22",
+    "build": { "commit": null, "binarySha256": null },
+    "scenarios": [{
+        "id": "reference-corpus-manifest",
+        "reference": ["shots/reference/xmind-26.5.1107/manifest.json", "shots/reference/xmind-26.5.1107/corpus.json"],
+        "actual": ["shots/qa/xmind-nodebar.png", "shots/qa/xmind-context.png", "shots/qa/xmind-style.png", "shots/reference/xmind-26.5.1107/live/manifest.json", "shots/reference/xmind-26.5.1107/live/outline-default.png", "shots/reference/xmind-26.5.1107/live/presentation-default.png"],
+        "trace": [],
+        "result": "partial",
+        "notes": "Eleven live isolated captures now cover home, canvas, menu, outline edit/multi-select, navigation search, export and presentation. Drag-hold and advanced media states remain."
+    }],
+  "tests": ["PowerShell JSON parse of reference manifest and corpus index"],
+    "knownGaps": ["Mouse-down drag insertion preview, dark appearance and matched DPI matrix remain uncaptured."]
+}

@@ -1,0 +1,12 @@
+# 筛选胶囊键盘路径：Ctrl+Shift+F 开筛选 → ↓ 进胶囊 → → 换格 → Space 切换 → ↑ 回搜索框
+wait 3
+key ctrl+shift+F
+wait 4
+key Down
+wait 2
+key Right
+wait 2
+key Space
+wait 2
+key Up
+wait 2

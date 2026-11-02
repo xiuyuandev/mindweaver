@@ -1,0 +1,28 @@
+{
+  "package": "M12f",
+  "title": "20k 端到端的最后一毫秒（打磨轮 31 · 场景账本共享持有）",
+  "status": "进行中",
+  "date": "2026-10-30",
+  "track": "打磨轮 · 账本 §3 第 7 条「20k 增量布局」的最后一格",
+  "contract": {
+    "design": "docs/07 §5 性能预算（20k 打字 ≤ 16ms，P7 口径）",
+    "execute": "docs/x100/polish-ledger.md §3 第 7 条；前作 shots/x100/M12b…M12e",
+    "audit": "M12d §6 已定位端到端差额：不在 [scene] 内，而在 build_scene_cached 每帧末尾的 memo_nodes = nodes.clone()（两万个 SceneNode，约 1ms）"
+  },
+  "code": [
+    "crates/mw-core/src/scene.rs（Scene.nodes / ids / index 改共享持有；SceneMemo 与 Scene 共用同一份）",
+    "crates/mw-core/src/layout.rs（Layout.ids / index 随同改共享持有）"
+  ],
+  "scenes": [],
+  "evidence": {
+    "perf": "待测",
+    "gates": "待跑"
+  },
+  "tests": {
+    "new": [],
+    "total": "待跑"
+  },
+  "open": {
+    "实机键盘节拍": "无头 harness 只能量探针，真实打字节拍未核"
+  }
+}

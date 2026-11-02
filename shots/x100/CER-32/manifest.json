@@ -1,0 +1,66 @@
+{
+  "id": "CER-32",
+  "title": "联动与命令 / 撤销审计（B2-D 第二包）",
+  "date": "2026-11-02",
+  "batch": "B2-D",
+  "status": "进行中（审计第一遍完成；F8 已修并验证，F6 两案待拍板）",
+  "scope": [
+    "docs/29 §9 CER-32 六项：大纲→卡片、来源→画布、标签→筛选、反链、创建/归档/删除、Command 与 NoteStore 边界",
+    "联动矩阵 L1-L10 + 壳层全部 Document 写入点 + .zmind 卡片往返",
+    "只读审计：不改代码、不新增基线"
+  ],
+  "files": [
+    "shots/x100/CER-32/report.md",
+    "shots/x100/CER-32/manifest.json",
+    "crates/mw-shell/src/canvas/canvas_methods_1.rs",
+    "crates/mw-shell/src/app_methods_3.rs"
+  ],
+  "scenes": [],
+  "tests": {
+    "passed": 1270,
+    "failed": 0,
+    "note": "2026-11-02 09:26 stage-b 门内实测 tests passed=1270 failed=0 exit=0；F8 修复后复跑定向用例：canvas 147 + note_view 80 全过，未新增用例"
+  },
+  "golden": {
+    "runs": 0,
+    "diffs": 0,
+    "tol": 0,
+    "note": "本包零外观变更，不涉及重拍；173 场正式门仍欠跑（见 CER-30 report §6）"
+  },
+  "findings": [
+    {
+      "id": "F6",
+      "severity": "高",
+      "title": "归档状态会被「文档 → 库」同步冲掉",
+      "path": "NoteStore::set_archived 不碰 updated_at → 文档副本编辑后 SetCardBody 刷新 updated_at → sync_notes 用 archived=false 覆盖库",
+      "status": "待修（两案未拍板）"
+    },
+    {
+      "id": "F7",
+      "severity": "低",
+      "title": "库「挂到当前主题」只写 source_node，不写 node.card_id",
+      "path": "LibraryAction::Attach → NoteStore::attach_to_node；节点圆点只看 Node.card_id",
+      "status": "语义边界，保持现状并记账"
+    },
+    {
+      "id": "F8",
+      "severity": "中",
+      "title": "卡片跳到来源不展开折叠/不退聚焦，仍报「已定位」",
+      "path": "jump_to_source → canvas.select_node 在 scene.find 为空时直接 return；未复用 select_node_keep_focus",
+      "status": "已修（2026-11-02 09:37）：抽 reveal_and_select(id, why) 共用 M20/M22 路径，先揭示成功再关阅读页/库页"
+    }
+  ],
+  "not_done": [
+    "F6 两案（① Command::SetCardArchived / ② sync_document 保留库 archived）待用户拍板",
+    "F8 的卡片来源命中折叠子树金样（card-jump-collapsed）留 CER-34；Canvas/App 无无头夹具，「先揭示后关界面」这一层无单测",
+    "F6 的回归测试未写（随选中的案一起加）",
+    "实机微软拼音未核对（沿用 B2-C 欠账）",
+    "概念图卡片联动细节只确认走同一套 Command（cm-card-link 由 CM-06 覆盖）",
+    "多标签切换文档 + 卡片来源跳转的组合未审"
+  ],
+  "notes": [
+    "本包零外观变更：没有新基线，也没有任何基线漂移",
+    "壳层唯一的非 Command 文档写入是概念图演示夹具与 Document.assets 资源表，均属既有口径",
+    ".zmind 卡片往返有既有单测（缺键即老行为、archived 只在 true 时写、未知键不丢）"
+  ]
+}

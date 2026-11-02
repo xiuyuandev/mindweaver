@@ -1,0 +1,8 @@
+# M23：同一段插入态，点「交互与性能」落地——一条 AddRelationship + 选中新线。
+wait 3
+click 1167 503
+wait 2
+key ctrl+l
+wait 2
+click 626 634
+wait 4

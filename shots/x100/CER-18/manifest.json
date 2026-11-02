@@ -1,0 +1,92 @@
+{
+  "package": "CER-18",
+  "title": "斜杠菜单",
+  "status": "已实现",
+  "date": "2026-10-28",
+  "scenes": [
+    {
+      "name": "card-slash",
+      "dir": "shots/golden/card-slash",
+      "ppp": 1.5,
+      "size": "1620x1080",
+      "sha256_12": "45B5C6D5024D",
+      "bytes": 121756,
+      "env": {
+        "MW_CARD_DEMO": "1",
+        "MW_CARD_SLASH": "1"
+      },
+      "shows": "菜单 280 宽、10 条、最多 8 行、POPOVER 阴影"
+    },
+    {
+      "name": "card-slash-filter",
+      "dir": "shots/golden/card-slash-filter",
+      "ppp": 1.5,
+      "size": "1620x1080",
+      "sha256_12": "839B0D27D41F",
+      "bytes": 125772,
+      "env": {
+        "MW_CARD_DEMO": "1",
+        "MW_CARD_SLASH": "1",
+        "MW_GOLDEN_INPUT": "shots/golden/inputs/card-slash-filter.txt"
+      },
+      "shows": "输入 h2 后只剩「标题 2」"
+    },
+    {
+      "name": "card-slash-scroll",
+      "dir": "shots/golden/card-slash-scroll",
+      "size": "1620x1080",
+      "sha256_12": "CF09AA3CA59F",
+      "bytes": 140491,
+      "env": {
+        "MW_CARD_DEMO": "1",
+        "MW_CARD_SLASH": "1",
+        "MW_GOLDEN_INPUT": "shots/golden/inputs/card-slash-scroll.txt"
+      },
+      "shows": "8 次 ↓ 后高亮到底，菜单滚动且整行可见",
+      "ppp": 1.5
+    }
+  ],
+  "geometry": {
+    "width_css": 280,
+    "row_h_css": 30,
+    "radius": 10,
+    "max_rows": 8,
+    "padding": 6,
+    "measured": {
+      "row_h_device": 45,
+      "row_w_device": 402,
+      "visible_rows": 8,
+      "pitch_device": 45
+    }
+  },
+  "drift": {
+    "scene": "card-slash",
+    "px": 91208,
+    "ratio": "5.213%",
+    "bbox": [
+      260,
+      513,
+      722,
+      1013
+    ],
+    "worst": 184,
+    "reason": "宽度 252→280、条目 8→10、阴影改 POPOVER 令牌"
+  },
+  "tests": {
+    "note_view": 45,
+    "workspace": 893,
+    "added": 2
+  },
+  "gaps": [
+    "IME 不拦截仅有代码守卫，需真机验证（CER-07）",
+    "菜单只做下/右两个方向的贴边夹取"
+  ],
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1",
+    "result": "PASS",
+    "scenes": 65,
+    "comparisons": 130,
+    "finishedAt": "2026-10-28T13:35:07+08:00"
+  },
+  "determinism": "三张各跑两遍逐字节相同；此前 scroll_to_me 的滚动动效会让同一场景两遍差 9915/8269 px"
+}

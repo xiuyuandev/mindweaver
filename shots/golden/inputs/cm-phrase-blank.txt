@@ -1,0 +1,6 @@
+# C16（打磨轮 40）：拖出新连线后直接按 Enter 留空。
+# 整条线撤掉（轨迹 rel-label-reject reason=blank_new），概念留下；
+# 之后的 scene_rel 里不再有 w=0 的命题。
+wait 8
+key Enter
+wait 8

@@ -1,0 +1,75 @@
+{
+  "package": "M5",
+  "title": "拖拽落点指示器三形态 + 非法态",
+  "status": "已实现（四张基线进门；实机手感仍 未验证）",
+  "date": "2026-10-29",
+  "track": "打磨轮（docs/x100/polish-ledger.md M5）",
+  "contract": {
+    "design": "docs/06 §5 三分区落点（上缘条 / 整框 / 下缘条，非法转红）",
+    "execute": "docs/x100/polish-ledger.md §3 第 1 条",
+    "code": [
+      "crates/mw-shell/src/canvas.rs::paint_drop_target",
+      "crates/mw-ui/src/drag.rs::drop_target（BEFORE_BELOW 0.28 / AFTER_ABOVE 0.72 / DROP_PAD 6·4）",
+      "crates/mw-render/src/instances.rs::DROP_BAD (0xE0,0x4B,0x4B)"
+    ]
+  },
+  "deliverables": {
+    "report": "shots/x100/M5/report.md",
+    "manifest": "shots/x100/M5/manifest.json"
+  },
+  "scenes": [
+    {
+      "name": "mm-drag-child",
+      "dir": "shots/golden/mm-drag-child",
+      "sha256_12": "511DCB5A9226",
+      "input": "shots/golden/inputs/mm-drag-child.txt",
+      "zone": "child",
+      "illegal": false,
+      "evidence": "强调色 (47,111,94) 描边矩形 (989,609)-(1065,652)，416 px"
+    },
+    {
+      "name": "mm-drag-before",
+      "dir": "shots/golden/mm-drag-before",
+      "sha256_12": "A036F69B055F",
+      "input": "shots/golden/inputs/mm-drag-before.txt",
+      "zone": "before",
+      "illegal": false,
+      "evidence": "3px 条 x 988..1066 · y 606..608，233 px"
+    },
+    {
+      "name": "mm-drag-after",
+      "dir": "shots/golden/mm-drag-after",
+      "sha256_12": "B11768F986D4",
+      "input": "shots/golden/inputs/mm-drag-after.txt",
+      "zone": "after",
+      "illegal": false,
+      "evidence": "3px 条 x 988..1066 · y 653..655，233 px"
+    },
+    {
+      "name": "mm-drag-illegal",
+      "dir": "shots/golden/mm-drag-illegal",
+      "sha256_12": "05257DA1BA26",
+      "input": "shots/golden/inputs/mm-drag-illegal.txt",
+      "zone": "child",
+      "illegal": true,
+      "evidence": "红 (224,75,75) 目标 2px 描边 (425,429)-(566,463) + 幽灵虚线框；642 px"
+    }
+  ],
+  "trace": {
+    "scene_node": "每帧几何（场景变化才写）：`scene_node <id> text=\"…\" rect=(x,y,w,h)`",
+    "drop_zone": "落点判定：`drop_zone node=<id> zone=before|child|after illegal=<bool> at=(x,y)`",
+    "canvas_click": "补 at=(x,y) 与 hit=<id|none>"
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1",
+    "scenes": 83,
+    "comparisons": 166,
+    "result": "PASS"
+  },
+  "known_gaps": [
+    "实机拖拽手感（4px 阈值、60ms 吸附、贴边自动滚动）仍无证据",
+    "只拍 ppp 1.0；150/200% 下条宽与描边未拍",
+    "吸附引导线与落点同帧的层级未入景",
+    "Ctrl 拖拽复制、框选、套索仍未立景"
+  ]
+}

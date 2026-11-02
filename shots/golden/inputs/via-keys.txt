@@ -1,0 +1,12 @@
+# 短语框键盘归属：Shift+F2 立起短语框后，框内 Backspace 只能删字，不能断边。
+wait 3
+key shift+F2
+wait 3
+text 短语
+wait 2
+key Backspace
+wait 2
+key Backspace
+wait 2
+key Enter
+wait 3

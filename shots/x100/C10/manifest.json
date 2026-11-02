@@ -1,0 +1,55 @@
+{
+  "package": "C10",
+  "title": "右键菜单与「排列」子菜单贴底夹取",
+  "status": "已实现（一张贴底基线 + 形状轨迹；实机拖窗口观感 未验证）",
+  "date": "2026-10-29",
+  "track": "打磨轮（docs/x100/polish-ledger.md C10；CM-10 §3 第 8 条）",
+  "contract": {
+    "design": "docs/30 §12 CM-10 差距清单第 8 条；crates/mw-shell/src/menu.rs::place_submenu（夹取取舍写在函数与单测注释里）",
+    "code": [
+      "crates/mw-shell/src/canvas.rs::context_pos / parse_pos（新证据开关 MW_CONTEXT_POS）",
+      "crates/mw-shell/src/app_methods_1.rs（菜单请求点默认仍是 360,120）",
+      "crates/mw-shell/src/canvas/tests.rs::context_pos_reads_two_numbers_or_nothing"
+    ]
+  },
+  "deliverables": {
+    "report": "shots/x100/C10/report.md",
+    "manifest": "shots/x100/C10/manifest.json"
+  },
+  "scenes": [
+    {
+      "name": "cm-submenu-bottom",
+      "dir": "shots/golden/cm-submenu-bottom",
+      "sha256_12": "30CD9669D76A",
+      "size": "1920x780",
+      "env": "MW_CONCEPT_DEMO=1; MW_CONTEXT_DEMO=multi; MW_CONTEXT_POS='380,400'; MW_WINDOW_SIZE=1280x520",
+      "warmup": 8,
+      "ppp": "1.0",
+      "evidence": "menu_submenu_rect row=387,584,615,614 pos=613,472 size=200,300 content=0,0,1920,780；卡底边 y=772，窗口底 780 ⇒ 留 8px；末行内容在 y≈760–769"
+    }
+  ],
+  "trace": {
+    "files": ["shots/x100/C10/trace-submenu-bottom.txt"],
+    "menu_submenu_rect": "`menu_submenu_rect row=x0,y0,x1,y1 pos=x,y size=w,h content=x0,y0,x1,y1`（每条子菜单每帧一行，值相同也照写）",
+    "clamp": "不夹取 pos.y = row.top − PAD = 578，578+300 > 772 ⇒ 夹到 780−300−8 = 472（上推 106px）"
+  },
+  "tests": {
+    "new": ["context_pos_reads_two_numbers_or_nothing"],
+    "total": "916 passed / 0 failed / 1 ignored"
+  },
+  "gate": {
+    "script": "scripts/x100-stage-cm-gate.ps1 (+ scripts/x100-stage-b-gate.ps1)",
+    "cm_scenes": 46,
+    "cm_comparisons": 92,
+    "stage_b_scenes": 87,
+    "stage_b_comparisons": 174,
+    "result": "PASS",
+    "note": "既有 45 张 cm-* 与 87 张 stage-b 基线逐字节未动"
+  },
+  "known_gaps": [
+    "夹取后子菜单盖住父菜单下半部分：这是既有取舍，实机点父菜单下半部分的落点没有验证",
+    "窗口更矮（连菜单自身都装不下）那一档仍只有单测",
+    "拖动窗口改变高度时菜单的重排/闪烁没有实机证据",
+    "只拍 ppp 1.0"
+  ]
+}

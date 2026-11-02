@@ -1,0 +1,43 @@
+{
+  "package": "SE-10",
+  "title": "检查器证据包与 G-B3-2（P 轨 E2 收口）",
+  "status": "已实现（证据齐、机器门绿；G-B3-2 五判词未判）",
+  "date": "2026-10-30",
+  "track": "P 轨 检查器 v2（docs/31 §5 第 SE-10 行；依赖 SE-05–SE-09）",
+  "contract": {
+    "design": "docs/30 §4 全节",
+    "execute": "docs/31 §5 第 SE-10 行（6 场景、脚本、前后对比、逐条核对、阶段报告章节、manifest）+ §1.3 的 G-B3-2 五条判词",
+    "audit": "本包不改功能：把前五包的证据收成一份能过人工门的东西——逐条核对表（report.md §3）、十张基线清单（§2）、场景旋钮（§5）、v1→v2 漂移总账（§6）、能力清单 14 项（§4）、G-B3-2 判词清单（gate.md）"
+  },
+  "code": [],
+  "scenes": [
+    "inspector",
+    "inspector-narrow",
+    "inspector-empty",
+    "inspector-shape",
+    "inspector-ink",
+    "inspector-mist",
+    "inspector-sand",
+    "inspector-content",
+    "inspector-multiselect",
+    "inspector-error"
+  ],
+  "evidence": {
+    "baselines": "十个检查器基线全部在 stage-b 门内、--tol 0 双跑；另有 cm-arrow-inspector 在 stage-cm 门里复核",
+    "knobs": "MW_INSPECTOR / MW_INSPECTOR_W / MW_INSPECTOR_GROUPS / MW_INSPECTOR_TAB / MW_CONTENT_DEMO / MW_SELECT_DEMO=multi / MW_INSPECTOR_FAIL / MW_THEME",
+    "trace": "inspector w=… head=40 obj=44 seg=30 bar=1.5 group=28 gutter=12；group key=… open=…；inspector_error shown=1 text=…",
+    "audit": "docs/30 §4.1–§4.6 逐条（report.md §3）；能力清单 14 项（§4）：10 已实现 / 1 部分 / 3 延后",
+    "drift": "SE-05 起逐包：95242 px（4.134%）→ 29434（1.419%）→ 0 → 43983–63195（2.1–3.0%）→ 最大 5465（0.264%）",
+    "gate": "shots/x100/SE-10/gate.md 五判词留 ☐"
+  },
+  "tests": {
+    "new": [],
+    "total": "本包不加测试；全库 959 passed / 0 failed / 1 ignored"
+  },
+  "gate": {
+    "id": "G-B3-2",
+    "judgments": 5,
+    "verdict": "未判（gate.md 五条留 ☐）",
+    "blocking": "第 4 条「能力清单齐全」：14 项里 3 项延后（字重 / 对齐 / 圆角）+ 形状缺椭圆，都要加 StyleOverride 字段"
+  }
+}

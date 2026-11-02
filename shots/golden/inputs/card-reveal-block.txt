@@ -1,0 +1,7 @@
+# CER-16 对照：光标停在 `## 小标题` 这一行 → 只有块标记 `##` 露出，行内标记全收起。
+wait 3
+click 700 300
+wait 1
+key Home
+key ArrowRight
+key ArrowRight

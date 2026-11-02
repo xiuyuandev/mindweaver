@@ -1,0 +1,4 @@
+wait 4
+hover 300 65 300
+scroll_lines 0 -3
+wait 12

@@ -1,0 +1,105 @@
+{
+  "round": "X18",
+  "status": "verified",
+  "referenceVersion": "26.5.1107.202609082009",
+  "date": "2026-10-25",
+  "build": {
+    "commit": null,
+    "binary": "target/release/mw-shell.exe",
+    "binarySha256": "6ccedb54941156aa98003f370e95576782861694a77103683f2f79183d26350f",
+    "binarySize": 23353344
+  },
+  "scenarios": [
+    {
+      "id": "start-page-hierarchy-and-recents",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/06-界面布局与交互设计.md"
+      ],
+      "actual": [
+        "shots/x100/X18/actual/start-full-ppp1.00.png",
+        "shots/x100/X18/actual/start-1080-ppp1.50.png",
+        "shots/x100/X18/actual/start-min-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X18/traces/tests.txt"
+      ],
+      "result": "pass",
+      "notes": "1440×1000（ppp 1.0）整页：品牌头 → 快速开始 → 最近文件（3 行）→ 模板（3 列）→ 56px 提示条 → 脚注，页面宽 1000 居中。1080×720（ppp 1.5）首屏完整露出快速开始与三条最近文件，模板第一行从首屏底部开始。640×460（ppp 1.5）最小窗口无横向裁剪，快速开始仍横排、空状态完整；模板与提示条进入纵向滚动。"
+    },
+    {
+      "id": "keyboard-focus-and-activation",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/26-X100完成定义与验收规范.md"
+      ],
+      "actual": [
+        "shots/x100/X18/actual/focus-template-ppp1.00.png",
+        "shots/x100/X18/actual/tab-template-open-ppp1.00.png"
+      ],
+      "trace": [
+        "shots/x100/X18/inputs/focus-template.txt",
+        "shots/x100/X18/traces/focus-template.trace",
+        "shots/x100/X18/inputs/tab-template.txt",
+        "shots/x100/X18/traces/tab-template.trace"
+      ],
+      "result": "pass",
+      "notes": "首帧自动聚焦「新建空白图」。七次 Tab 依序落到 打开文件 → 卡片笔记库 → 清除最近文件 → 三条最近文件 → 模板 思维导图；focus-template 实拍可见模板卡外侧 1.4px 强调色焦点环。再按 Enter 打开模板文档，焦点回到 canvas，截图为「中心主题」思维导图。主操作卡焦点环为 2px 内侧浅色环（start-full 实拍）。"
+    },
+    {
+      "id": "clear-recents",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/02-功能需求清单.md"
+      ],
+      "actual": [
+        "shots/x100/X18/actual/clear-recents-ppp1.00.png"
+      ],
+      "trace": [
+        "shots/x100/X18/inputs/clear-recents.txt",
+        "shots/x100/X18/traces/clear-recents.trace",
+        "shots/x100/X18/traces/tests.txt"
+      ],
+      "result": "pass",
+      "notes": "三次 Tab 从主操作落到「清除列表」，Enter 后三条演示最近文件立即消失、显示 76px 紧凑空状态，底部 toast「已清除最近文件列表」，焦点回到「新建空白图」。Recent::clear 只清空 recent.json；单测验证清空后重新读盘仍为空，且演示种子从不写盘。"
+    },
+    {
+      "id": "start-golden-baselines",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/26-X100完成定义与验收规范.md",
+        "scripts/ci.ps1"
+      ],
+      "actual": [
+        "shots/x100/X18/golden/start-shell-ppp1.00.png",
+        "shots/x100/X18/golden/start-narrow-shell-ppp1.50.png",
+        "shots/x100/X18/actual/start-full-ppp1.00.png",
+        "shots/x100/X18/actual/start-narrow-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X18/traces/ci-pass1.log",
+        "shots/x100/X18/traces/ci-pass2.log",
+        "shots/x100/X18/traces/hashes.txt"
+      ],
+      "result": "pass",
+      "notes": "start 是第 17 个、start-narrow 是第 18 个 golden 场景。18 个场景 × 2 次 --tol 0 全部无差异（36/36）。新增基线 SHA256：start 4ec10e68…b054544f、start-narrow 5be44212…f2db11e8；16 个既有场景基线与 X17 逐字节一致。scripts/ci.ps1 已接入两个隔离 APPDATA 的步骤。"
+    }
+  ],
+  "tests": [
+    "cargo fmt --all -- --check (clean; traces/fmt.txt)",
+    "cargo clippy -p mw-shell --all-targets (mw-shell: 3 historical export_pdf warnings, 0 new; traces/clippy.txt)",
+    "cargo test --workspace -- --test-threads=1 (735 passed / 0 failed; traces/tests.txt)",
+    "start module: layout breakpoints (page width / quick row / compact hints / template columns / footer keys / template hint), empty-state and recents row heights, relative time, folder hint, truncation (9 tests)",
+    "recent module: clear persists an empty list, demo seed never writes disk, dedup/cap/prune/relative-absolute merge (7 tests)",
+    "scripts/ci.ps1 golden matrix, two consecutive passes, isolated APPDATA: 18 scenarios x 2 runs at --tol 0 (36/36 clean; traces/ci-pass1.log, traces/ci-pass2.log)"
+  ],
+  "knownGaps": [
+    "从汉堡菜单进入开始页后的「返回文档」按钮与焦点回移只有代码路径（open_home → request_new_focus），没有脚本化截图；行为截图都从默认启动开始页进入。",
+    "页面宽 < 560 的三张全宽纵排快速开始卡没有独立 golden 或截图：窗口最小逻辑宽 640，扣留白后页面宽 604，始终落在横排档；该分支只有 layout 单测覆盖。",
+    "最近文件演示条目指向通用示例路径（C:/示例/…），点击会走真实的「文件不存在」打开失败态；X19 才会重做该失败态，本轮未截图。",
+    "start golden 只覆盖 snow 主题与 ppp 1.0；start-narrow 只覆盖 ppp 1.5 的空列表，深色/雾青/暖砂与有最近文件的窄屏没有单独基线。",
+    "清除列表的行为截图基于内存演示种子；真实用户 recent.json 的清空只有单测覆盖，没有在隔离 APPDATA 下截「有记录 → 清空 → 重启仍为空」的实拍。",
+    "640×460 最小窗口截图证明无横向裁剪，但模板卡与底部提示条在该尺寸下需要滚动，未验证滚动到页面底部的最终态。",
+    "开始页没有专用的鼠标悬停/按下实拍；按钮反馈沿用 ui_kit 既有组件与 golden 基线。"
+  ]
+}

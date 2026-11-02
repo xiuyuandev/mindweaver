@@ -1,0 +1,68 @@
+{
+  "id": "M28",
+  "title": "撤销栈上限可配（100–2000）+ 设置中心「编辑」组",
+  "date": "2026-10-31",
+  "round": 51,
+  "status": "已实现（机器门绿；人工门未开）",
+  "scope": [
+    "Document 新增内存字段 history_limit（默认 HISTORY_LIMIT=500，不进 .zmind、不升 FORMAT_VERSION）",
+    "history_limit() / set_history_limit()：clamp 100–2000 并立即裁剪 undo_stack；apply / apply_coalesced / redo 三条入栈路径统一裁剪",
+    "settings::Store 新增 undoLimit（serde camelCase，缺键回落 500，取值 clamp 100–2000）",
+    "设置中心「编辑」组：撤销栈上限滑轨 100–2000 步进 100 + 说明「调低会立即丢掉最旧的记录」",
+    "保存设置立即作用到画布与所有标签；Shell 每帧廉价对账兜住新文档 / 新标签",
+    "验收旋钮 MW_UNDO_LIMIT=100（只写内存、不落盘）+ 轨迹 history limit=<n> depth=<undo>/<redo>、settings save undo_limit=<n>",
+    "新基线 settings（设置中心「编辑」组，滑轨 500）进 stage-b 门"
+  ],
+  "files": [
+    "crates/mw-core/src/document.rs",
+    "crates/mw-core/src/lib.rs",
+    "crates/mw-shell/src/settings.rs",
+    "crates/mw-shell/src/settings_ui.rs",
+    "crates/mw-shell/src/canvas/canvas_methods_1.rs",
+    "crates/mw-shell/src/main.rs",
+    "crates/mw-shell/src/app_methods_1.rs",
+    "shots/golden/settings/shell-ppp1.50.png",
+    "scripts/x100-stage-b-gate.ps1",
+    "docs/02-功能需求清单.md"
+  ],
+  "scenes": [
+    {"name": "settings", "sha256_12": "A34B7458CF0E", "warmup": 8, "env": "MW_SETTINGS_DEMO=1"},
+    {"name": "其余 138 场", "note": "零净漂移（stage-b pass 1 / pass 2 各 139 比较全过）"}
+  ],
+  "tests": {
+    "before": 1076,
+    "after": 1081,
+    "new": [
+      "document::tests::history_limit_defaults_and_clamps",
+      "document::tests::lowering_history_limit_drops_oldest_and_undo_stops_there",
+      "document::tests::redo_cannot_push_history_past_limit_after_lowering",
+      "document::tests::coalesced_apply_honors_history_limit",
+      "settings::tests::undo_limit_missing_uses_default_and_clamps"
+    ],
+    "existing": [
+      "settings::tests::store_roundtrips_through_disk（补 undo_limit: 1200 与 \"undoLimit\" 断言）"
+    ]
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1 + scripts/x100-stage-cm-gate.ps1",
+    "result": "PASS（stage-b 13:08:03–13:15:40 139/278；两遍 --tol 0；stage-cm 13:20:59–13:24:06 58/116 顺序复跑，两遍全过）",
+    "note": "stage-cm 第一次 13:16:41–13:19:49 的 golden 全过，但全量测试里 mw-render 的 rendering_is_deterministic_and_dumps_a_picture 在负载下偶发一次红；单跑该用例 1 passed，顺序复跑整道门全绿。与本轮改动无因果（零渲染改动）。",
+    "human_gate": "未开（X20 / G-B2-2 / G-B3-1 / G-B3-2 / G-CM-2 人工判词不代判）"
+  },
+  "deliverables": [
+    "report.md",
+    "settings-before.png",
+    "settings-after.png",
+    "settings-limit-100.png",
+    "trace-limit-100.txt"
+  ],
+  "known_gaps": [
+    "滑轨步进 100：150 这类精确值需要键入或微调，本轮不做数值格",
+    "降上限后旧记录真的丢弃、不可恢复；不弹二次确认，只靠说明文案",
+    "redo 把撤销的一步压回时同样裁剪，会丢最旧的撤销——这是「上限」语义的自然结果",
+    "撤销步数是壳层偏好，不写 .zmind；同一份文档换机器打开不受影响",
+    "settings-before.png 是 v10 旧版设置中心，只作「编辑」组此前不存在的对照，不是逐像素基线",
+    "每帧对账对后台标签是一次 clamp + 栈长比较（无搬移、不遍历文档）",
+    "实机 IME / 键盘手感不在本轮范围"
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "package": "M16",
+  "title": "金样按帧确定性（outline-* 抖动）",
+  "status": "已实现（两遍 stage-b 连跑两次全绿，共 4 遍矩阵 / 472 次比较零差异）",
+  "date": "2026-10-31",
+  "track": "打磨轮（docs/x100/polish-ledger.md 第 35 轮；HANDOFF §7.5① / §7.7 第 2 步）",
+  "contract": {
+    "design": "HANDOFF.md §7.5①；docs/STATUS.md §1「唯一未修的机器红灯」",
+    "code": [
+      "crates/mw-shell/src/golden_input.rs::GoldenInput::advance_clock（帧计数虚拟时钟，sleep 冻结 + 到期补名义时长）",
+      "crates/mw-shell/src/main.rs::Shell::golden_clock + raw_input_hook（写 RawInput::time / predicted_dt）",
+      "crates/mw-shell/src/main.rs::is_host_input（harness 下剥离宿主指针/键盘/IME/剪贴板/焦点/AccessKit 事件）",
+      "crates/mw-shell/src/panels/outline.rs::grip_since / drag_hover（Instant → egui 输入时间 f64 秒）"
+    ]
+  },
+  "deliverables": {
+    "report": "shots/x100/M16/report.md",
+    "manifest": "shots/x100/M16/manifest.json",
+    "failure_archive": [
+      "shots/x100/M16/failure-2026-10-30/outline-drag-illegal-actual.png",
+      "shots/x100/M16/failure-2026-10-30/outline-drag-illegal-diff.png",
+      "shots/x100/M16/failure-2026-10-30/outline-hover-select-actual.png",
+      "shots/x100/M16/failure-2026-10-30/outline-hover-select-diff.png"
+    ]
+  },
+  "scenes": [
+    {
+      "name": "outline-drag-illegal",
+      "dir": "shots/golden/outline-drag-illegal",
+      "sha256_12": "1776A77897F6",
+      "env": "MW_OUTLINE=1; MW_WINDOW_SIZE=1200x720; MW_GOLDEN_INPUT=<拖拽非法落点脚本>",
+      "warmup": 3,
+      "ppp": "1.5",
+      "evidence": "2026-10-30 失败现场 2.827% / 49465 px；本轮未改基线，门内两遍逐字节一致"
+    },
+    {
+      "name": "outline-hover-select",
+      "dir": "shots/golden/outline-hover-select",
+      "sha256_12": "0031D764B789",
+      "env": "MW_OUTLINE=1; MW_WINDOW_SIZE=1200x720; MW_GOLDEN_INPUT=<悬停 120ms + 点击脚本>",
+      "warmup": 3,
+      "ppp": "1.5",
+      "evidence": "2026-10-30 失败现场 2.751%（悬停底与握把消失）；本轮未改基线，门内两遍逐字节一致"
+    },
+    {
+      "name": "outline-20k-deep",
+      "dir": "shots/golden/outline-20k-deep",
+      "sha256_12": "50F2152F9C11",
+      "env": "MW_OUTLINE=1; MW_OUTLINE_SCROLL_TO='分支 0150'; MW_WINDOW_SIZE=1280x800",
+      "warmup": 16,
+      "ppp": "1.0",
+      "evidence": "历史抖动点（0.496%）；本轮未改基线，门内两遍逐字节一致"
+    }
+  ],
+  "tests": {
+    "new": [
+      "golden_input::tests::clock_is_frame_based_and_sleep_adds_nominal_time"
+    ],
+    "total": "1022 passed / 0 failed / 1 ignored（23 套件，TEMP 重定向）"
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1",
+    "stage_b_scenes": 118,
+    "stage_b_comparisons": 236,
+    "runs": [
+      {
+        "started": "2026-10-31 00:24:06 +08:00",
+        "finished": "2026-10-31 00:30:48 +08:00",
+        "pass1": "PASS golden matrix pass 1 (118 comparisons)",
+        "pass2": "PASS golden matrix pass 2 (118 comparisons)",
+        "verdict": "MACHINE GATE PASS",
+        "log": "target/tmp/gate-b-run1.log"
+      },
+      {
+        "started": "2026-10-31 00:33:57 +08:00",
+        "finished": "2026-10-31 00:40:10 +08:00",
+        "pass1": "PASS golden matrix pass 1 (118 comparisons)",
+        "pass2": "PASS golden matrix pass 2 (118 comparisons)",
+        "verdict": "MACHINE GATE PASS",
+        "log": "target/tmp/gate-b-run2.log"
+      }
+    ],
+    "result": "PASS ×2（4 遍矩阵 / 472 次比较零差异）",
+    "human_gate": "X20 人工审核仍未判；本轮不代判"
+  },
+  "behaviour_change": "仅 harness 计时与输入隔离；真实交互仍读墙钟。大纲握把 120ms / 拖拽展开 500ms 的判定语义不变",
+  "known_gaps": [
+    "未在旧代码上复现失败（10 次空载/负载复跑都逐字节等于基线），无法做「旧码红 → 新码绿」A/B；结论来自失败现场两图 + 代码路径",
+    "失败图里标题「4|」无法用当前代码路径单独解释，最合理是宿主键入漏入；输入隔离未在真机重放该事件序列",
+    "虚拟时钟只覆盖 harness；真实交互仍用墙钟（刻意）",
+    "金样 sleep 期间虚拟时间冻结；若某场依赖 sleep 期间动画继续走会改成「到期一次补齐」，本轮 118 场未见漂移",
+    "只验证本机连续两次门跑；跨机器可复现性无证据"
+  ]
+}

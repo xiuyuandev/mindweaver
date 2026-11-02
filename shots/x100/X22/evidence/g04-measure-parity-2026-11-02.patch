@@ -1,0 +1,334 @@
+diff --git a/crates/mw-render/src/text.rs b/crates/mw-render/src/text.rs
+--- a/crates/mw-render/src/text.rs
++++ b/crates/mw-render/src/text.rs
+@@ -12,6 +12,10 @@
+ //! 中英之间 0.1 em 的间隙也在这一层加：它是字距不是文本内容，不能污染 `lines`
+ //! （docs/13 §4.8 决定 5）。做法是给每个字形记一个 `gap_before` 步进，居中时
+ //! 总宽也算上间隙，保证视觉居中而不是「字面居中、看起来偏左」。
++//!
++//! **宽度只有一个出口**：`line_advance`（本文件）。渲染侧（`shape_uncached`）与度量侧
++//! （[`crate::dwrite::DWriteMeasurer`]）都只调它补间距——2026-11-02 之前只有渲染侧加，
++//! 于是盒宽/折行按 DWrite 净宽、画面按「净宽 + 间距」，两处各说各话（X22 G04）。
+ 
+ use std::cell::RefCell;
+ use std::collections::HashMap;
+@@ -35,6 +39,23 @@
+ const SHAPE_CACHE_LIMIT: usize = 20_000;
+ /// 中英之间的视觉间隙（DIP，按字号缩放）。
+ const CJK_LATIN_GAP_EM: f32 = 0.1;
++
++/// 一段文字要额外推进的**中英混排间距**：`边界数 × 0.1em × 字号`。
++///
++/// 边界指「汉字 ↔ ASCII 字母数字」（[`cjk_latin_gaps`]），空格已经承担分隔的不算。
++/// 这是间距规则的唯一实现：渲染步进与度量补宽都从这里取数（X22 G04）。
++pub(crate) fn cjk_latin_gap_width(text: &str, font_size: f32) -> f32 {
++    cjk_latin_gaps(text).len() as f32 * CJK_LATIN_GAP_EM * font_size
++}
++
++/// 一条排版行的推进宽度：**DWrite 量到的字形行进 + 中英混排间距**。
++///
++/// 度量（[`crate::dwrite`]）与渲染（[`TextEngine::shape_uncached`]）只能调这一句出宽。
++/// 两处各写一套，就是盒宽/折行与画面不同源的根源（X22 G04：盒按净宽、画面按净宽+间距，
++/// 混排行会顶出节点盒、居中偏「间距和 / 2」）。
++pub(crate) fn line_advance(dwrite_advance: f32, text: &str, font_size: f32) -> f32 {
++    dwrite_advance + cjk_latin_gap_width(text, font_size)
++}
+ /// 按系数压暗一个颜色（幽灵与其原位残影共用）。只动 alpha，不动 RGB——
+ /// 预乘混合下这样才是「同一块颜色变淡」，不会发灰发白。
+ fn dim(c: [f32; 4], k: f32) -> [f32; 4] {
+@@ -409,7 +430,8 @@
+         let gaps = cjk_latin_gaps(text);
+         let raws = raw.borrow();
+         let mut glyphs = Vec::with_capacity(raws.len());
+-        let mut width = 0.0f32;
++        // 只累计 DWrite 的净行进；宽度最后统一由 `line_advance` 出（与度量侧同一句）。
++        let mut raw_advance = 0.0f32;
+         let mut gap_sum = 0.0f32;
+         for raw in raws.iter() {
+             let gap_before = if gaps.iter().any(|p| *p == raw.text_index) {
+@@ -418,7 +440,7 @@
+                 0.0
+             };
+             gap_sum += gap_before;
+-            width = width.max(raw.x + raw.advance + gap_sum);
++            raw_advance = raw_advance.max(raw.x + raw.advance);
+             glyphs.push(ShapedGlyph {
+                 face: self.intern_face(&raw.face),
+                 glyph: raw.glyph,
+@@ -427,6 +449,10 @@
+                 gap_before,
+             });
+         }
++        // gap_sum 只用于上面那些字形的落点；宽度一律走同一个函数，否则就回到 G04
++        // （盒宽与画面各按一套口径，混排行顶出盒、居中偏「间距和 / 2」）。
++        debug_assert!((raw_advance + gap_sum - line_advance(raw_advance, text, font_size)).abs() < 1e-3);
++        let width = line_advance(raw_advance, text, font_size);
+         Some(Rc::new(ShapedLine { glyphs, width }))
+     }
+ 
+@@ -841,4 +867,119 @@
+         assert_eq!(cjk_latin_gaps("A中"), vec![1]);
+     }
+ 
+-}
++    /// G04 的出宽规则：`line_advance` = 净行进 + `边界数 × 0.1em × 字号`，字号线性。
++    #[test]
++    fn line_advance_counts_every_cjk_latin_boundary() {
++        // 零边界：净宽原样返回（纯中文 / 纯英文 / 中文夹全角标点 / 空格分隔）
++        for text in ["中文主题", "Expanded Topic", "中文，标点。", "Rust 中文"] {
++            assert_eq!(
++                line_advance(100.0, text, 16.0),
++                100.0,
++                "{text} 不该有混排间距"
++            );
++        }
++        // 1 / 2 / 3 个边界：每个 0.1em × 16px = 1.6px
++        for (text, n) in [("中文Rust", 1.0), ("中文Rust混排", 2.0), ("中A文B", 3.0)] {
++            let got = line_advance(100.0, text, 16.0);
++            let want = 100.0 + n * 0.1 * 16.0;
++            assert!(
++                (got - want).abs() < 1e-3,
++                "{text}: line_advance={got:.3} 应为 {want:.3}"
++            );
++        }
++        // 字号线性：同一段 16px → 32px，间距正好翻倍
++        let gap16 = line_advance(0.0, "中文Rust", 16.0);
++        let gap32 = line_advance(0.0, "中文Rust", 32.0);
++        assert!((gap32 - gap16 * 2.0).abs() < 1e-3, "间距必须随字号线性");
++    }
++
++    /// G04 的**像素影响面论证（纯函数口径）**：只有跨字形种类的边界才加宽，
++    /// 所以只有含中英混排的行会动，纯中文/纯英文/纯全角标点的盒宽**一个像素都不变**。
++    #[test]
++    fn only_mixed_script_lines_gain_width() {
++        let size = 16.0f32;
++        // 0 加宽：这些文本的盒宽在修复前后完全相同 → 相关基线不会漂
++        for text in [
++            "中文主题",
++            "一二三四五六七八九十",
++            "Expanded Topic",
++            "Rust 2026",
++            "1234",
++            "中文，标点。",
++            "……——",
++        ] {
++            assert_eq!(
++                line_advance(0.0, text, size),
++                0.0,
++                "{text} 的盒宽不该变（零边界）"
++            );
++        }
++        // 有加宽：等于 边界数 × 1.6px；n 不可能超过字数，所以单行加宽 ≤ 字数 × 0.1em
++        for (text, n) in [("中文Rust", 1.0), ("A中", 1.0), ("中A文B", 3.0)] {
++            let gain = line_advance(0.0, text, size);
++            assert!(
++                (gain - n * 0.1 * size).abs() < 1e-3,
++                "{text}: 加宽 {gain:.3}px，应 = {n}×1.6px"
++            );
++            let chars = text.chars().count() as f32;
++            assert!(gain <= chars * 0.1 * size, "{text}: 加宽不能超过字数上限");
++        }
++    }
++
++    /// 画布净宽（只问 DWrite，不加间距）—— 用来验证度量与渲染真的走同一句。
++    fn dwrite_net_width(dw: &DWrite, text: &str, font_size: f32, weight: u16) -> f32 {
++        let format = dw.format(font_size, weight).expect("TextFormat");
++        let units = utf16_units(text);
++        let layout = unsafe {
++            dw.factory()
++                .CreateTextLayout(&units, &format, NO_WRAP, f32::MAX)
++        }
++        .expect("TextLayout");
++        unsafe { layout.SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP) }.expect("nowrap");
++        let mut metrics = DWRITE_TEXT_METRICS::default();
++        unsafe { layout.GetMetrics(&mut metrics) }.expect("metrics");
++        metrics.width.max(0.0)
++    }
++
++    /// **G04 的等式**：`measure()` 的宽 == 渲染侧累计推进量（同一条 `line_advance`），
++    /// 且两者都比 DWrite 净宽多出「边界数 × 0.1em」。
++    #[test]
++    fn measured_width_equals_shaped_advance() {
++        let dw = DWrite::new().expect("本机必须有 DirectWrite");
++        let measurer = crate::dwrite::DWriteMeasurer::new(DWrite::new().expect("dwrite"));
++        let mut engine = TextEngine::with_dwrite(dw);
++        let samples = [
++            "中文Rust混排",
++            "中A文B混排 C 语言",
++            "纯中文一行",
++            "Plain english line",
++            "中文，标点。",
++            "2026 年版",
++        ];
++        for text in samples {
++            for size in [15.0f32, 16.0, 20.0, 28.0] {
++                let measured = measurer
++                    .measure_result(text, size, 400, NO_WRAP)
++                    .expect("measure")
++                    .width;
++                let shaped = engine.shape(text, size, 400).expect("shape").width;
++                // 1) 度量 == 渲染（同一个函数出宽；容差 0.5 css px 覆盖 DWrite 行宽取整）
++                assert!(
++                    (measured - shaped).abs() <= 0.5,
++                    "{text} @{size}: 度量 {measured:.3} ≠ 画面 {shaped:.3}"
++                );
++                // 2) 两者都 == 净宽 + 混排间距（证明加的是同一份，而不是谁多加了）
++                let net = dwrite_net_width(engine.dwrite(), text, size, 400);
++                let want = line_advance(net, text, size);
++                assert!(
++                    (measured - want).abs() <= 0.5,
++                    "{text} @{size}: 度量 {measured:.3} ≠ 净宽+间距 {want:.3}"
++                );
++                assert!(
++                    (shaped - want).abs() <= 0.5,
++                    "{text} @{size}: 画面 {shaped:.3} ≠ 净宽+间距 {want:.3}"
++                );
++            }
++        }
++    }
++}
+diff --git a/crates/mw-render/src/dwrite.rs b/crates/mw-render/src/dwrite.rs
+--- a/crates/mw-render/src/dwrite.rs
++++ b/crates/mw-render/src/dwrite.rs
+@@ -234,7 +234,7 @@
+             }
+             lines.extend(self.wrap_paragraph(para, &format, limit, unbounded)?);
+         }
+-        let width = self.width_of(&lines, &format)?;
++        let width = self.width_of(&lines, &format, font_size)?;
+         Ok(Measured {
+             lines,
+             width,
+@@ -301,7 +301,17 @@
+     }
+ 
+     /// 兜底之后的每行都当成不折行的单行重新量：行数很少，结果整条缓存，成本摊得掉。
+-    fn width_of(&self, lines: &[String], format: &IDWriteTextFormat) -> windows::core::Result<f32> {
++    ///
++    /// 每行的 **DWrite 净宽还要过一遍 [`crate::text::line_advance`]**：中英混排那 0.1 em
++    /// 是画布真的画出来的推进量，盒宽（本函数的返回值 → `Measured.width` → 节点盒）
++    /// 必须与画面同源（X22 G04）。以前只有渲染侧加，混排行就会顶出节点盒、
++    /// 居中偏「间距和 / 2」，折行点也按窄的那份判。
++    fn width_of(
++        &self,
++        lines: &[String],
++        format: &IDWriteTextFormat,
++        font_size: f32,
++    ) -> windows::core::Result<f32> {
+         let mut width = 0.0f32;
+         for line in lines {
+             if line.is_empty() {
+@@ -320,7 +330,11 @@
+             };
+             let mut metrics = DWRITE_TEXT_METRICS::default();
+             unsafe { one.GetMetrics(&mut metrics)? };
+-            width = width.max(metrics.width.max(0.0));
++            width = width.max(crate::text::line_advance(
++                metrics.width.max(0.0),
++                line,
++                font_size,
++            ));
+         }
+         Ok(width)
+     }
+@@ -432,3 +446,100 @@
+         .min(text.len())
+ }
+ 
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    fn test_dwrite() -> DWrite {
++        DWrite::new().expect("本机必须有 DirectWrite")
++    }
++
++    /// 只问 DWrite 的净宽（不加混排间距），用来钉「度量 == 净宽 + 间距」。
++    fn net_width(dw: &DWrite, text: &str, font_size: f32) -> f32 {
++        let format = dw.format(font_size, WEIGHT_NORMAL).expect("TextFormat");
++        let units = utf16_units(text);
++        let layout = unsafe {
++            dw.factory()
++                .CreateTextLayout(&units, &format, NO_WRAP, UNBOUNDED_HEIGHT)
++        }
++        .expect("TextLayout");
++        unsafe { layout.SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP) }.expect("nowrap");
++        let mut metrics = DWRITE_TEXT_METRICS::default();
++        unsafe { layout.GetMetrics(&mut metrics) }.expect("metrics");
++        metrics.width.max(0.0)
++    }
++
++    /// **X22 G04 的契约**：`Measured.width` 是画布真画出来的推进量——DWrite 净宽
++    /// 再加中英混排 0.1em；纯中文/纯英文加 0，所以那些盒宽一点不变。
++    #[test]
++    fn measure_adds_cjk_latin_gaps_to_the_dwrite_width() {
++        let dw = test_dwrite();
++        let measurer = DWriteMeasurer::new(test_dwrite());
++        for size in [15.0f32, 16.0, 20.0, 28.0] {
++            for (text, boundaries) in [
++                ("中文Rust混排", 2.0f32),
++                ("中A文B", 3.0),
++                ("纯中文一行", 0.0),
++                ("Plain english line", 0.0),
++                ("中文，标点。", 0.0),
++            ] {
++                let measured = measurer
++                    .measure_result(text, size, WEIGHT_NORMAL, NO_WRAP)
++                    .expect("measure")
++                    .width;
++                let net = net_width(&dw, text, size);
++                // 契约值写死 0.1em（不从 `text` 模块反算），这样规则改了测试才会红。
++                let want = net + boundaries * 0.1 * size;
++                assert!(
++                    (measured - want).abs() < 0.01,
++                    "{text} @{size}: 度量 {measured:.4} ≠ 净宽 {net:.4} + {boundaries}×0.1em"
++                );
++                // 零边界 → 盒宽与修复前逐位相同（纯中文/纯英文不漂）
++                if boundaries == 0.0 {
++                    assert_eq!(measured, net, "{text} @{size}: 零边界不该加宽");
++                }
++            }
++        }
++    }
++
++    /// G06/G07 探针（Lead 2026-11-02 裁决：先取证、不改字重映射）。
++    ///
++    /// 打印 400 / 500 / 600 在画布族（Segoe UI）与雅黑上的**实际落面**字重。
++    /// 断言保持宽松（只要求返回合法权重），读数给人看：`cargo test -p mw-render
++    /// measure_adds -- --nocapture` 之外单独跑 `weight_faces -- --nocapture`。
++    #[test]
++    fn weight_faces_are_read_back_from_dwrite() {
++        let dw = test_dwrite();
++        let mut collection = None;
++        unsafe { dw.factory().GetSystemFontCollection(&mut collection, false) }.expect("集合");
++        let collection = collection.expect("系统字体集合");
++        for family_name in ["Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei"] {
++            let wide = Wide::new(family_name);
++            let mut index = 0u32;
++            let mut exists = BOOL(0);
++            unsafe { collection.FindFamilyName(wide.pcwstr(), &mut index, &mut exists) }
++                .expect("FindFamilyName");
++            if !exists.as_bool() {
++                println!("[probe] {family_name}: 系统里没有这个族");
++                continue;
++            }
++            let family = unsafe { collection.GetFontFamily(index) }.expect("family");
++            for want in [400u16, 500, 600, 700] {
++                let font = unsafe {
++                    family.GetFirstMatchingFont(
++                        DWRITE_FONT_WEIGHT(want as i32),
++                        DWRITE_FONT_STRETCH_NORMAL,
++                        DWRITE_FONT_STYLE_NORMAL,
++                    )
++                }
++                .expect("GetFirstMatchingFont");
++                let got = unsafe { font.GetWeight() }.0;
++                println!("[probe] {family_name} 请求 {want} → 实际面 {got}");
++                assert!(
++                    (1..=999).contains(&got),
++                    "{family_name} 请求 {want} 返回的权重不合法：{got}"
++                );
++            }
++        }
++    }
++}

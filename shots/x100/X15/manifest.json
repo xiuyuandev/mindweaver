@@ -1,0 +1,132 @@
+{
+  "round": "X15",
+  "status": "verified",
+  "referenceVersion": "26.5.1107.202609082009",
+  "date": "2026-10-24",
+  "build": {
+    "commit": null,
+    "binary": "target/release/mw-shell.exe",
+    "binarySha256": "22071fa2cc0984dde72211cc6d391e26cb74aaeeb8e0f2dd605ad3300c5e29f9",
+    "binarySize": 23219712
+  },
+  "scenarios": [
+    {
+      "id": "canvas-selection-toolbar",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/archive/16-视觉重塑基准.md"
+      ],
+      "actual": [
+        "shots/x100/X15/actual/selected-ppp1.50.png",
+        "shots/x100/X15/actual/toolbar-crop.png",
+        "shots/x100/X15/actual/toolbar-more-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X15/traces/toolbar-more.txt",
+        "shots/x100/X15/inputs/more-menu.txt",
+        "shots/x100/X15/traces/tests.txt"
+      ],
+      "result": "pass",
+      "notes": "276x36 glass bar, top-centre, 28px buttons in three groups (undo/redo | child/sibling/delete | card/more). It is registered as an overlay gate before canvas.show; More opens the node menu at the button's bottom edge (trace canvas-tool-more) without changing the selection."
+    },
+    {
+      "id": "canvas-hover-bar-shadow",
+      "reference": [
+        "docs/24-X100升级路线.md"
+      ],
+      "actual": [
+        "shots/x100/X15/actual/hover-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X15/inputs/hover.txt",
+        "shots/x100/X15/traces/hover-trace.log"
+      ],
+      "result": "pass",
+      "notes": "The existing plus/more hover bar keeps its geometry; only its shadow now comes from design::elevation::PANEL via float_shadow(). Two scripted runs produced the same PNG hash e1edb70d...73f8c44f4."
+    },
+    {
+      "id": "canvas-zoom-bar-and-status-area",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/06-界面布局与交互设计.md"
+      ],
+      "actual": [
+        "shots/x100/X15/actual/zoom-crop.png",
+        "shots/x100/X15/actual/status-crop.png",
+        "shots/x100/X15/actual/selected-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X15/traces/tests.txt",
+        "shots/x100/X15/traces/golden-verify.log"
+      ],
+      "result": "pass",
+      "notes": "154x32 zoom bar with four non-overlapping 24px hit zones (-/percent/+/fit) anchored 16px from the bottom-right. Status bar left: save dot + four-state label, node count, selection summary; right: theme name with accent dot. Zoom number left the status bar."
+    },
+    {
+      "id": "toolbar-actions-use-command-path",
+      "reference": [
+        "docs/27-X100数据与命令审计.md"
+      ],
+      "actual": [
+        "shots/x100/X15/actual/toolbar-add-child-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X15/inputs/add-child.txt",
+        "shots/x100/X15/traces/toolbar-add-child.txt"
+      ],
+      "result": "pass",
+      "notes": "Clicking Add child emits canvas-tool-child and goes through the existing Canvas command path: a new node enters inline editing, the titlebar switches to dirty, and the status area shows 14 topics with the new node selected."
+    },
+    {
+      "id": "golden-pointer-determinism",
+      "reference": [
+        "docs/26-X100完成定义与验收规范.md"
+      ],
+      "actual": [
+        "shots/x100/X15/actual/library-ppp1.50-drift.png",
+        "shots/x100/X15/actual/library-ppp1.50-diff.png"
+      ],
+      "trace": [
+        "shots/x100/X15/traces/golden-measure.log",
+        "shots/x100/X15/traces/golden-rebaseline.log"
+      ],
+      "result": "pass",
+      "notes": "Offscreen runs without an input script now inject PointerMoved(-10000,-10000) before PointerGone. PointerGone alone only clears latest_pos while a real desktop move still lands in interact_pos, so Response::hovered stayed true. After the fix library@1.0 and @2.0 returned to the X14 hashes; only @1.5, whose old baseline itself contained a back-button hover, needed rebaselining."
+    },
+    {
+      "id": "golden-matrix-14-scenarios",
+      "reference": [
+        "docs/26-X100完成定义与验收规范.md",
+        "scripts/ci.ps1"
+      ],
+      "actual": [
+        "shots/x100/X15/actual/shell-ppp1.50.png",
+        "shots/x100/X15/actual/shell-ppp1.50-drift.png",
+        "shots/x100/X15/actual/shell-ppp1.50-diff.png",
+        "shots/x100/X15/actual/shell-ppp1.00-drift.png",
+        "shots/x100/X15/actual/shell-ppp2.00-drift.png"
+      ],
+      "trace": [
+        "shots/x100/X15/traces/golden-measure.log",
+        "shots/x100/X15/traces/golden-rebaseline.log",
+        "shots/x100/X15/traces/golden-verify.log",
+        "shots/x100/X15/traces/hashes.txt"
+      ],
+      "result": "pass",
+      "notes": "The selected scenario (MW_SELECT_DEMO=1, ppp 1.5) is the 14th golden. Shell/theme drift stayed inside the status bar and zoom bar; outline, outline-focus, card-slash and outline-compact had zero pixel drift. All 14 scenarios passed twice at tolerance 0 (28/28)."
+    }
+  ],
+  "tests": [
+    "cargo fmt --all -- --check",
+    "cargo clippy -p mw-shell --all-targets (3 historical export_pdf warnings, 0 new)",
+    "cargo test --workspace -- --test-threads=1 (711 passed / 0 failed)",
+    "cargo golden matrix: 14 scenarios x 2 runs at --tol 0 (28/28 clean)"
+  ],
+  "knownGaps": [
+    "The hover bar is only reproducible under MW_GOLDEN_INPUT; there is no real-desktop hover capture.",
+    "Only More and AddChild toolbar buttons have scripted captures; undo/redo/delete/card share the same dispatch arm and are covered by unit tests.",
+    "The narrow-canvas toolbar fallback is covered by geometry tests only; no 640x460 full-window capture yet (rolled into X20).",
+    "The unified menu engine (submenus, edge flipping, shortcut column, keyboard navigation) remains X16; More only proves the anchor and the existing node menu.",
+    "Zoom-bar percentages are not captured per step; reset/fit are covered by existing Canvas methods and geometry tests."
+  ]
+}

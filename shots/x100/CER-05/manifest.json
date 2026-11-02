@@ -1,0 +1,40 @@
+{
+  "package": "CER-05",
+  "status": "已实现",
+  "date": "2026-10-25",
+  "design_contract": "docs/28 §5.2、§5.9",
+  "execution_contract": "docs/29 §6（X61 范围并入）",
+  "batch": "B2-A",
+  "gate": null,
+  "scenes": ["outline", "outline-focus", "outline-compact", "outline-narrow"],
+  "themes": ["snow"],
+  "dpi": [1.5],
+  "scripts": [],
+  "evidence": ["shots/x100/CER-05/report.md"],
+  "old_hashes": {
+    "shots/golden/outline/shell-ppp1.50.png": "ad4fbc4a839288f6 (140929B, CER-04 后)",
+    "shots/golden/outline-focus/shell-ppp1.50.png": "3dcb44968c7b12fc (106463B)",
+    "shots/golden/outline-compact/shell-ppp1.50.png": "8cc162256c62b755 (138663B)",
+    "shots/golden/outline-narrow/shell-ppp1.50.png": "77d31cb0ad5a077b (108333B)"
+  },
+  "new_hashes": "重拍后以 shots/golden/outline*/shell-ppp1.50.png 现文件为准（双跑 --tol 0 锁定）",
+  "tests": { "passed": 780, "failed": 0 },
+  "golden": { "runs": 2, "diffs": 0, "tol": 0, "note": "4 个 outline 场景双跑 0；其余场景机器门矩阵复核（target/x100/cer-05-golden.log）" },
+  "engineering": {
+    "fmt": "clean",
+    "clippy_mw_shell_new": 0,
+    "release_build": "pass"
+  },
+  "changes": {
+    "code": [
+      "crates/mw-shell/src/panels/outline.rs（密度固定 32/24/16、删树线、中性圆点、chevron 重做、任务框行内化、单右点、删标签胶囊、子项数纯文字）",
+      "crates/mw-shell/src/icons.rs、ui_kit.rs（孤儿组件加注保留）"
+    ],
+    "visual": "大纲行绘制按 docs/28 §5.2 重做（说明行/换行除外）"
+  },
+  "known_gaps": [
+    "换行 +24 未做（CER-11 动态行高）",
+    "标题行焦点环偏差留 CER-06",
+    "outline-compact 场景语义变化，CER-12 新门脚本移除"
+  ]
+}

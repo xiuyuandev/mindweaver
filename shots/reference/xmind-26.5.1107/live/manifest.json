@@ -1,0 +1,107 @@
+{
+  "referenceVersion": "26.5.1107.202609082009",
+  "executableSha256": "9B152AF6092B9CB78A19995E70BA8457616BF0A95277A18E5CB105ABB4AFA8EC",
+  "capturedAt": "2026-10-22 05:30-06:15 +08:00",
+  "captureMode": "isolated-new-profile",
+  "isolation": {
+    "profile": "target/x100/xmind-isolated-profile",
+    "userProcessesBeforeLaunch": 0,
+    "userProcessesAfterClose": 0,
+    "loginUsed": false,
+    "automaticProgramLogUpload": false,
+    "personalDocumentsOpened": false
+  },
+  "states": [
+    {
+      "id": "home.clean",
+      "file": "home-clean.png",
+      "width": 1024,
+      "height": 751,
+      "sha256": "2128E19767DA962E57159574C4B6E50EA91C24AD34D50D18C5011ACD34E7570B"
+    },
+    {
+      "id": "canvas.default-selected",
+      "file": "default-map-selected.png",
+      "width": 1270,
+      "height": 751,
+      "sha256": "83D72EF9A360C63B47ED3FC7BA017C333FCFCB4C328F597ECFF0B9E931C47C72"
+    },
+    {
+      "id": "menu.node-context",
+      "file": "node-context-menu.png",
+      "width": 1270,
+      "height": 751,
+      "sha256": "F89E8CDCEDFF7B4AE0789457E269208B9BEAC2B1134E7E78BAE8BFECEB745698"
+    },
+    {
+      "id": "outline.default",
+      "file": "outline-default.png",
+      "width": 1270,
+      "height": 751,
+      "sha256": "6DC6ECD5E42303F8C8F69E168FEE28F95B61F5F9C01DEB554E80B3E991BD06F9"
+    },
+    {
+      "id": "outline.multi-select",
+      "file": "outline-multi-select.png",
+      "width": 1270,
+      "height": 751,
+      "sha256": "853E83BB41D8DAF1E06C556897BDA4FC0202255F22F3C58FF6503A1AF288CF15"
+    },
+    {
+      "id": "outline.edit-empty",
+      "file": "outline-edit-empty.png",
+      "width": 1270,
+      "height": 751,
+      "sha256": "161E8DA772046C19D9D846C76B244C4078139EBC50E4009767788B55DB0C0608"
+    },
+    {
+      "id": "outline.edit-text",
+      "file": "outline-edit-text.png",
+      "width": 1270,
+      "height": 751,
+      "sha256": "41EA3425A9FEA31B8A22844D3C27313952A45D702AE62F2E5A07BC7414A4C4EF"
+    },
+    {
+      "id": "navigation.default",
+      "file": "navigation-panel.png",
+      "width": 1270,
+      "height": 751,
+      "sha256": "3CA4241A42E288B7DD9FF8D52CB0441A0BB9D4093146E5C950A0F79D7FBAC77C"
+    },
+    {
+      "id": "navigation.search",
+      "file": "navigation-search.png",
+      "width": 1270,
+      "height": 751,
+      "sha256": "EC8BED7CA0D4E2DB3FFB10A5A3DB8FE41AFC6072A41371AAF5D4B9000FBDCA2E"
+    },
+    {
+      "id": "presentation.default",
+      "file": "presentation-default.png",
+      "width": 1280,
+      "height": 800,
+      "sha256": "892B6FA789C348821992C9D4AED3B903F4633CCECAFA826E6273AB30FDA951BC"
+    },
+    {
+      "id": "menu.export",
+      "file": "export-menu.png",
+      "width": 1270,
+      "height": 751,
+      "sha256": "5D5F972C7E4527A7DB4D2A221D9C4EDD097B0CD6FD293BF5C0BD792472D23C0C"
+    }
+  ],
+  "notCaptured": [
+    "mouse-down drag hold and insertion preview",
+    "dark appearance",
+    "100/125/150/200 percent matched DPI pairs",
+    "advanced annotations, relationships, image and comment inspectors"
+  ],
+  "observations": [
+    "Xmind 26.5.1107 Outliner uses a compact text-first layout, a top-center list toolbar and a six-dot drag grip rather than permanent row action buttons.",
+    "Outline selection uses pale full-row fill; the final row moved is the stronger selection.",
+    "Inline editing uses a grey active row and text caret without a white input box.",
+    "The node context menu uses 30px rows, grouped separators, and a 240px visual width.",
+    "Presentation uses a nearly black stage, oversized white current topic and floating controls."
+  ]
+}
+

@@ -1,0 +1,5 @@
+# 对照组：同夹具，光标停在行首 → 链接的括号与 URL 全收起。
+wait 3
+click 700 244
+wait 1
+key Home

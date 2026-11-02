@@ -1,0 +1,44 @@
+# Rust 构建产物
+/target
+
+# 旧 Web 原型 / 打包产物（已从代码树移除；若再次生成则忽略）
+/ui/node_modules
+/ui/dist
+/ui/.vite
+
+# 发布包与解包产物不进仓
+/dist/
+
+# 本地应用状态与自动保存
+*.zmind.bak
+*.zmind.lock
+*.autosave
+/.autosave
+
+# 会话 / 工具临时产物
+.workbuddy*
+/.claude/
+/.dsh-ops/
+/.screenshots/
+/.merkle-snapshot.json
+*.log
+.tmp-*
+/_sandbox_probe_tmp/
+/tmp/
+
+# 截图证据与金样基线：本地保留，不进仓
+# 金样输入脚本（shots/golden/inputs/*.txt）属于测试基础设施，仍需入库
+/shots/**/*.png
+/shots/**/*.pdf
+/shots/**/*.txt
+!/shots/golden/inputs/**/*.txt
+/shots/**/*.trace
+/shots/**/actual/
+/shots/**/diff/
+
+# 仓库根目录的构建可执行文件
+/织思.exe
+
+# 操作系统元数据
+.DS_Store
+Thumbs.db

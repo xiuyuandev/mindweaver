@@ -1,0 +1,41 @@
+{
+  "package": "CER-04",
+  "status": "已实现",
+  "date": "2026-10-25",
+  "design_contract": "docs/28 §5.1、§4.2、§4.4",
+  "execution_contract": "docs/29 §6",
+  "batch": "B2-A",
+  "gate": null,
+  "scenes": ["outline", "outline-focus", "outline-compact", "outline-narrow"],
+  "themes": ["snow"],
+  "dpi": [1.5],
+  "scripts": [],
+  "evidence": ["shots/x100/CER-04/report.md"],
+  "old_hashes": {
+    "shots/golden/outline/shell-ppp1.50.png": "4242cc7746f0a664 (147198B)",
+    "shots/golden/outline-focus/shell-ppp1.50.png": "0600bc1c171e5e86 (120142B)",
+    "shots/golden/outline-compact/shell-ppp1.50.png": "58fafd33a74714c9 (145031B)"
+  },
+  "new_hashes": "重拍后以 shots/golden/outline*/shell-ppp1.50.png 现文件为准（双跑 --tol 0 锁定）；outline-narrow 为新增场景",
+  "tests": { "passed": 780, "failed": 0 },
+  "golden": { "runs": 2, "diffs": 0, "tol": 0, "note": "4 个 outline 场景双跑 0 差异；其余 40 组场景路径未触及，统一复核归入 CER-05 收尾机器门" },
+  "engineering": {
+    "fmt": "clean",
+    "clippy_mw_shell_new": 0,
+    "release_build": "pass"
+  },
+  "changes": {
+    "code": [
+      "crates/mw-shell/src/panels/outline.rs（COL_MAX 800、根标题 28/600、标题行 44、标题行状态豁免、删 footer_hints）",
+      "crates/mw-shell/src/app_methods_2.rs（页头 40 面包屑+纯文字计数、页脚 24 无按键表、孤儿清理）"
+    ],
+    "visual": "大纲页骨架按 docs/28 §5.1 重做；行绘制 v2 留 CER-05"
+  },
+  "known_gaps": [
+    "标题行行位 44（规格 38，galley 实高约束），精确 24px 子行间距归 CER-05",
+    "演示种子 pin 根行焦点导致默认 golden 带焦点环，CER-06 拆分选中/键盘焦点",
+    "层级线未删（CER-05）",
+    "行尾角标保持 X20 现状（CER-05）",
+    "密度三档与 §5.2 固定 32px 的冲突归 CER-05 裁决"
+  ]
+}

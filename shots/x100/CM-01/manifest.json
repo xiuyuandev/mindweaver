@@ -1,0 +1,39 @@
+{
+  "package": "CM-01",
+  "title": "概念图数据契约与文档类型",
+  "status": "已实现（G-CM-1 门未开；CM-02 的渲染依赖本包的 kind 契约）",
+  "date": "2026-10-26",
+  "track": "M 轨 概念图（docs/31 §6）",
+  "_note": "补记（2026-10-29，打磨轮 17）：本包当时只留了 report.md，没有 manifest；这里按报告原文回填，不新增结论。",
+  "contract": {
+    "design": "docs/30 §5.1 §5.2 §5.7 §5.8",
+    "execute": "docs/31 §6",
+    "code": [
+      "LayoutSettings.kind = \"conceptMap\"（复用既有自由字符串，不新增字段）",
+      "概念 = 浮动 Node（parent_id = None + pos）；写入走 AddFloatingTopic / SetNodePos",
+      "关系 = Node.relationships（AddRelationship 既有校验：from != to、两端存在、拒绝重复）",
+      "FORMAT_VERSION 未动、Node / NoteCard 字段未动、无迁移脚本"
+    ]
+  },
+  "tests": {
+    "new": "mw-format::concept_map_roundtrips_positions_and_relationships",
+    "assertions": [
+      "kind 存 \"conceptMap\"，读回仍是 \"conceptMap\"",
+      "pos (-132.0, 47.5) 往返后逐字段相等",
+      "parent_id 仍是 None（概念没被挂成子节点）",
+      "relationships 的 to / label=Some(\"解决\") / color=None 原样往返",
+      "validate() 往返后合法"
+    ],
+    "result": "cargo test -p mw-format concept_map → 1 passed"
+  },
+  "gate": {
+    "machine": "无独立门场景（数据契约由单测钉住）",
+    "human": "G-CM-1 未开"
+  },
+  "behaviour_change": "无（只确认契约、补测试；文档格式与字段未变）",
+  "known_gaps": [
+    "doc_order() 与 validate() 的「单根树」假设在概念图下靠实测通过，没有契约级保证",
+    "概念图大纲（按 relationships 生成树且环安全）属 CM-07，本包不做",
+    "kind 没有白名单校验：未知字符串一律回落思维导图（既有行为，改它会影响旧文档打开路径）"
+  ]
+}

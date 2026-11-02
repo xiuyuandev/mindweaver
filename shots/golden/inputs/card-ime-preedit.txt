@@ -1,0 +1,8 @@
+# 组合中：光标在文末，组合串「你好世界」长在光标处（带下划线的那段）。
+wait 3
+click 700 244
+wait 1
+key ctrl+End
+wait 1
+ime preedit 你好世界
+wait 2

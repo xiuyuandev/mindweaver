@@ -1,0 +1,46 @@
+{
+  "package": "T1",
+  "title": "抽壳层令牌、零像素漂移",
+  "status": "已实现（待跑门；`--tol 0` 全量两遍未跑）",
+  "date": "2026-11-02",
+  "track": "品牌与全局主题（docs/35 §7 第一包）",
+  "contract": {
+    "design": "docs/35 §7.1 搬运清单（23 组）、§7.2 零差异四道保证、§7.3 验收命令",
+    "theme": "docs/35 §2 母题拍板：A「素纸织线」，其余七条按文档默认值",
+    "user": "用户 2026-11-02：「按这个方案开始施工」+ T1 五条硬性要求（只搬不改 / 避开并发文件 / 暂不跑 golden / 报告与 STATUS / 重复值只记录不合并）"
+  },
+  "code": [
+    "crates/mw-core/src/design.rs（新增 pub mod shell：pub(crate) mod primitive + pub use primitive::*；icon 补 GLYPH_MEDIUM/GLYPH_LARGE；新增字节钉死单测）",
+    "crates/mw-shell/src/chrome.rs（c32 改 const fn、新增 c32a 保 alpha；chrome_of / Glyph / Tone::of 改引用令牌；新增 c32a_keeps_alpha）",
+    "crates/mw-shell/src/main.rs（CLOSE_HOT 常量改引用 shell::CLOSE_HOT）",
+    "crates/mw-shell/src/note_view.rs（tag_color 八色 → shell::tag::*；测试 MdPalette → shell::markdown::*）",
+    "crates/mw-shell/src/stats.rs（性能浮层底/字色 → shell::stats::*）",
+    "crates/mw-shell/src/app_methods_2.rs（演讲者备注与演示条 → shell::overlay::*）",
+    "crates/mw-shell/src/panels/inspector.rs（检查器 well 两档与「偏低」→ shell::inspector::*）"
+  ],
+  "tokens": {
+    "colors": 44,
+    "alphas": 11,
+    "glyph_sizes": 2,
+    "groups_in_contract": 23
+  },
+  "evidence": {
+    "fmt": "cargo fmt --all -- --check exit 0（本人 3 个含 diff 的文件先单独 rustfmt）",
+    "clippy": "cargo clippy --workspace --all-targets exit 0，告警全在基线既有文件，本轮 7 个文件新增 0",
+    "tests": "cargo test --workspace -- --test-threads=1：1356 passed / 0 failed / 1 ignored；shell_tokens_match_the_old_literals 与 c32a_keeps_alpha 均通过",
+    "blocked_process": "过程中 crates/mw-shell/src/export_pdf.rs:1511 曾因并行会话未提交改动无法编译，我未触碰；对方修好后完成上述实测",
+    "golden": "未跑（用户指令：另一会话正在重拍箭头基线）；待跑 scripts/x100-stage-b-gate.ps1 -Tol 0 与 x100-stage-cm-gate.ps1 -Tol 0，判据两遍零差异",
+    "t1b_empty": "禁用清单 9 类文件扫描无命中，T1b 待迁清单为空"
+  },
+  "tests": {
+    "new": [
+      "design::tests::shell_tokens_match_the_old_literals",
+      "chrome::tests::c32a_keeps_alpha"
+    ],
+    "total": "见 docs/STATUS.md §1（唯一真相源）"
+  },
+  "next": {
+    "gate": "等协调信号后跑 stage-b / stage-cm 全量两遍 --tol 0",
+    "t2_input": "重复同义值 9 处已记录未合并，见 report.md §7"
+  }
+}

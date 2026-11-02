@@ -1,0 +1,25 @@
+# mm-undo-three · 连按三次 Ctrl+Z：回到一颗都没建的时候
+# 三颗各是一条撤销（新建 + 写名字已经合过），所以三次正好撤干净，不多不少。
+wait 3
+click 876 552
+wait 2
+key Tab
+wait 1
+text 甲
+key Tab
+wait 1
+text 乙
+key Tab
+wait 1
+text 丙
+wait 1
+click 1200 760
+wait 2
+move 1500 1000
+wait 1
+key ctrl+z
+wait 1
+key ctrl+z
+wait 1
+key ctrl+z
+wait 3

@@ -1,0 +1,51 @@
+{
+  "id": "M30b",
+  "title": "缩略卡双击定位节点",
+  "date": "2026-11-01",
+  "round": 58,
+  "status": "已实现（机器门绿；实机鼠标双击节奏未核）",
+  "scope": [
+    "mw_ui::overview::node_at(scene, world, pad_world) 纯函数：世界点落在节点盒（可外扩容差）内返回最近中心的那颗",
+    "minimap_panel 处理 double_clicked：命中 → select_node + reveal_id（与搜索跳转同一条「露出目标」纪律），轨迹 minimap locate id=… hit=1；空白只记 hit=0，相机按普通点击搬视口框",
+    "容差按卡上 4 css px / map.scale 折成世界单位",
+    "新基线 mm-minimap-locate 进 stage-b 门（143 → 144 场 / 286 → 288 次比较）"
+  ],
+  "files": [
+    "crates/mw-ui/src/overview.rs",
+    "crates/mw-shell/src/main.rs",
+    "scripts/x100-stage-b-gate.ps1",
+    "shots/golden/mm-minimap-locate/shell-ppp1.00.png",
+    "shots/golden/inputs/mm-minimap-locate.txt",
+    "docs/x100/polish-ledger.md"
+  ],
+  "scenes": [
+    {"name": "mm-minimap-locate", "warmup": 8, "env": "MW_MINIMAP=1; MW_NOTES=none; MW_WINDOW_SIZE=1280x800; MW_GOLDEN_INPUT=shots/golden/inputs/mm-minimap-locate.txt", "vs_mm-minimap": "274314 px / bbox x[14..1788] y[58..1194]（选中环 + 相机居中）"},
+    {"name": "doubleclick-blank (trace only)", "env": "同上，脚本 doubleclick 1724 1002", "trace": "minimap locate hit=0"}
+  ],
+  "tests": {
+    "before": 1122,
+    "after": 1123,
+    "new": [
+      "overview::tests::node_at_hits_the_box_and_honours_the_pad"
+    ],
+    "existing": [
+      "mw-ui::overview::tests（世界⇄卡 roundtrip、center_from_thumb 钳制、降采样）",
+      "canvas_chrome::tests::minimap_* 三条"
+    ]
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1",
+    "result": "PASS（144 场 / 288 次比较，两遍 --tol 0）",
+    "human_gate": "未开（X20 人工判词不代判）"
+  },
+  "deliverables": [
+    "report.md",
+    "manifest.json",
+    "shell-ppp1.00.png"
+  ],
+  "known_gaps": [
+    "双击空白新建概念未做（概念图惯例但不引入）",
+    "悬停缩略卡显示节点名未做",
+    "实机鼠标双击节奏 / 150% DPI 未核"
+  ]
+}

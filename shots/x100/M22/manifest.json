@@ -1,0 +1,65 @@
+{
+  "package": "M22",
+  "title": "聚焦视图外的搜索跳转（退出全部聚焦再定位）",
+  "status": "已实现（机器门绿；人工门未开，不记已验证）",
+  "date": "2026-10-31",
+  "track": "打磨轮（docs/x100/polish-ledger.md 第 45 轮；docs/02 §4 查找 + §3 聚焦）",
+  "contract": {
+    "design": "docs/02 §4「查找」——结果要能定位到命中处；§3「聚焦」——聚焦只影响视图，不改数据，退出聚焦只由用户显式动作触发（Esc / 面包屑 / 点搜索结果）",
+    "code": [
+      "crates/mw-shell/src/canvas.rs::focus_exit_levels（目标不在聚焦子树、且在文档里 → Some(层数)；否则 None）",
+      "crates/mw-shell/src/canvas/canvas_methods_1.rs::select_node_keep_focus（scene 找不到时先退聚焦 focus_to(0)，轨迹 search_focus_exit，再走既有展开/选中）",
+      "crates/mw-shell/src/app_methods_2.rs::SA::Jump（成功且聚焦被清空时 toast「已退出聚焦并跳转」）",
+      "crates/mw-shell/src/app_methods_1.rs（MW_FOCUS_DEMO 夹具，选中 + focus_selected）",
+      "scripts/x100-stage-b-gate.ps1（+1 场 search-focus-jump，Warmup 48）",
+      "shots/golden/inputs/search-focus-jump.txt（Ctrl+F → text wgpu → Enter）"
+    ],
+    "note": "不改 Node / .zmind 字段；聚焦是视图态，退出不入撤销栈；跳转展开仍走既有的 SetCollapsed Batch"
+  },
+  "deliverables": {
+    "report": "shots/x100/M22/report.md",
+    "manifest": "shots/x100/M22/manifest.json",
+    "trace": "shots/x100/M22/trace.txt",
+    "diff": "shots/x100/M22/diff.txt",
+    "screens": [
+      "shots/x100/M22/before.png",
+      "shots/x100/M22/focus-jump.png"
+    ]
+  },
+  "scenes": [
+    {
+      "name": "search-focus-jump",
+      "dir": "shots/golden/search-focus-jump",
+      "sha256_12": "D271AB2E4183",
+      "input": "shots/golden/inputs/search-focus-jump.txt",
+      "evidence": "MW_FOCUS_DEMO=中文排版 启动即聚焦；Ctrl+F → wgpu → Enter 后轨迹 search_focus_exit levels=1 + search_jump ok=1 + toast 已退出聚焦并跳转；画布回到全图、选中 wgpu 四层合成器；改前同脚本 search_jump ok=0 + 不可达 toast，差 189 421 px（8.2213%），搜索卡片区域 0 px"
+    }
+  ],
+  "tests": {
+    "new": [
+      "canvas::tests::focus_exit_levels_only_fires_for_targets_outside_the_focused_subtree"
+    ],
+    "existing": [
+      "canvas::tests::layout_subtree_membership_ignores_collapse_but_not_focus",
+      "canvas::tests::reveal_commands_open_collapsed_ancestors_root_to_near_in_one_batch",
+      "canvas::tests::reveal_commands_skip_visible_and_missing_nodes"
+    ],
+    "total": "1066 passed / 0 failed / 1 ignored（23 个套件；mw-core 278 + contrast 7；mw-shell --bins 604 + 1 ignored）"
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1 + scripts/x100-stage-cm-gate.ps1",
+    "stage_b_scenes": 127,
+    "stage_b_comparisons": 254,
+    "stage_cm_scenes": 58,
+    "stage_cm_comparisons": 116,
+    "result": "PASS（stage-cm 09:09:47–09:14:25、stage-b 09:14:32–09:21:18，均两遍 --tol 0；fmt 干净、clippy 无新增、全量测试 1066）",
+    "human_gate": "未开（X20 / G-CM-2 人工判词不代判）"
+  },
+  "behaviour_change": "聚焦视图里搜到视图外的主题时，按 Enter / 点结果不再只弹一句「这个主题在当前视图之外」：先退出全部聚焦（视图态，不入撤销栈），再展开挡路祖先（若折叠）、选中目标、相机居中，并用 toast 说明「已退出聚焦并跳转」。搜索框仍握着键盘，结果列表与当前行不动。",
+  "known_gaps": [
+    "Ctrl+Z 不把聚焦状态还回来（聚焦是视图态，本来就不入撤销栈）",
+    "跳转展开仍会入撤销栈：Ctrl+Z 会把祖先重新折叠（M20 遗留）",
+    "目标在文档里但既不在主根子树也不在任何聚焦子树时仍只 toast（例如异常浮动概念）",
+    "实机 IME 与键盘手感未核（与 M4 同一缺口）"
+  ]
+}

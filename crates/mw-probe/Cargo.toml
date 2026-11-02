@@ -1,0 +1,12 @@
+[package]
+name = "mw-probe"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "M0 探针：窗口材质、IME 跟随、文本排版质量、5k 节点帧率（用于 egui vs DirectWrite 定案）"
+
+[dependencies]
+eframe = "0.37.0"
+raw-window-handle = "0.6"
+windows = { version = "0.62.2", features = ["Win32_Graphics_Dwm", "Win32_Foundation", "Win32_UI_WindowsAndMessaging"] }
+winit = "0.30"

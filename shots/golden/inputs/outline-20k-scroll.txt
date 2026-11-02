@@ -1,0 +1,11 @@
+# outline-20k-scroll · 20k 行滚到中段（CER-11）
+# 每帧触控板语义 -2400pt，四帧共 -9600pt ≈ 300 行；截图停在滚定后的稳定帧。
+wait 8
+scroll 0 -2400
+wait 2
+scroll 0 -2400
+wait 2
+scroll 0 -2400
+wait 2
+scroll 0 -2400
+wait 4

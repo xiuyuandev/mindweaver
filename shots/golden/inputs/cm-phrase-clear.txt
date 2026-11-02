@@ -1,0 +1,10 @@
+# C16（打磨轮 40）：既有命题的短语全选删除后按 Enter。
+# 概念图不许清空短语：命令不发（轨迹 rel-label-reject reason=empty），
+# 短语原样保留，底部提示「概念图的连接短语不能为空」。
+wait 8
+key ctrl+a
+wait 1
+key Delete
+wait 1
+key Enter
+wait 8

@@ -1,0 +1,61 @@
+{
+  "package": "M18",
+  "title": "Ctrl+X 带子树删除确认（先验证后改，产品行为零改动）",
+  "status": "已实现（机器门绿；人工门未开，不记已验证）",
+  "date": "2026-10-31",
+  "track": "打磨轮（docs/x100/polish-ledger.md 第 38 轮；HANDOFF §7.5③）",
+  "contract": {
+    "design": "HANDOFF.md §7.5③「Ctrl+X 多节点不弹删除确认」；删除确认规则见 docs/02（删除后落父级）与 canvas_methods_3.rs 的 delete_selected 注释",
+    "code": [
+      "crates/mw-shell/src/canvas/canvas_methods_1.rs::cut_action / apply_clipboard(ClipboardChord::Cut)（两条都走 delete_selected）",
+      "crates/mw-shell/src/canvas/canvas_methods_3.rs::delete_selected / delete_confirm_plan / confirm_delete_ui",
+      "crates/mw-shell/src/canvas/canvas_methods_3.rs（+3 条 MW_TRACE：delete-confirm pending/accept/cancel）",
+      "scripts/x100-stage-b-gate.ps1（+2 场）"
+    ],
+    "note": "不改变删除/剪切语义，只补轨迹与金样；不改 Frame / .zmind / Node 字段"
+  },
+  "deliverables": {
+    "report": "shots/x100/M18/report.md",
+    "manifest": "shots/x100/M18/manifest.json",
+    "trace": "shots/x100/M18/trace.txt",
+    "diff": "shots/x100/M18/diff.txt"
+  },
+  "scenes": [
+    {
+      "name": "mm-cut-confirm",
+      "dir": "shots/golden/mm-cut-confirm",
+      "sha256_12": "ECE3AADA08D0",
+      "input": "shots/golden/inputs/mm-cut-confirm.txt",
+      "evidence": "tiny-cn.zmind：点「目标」(654,433) → Ctrl+X；轨迹 delete-confirm pending=3 selected=1 + dialog；确认框 + 全屏遮罩，与只选中态差 2 304 000 px（整屏）"
+    },
+    {
+      "name": "mm-cut-cancel",
+      "dir": "shots/golden/mm-cut-cancel",
+      "sha256_12": "2BE9592D7E8D",
+      "input": "shots/golden/inputs/mm-cut-cancel.txt",
+      "evidence": "同脚本 + Esc；轨迹 delete-confirm cancel count=3 reason=esc；与「只选中、不剪切」逐像素 0 px，证明确认前没有偷偷删节点"
+    }
+  ],
+  "tests": {
+    "new": [],
+    "existing": [
+      "canvas::tests::delete_confirm_counts_the_whole_subtree_and_skips_leaf_only_deletes"
+    ],
+    "total": "1025 passed / 0 failed / 1 ignored（23 个套件；mw-shell --bins 592）"
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1 + scripts/x100-stage-cm-gate.ps1",
+    "stage_b_scenes": 121,
+    "stage_b_comparisons": 242,
+    "stage_cm_scenes": 51,
+    "stage_cm_comparisons": 102,
+    "result": "PASS（stage-b 01:38:52–01:46:51、stage-cm 01:47:40–01:50:25，均两遍 --tol 0；fmt 干净、全量 clippy 36/36 新增 0）",
+    "human_gate": "未开（实机真实 winit Ctrl+X 的按键路径需人工核对）"
+  },
+  "behaviour_change": "无。HANDOFF §7.5③ 是旧结论：cut_action 与 apply_clipboard(Cut) 本来就走 delete_selected()，带子节点会挂起确认、叶子一键剪切；本轮只加 3 条 MW_TRACE 与 2 场金样",
+  "known_gaps": [
+    "实机键盘（真实 winit Ctrl+X）与金样注入的按键路径不完全相同",
+    "多选后剪切与单节点带子树剪切走同一函数，但本轮只拍后者",
+    "确认框「删除」按钮的接受路径没有单独金样（会真删节点）"
+  ]
+}

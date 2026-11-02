@@ -1,0 +1,46 @@
+{
+  "id": "CER-24",
+  "title": "笔记库侧栏导航与标签树",
+  "date": "2026-11-02",
+  "batch": "B2-C",
+  "status": "已实现（机器证据齐；G-B2-3 人工门未开）",
+  "scope": [
+    "导航四行 30px / 16 图标 / NAV 14-21 文本 / TAG 12-18-600 计数；选中 nav_selected 4% 底 + 左 2px 强调条（docs/28 §7.3 的 13/11.5 是 TYPO-01 前旧档）",
+    "标签树 6px 圆点（六色环按路径稳定取色）、最多两级、chevron 展开记忆（默认全展）",
+    "点标签单选、Ctrl+click AND、再点唯一已选标签清除；已选筛选在列表顶显示纯文字 chip + 清除筛选",
+    "计数单一真相：侧栏与列表同源 ScopeCounts/CardQuery，筛选时侧栏计数不跟着变",
+    "库级标签管理入口在页头「更多」，不进侧栏底部"
+  ],
+  "files": [
+    "crates/mw-shell/src/note_library/sidebar.rs",
+    "crates/mw-shell/src/note_library.rs",
+    "crates/mw-core/src/note.rs",
+    "crates/mw-shell/src/note_library/tests.rs"
+  ],
+  "scenes": [
+    {"name": "library-three-pane", "sha256_12": "50A81B728495", "warmup": 3, "env": "MW_LIBRARY_DEMO=default MW_WINDOW_SIZE=1280x800", "note": "侧栏四行 + 标签树两级 + 圆点"},
+    {"name": "library-tag-filter", "sha256_12": "8CD6A191A704", "warmup": 3, "env": "MW_LIBRARY_DEMO=tag-filter MW_WINDOW_SIZE=1280x800", "note": "标签选中态 + 顶部 chip + 命中 6 张"},
+    {"name": "library-archive", "sha256_12": "F1DADFE672E8", "warmup": 3, "env": "MW_LIBRARY_DEMO=archive MW_WINDOW_SIZE=1280x800", "note": "归档作用域 4 张，计数同源"}
+  ],
+  "tests": {
+    "new_or_changed": [
+      "note_library::tests::list_rows_match_the_sidebar_count_when_unfiltered",
+      "note_library::tests::tag_click_is_single_select_and_ctrl_click_is_and",
+      "note_library::tests::clicking_the_only_tag_again_clears_it",
+      "note_library::tests::tag_tree_is_at_most_two_levels",
+      "note_library::tests::tag_tree_starts_fully_expanded",
+      "note::tests::tag_dot_index_is_stable_within_six"
+    ],
+    "supporting": [
+      "note::tests::tag_hierarchy_splits_on_slash_and_ignores_empty_segments",
+      "note::tests::tag_tree_caps_at_two_levels_and_counts_unarchived_only（CER-22 拥有）",
+      "note_store::tests::rename_tag_into_existing_merges_without_losing_cards",
+      "note_store::tests::rename_tag_rejects_empty_and_returns_zero_for_unknown",
+      "note_store::tests::tag_index_merges_case_and_rename_rewrites_every_card"
+    ]
+  },
+  "not_done": [
+    "标签圆点六色环在 ink 主题下饱和度偏低，属主题令牌问题（记在 CER-30 核对表）",
+    "三级以上标签路径在侧栏不展开，只在列表标签行与搜索里出现（§7.3 口径，非缺口）"
+  ]
+}

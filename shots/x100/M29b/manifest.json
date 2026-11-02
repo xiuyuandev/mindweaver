@@ -1,0 +1,48 @@
+{
+  "id": "M29b",
+  "title": "搜索脚注匹配方式开关的窄窗布局（实拍 + 纯函数）",
+  "date": "2026-11-01",
+  "round": 57,
+  "status": "已实现（机器门绿；实机 IME/键盘未核）",
+  "scope": [
+    "脚注「精确文本 / 拼音」开关的布局抽成纯函数 mode_toggle(footer, narrow)（宽 62+40 / 窄 40+40，右让 74 给 Esc、左留 64 给提示）",
+    "窄窗判据沿用 M29 的 width<420；开关段宽度常量化（MODE_TEXT_W / MODE_TEXT_NARROW_W / MODE_PINYIN_W / MODE_SEG_H / MODE_RIGHT_RESERVE / MODE_HINT_MIN）",
+    "轨迹 search_footer width=… narrow=… toggle=[l,r]（布局变化才记一笔，不每帧刷）",
+    "新基线 search-narrow：640×700 + 检查器 288 → 卡片 359，ppp 1.5（脚本里的逻辑宽才是 640）",
+    "单测 mode_toggle_fits_the_footer_at_every_width（240/326/420/560 四档装得进脚注）"
+  ],
+  "files": [
+    "crates/mw-shell/src/panels/search.rs",
+    "scripts/x100-stage-b-gate.ps1",
+    "shots/golden/search-narrow/shell-ppp1.50.png",
+    "shots/golden/inputs/search-narrow.txt",
+    "docs/x100/polish-ledger.md"
+  ],
+  "scenes": [
+    {"name": "search-narrow", "warmup": 8, "env": "MW_WINDOW_SIZE=640x700; MW_INSPECTOR=1; MW_NOTES=none; MW_GOLDEN_INPUT=shots/golden/inputs/search-narrow.txt; ppp 1.5", "trace": "search_footer width=359 narrow=1 toggle=[218,298]"}
+  ],
+  "tests": {
+    "before": 1121,
+    "after": 1122,
+    "new": [
+      "panels::search::tests::mode_toggle_fits_the_footer_at_every_width"
+    ],
+    "existing": [
+      "panels::search::tests::search_bar_toggles_mode_and_clears_the_current_row"
+    ]
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1",
+    "result": "PASS（143 场 / 286 次比较，两遍 --tol 0）",
+    "human_gate": "未开（X20 人工判词不代判）"
+  },
+  "deliverables": [
+    "report.md",
+    "manifest.json",
+    "shell-ppp1.50.png"
+  ],
+  "known_gaps": [
+    "卡片 240 下限（.max(240.0)）时左界 86，提示被裁剪的程度未逐字核对",
+    "实机 IME / 键盘手感未核"
+  ]
+}

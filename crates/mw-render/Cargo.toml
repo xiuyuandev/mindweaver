@@ -1,0 +1,24 @@
+[package]
+name = "mw-render"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "织思画布渲染器：自绘 wgpu 四层合成器（背景点阵 / 边界+连线 / 节点 / 覆盖层），输入是 mw-core 的 Scene（docs/13 §3、ADR-011）"
+
+[dependencies]
+mw-core = { path = "../mw-core" }
+wgpu = "=30.0.1"
+bytemuck = { version = "1", features = ["derive"] }
+futures-executor = "0.3"
+windows = { version = "0.62.2", features = [
+    "Foundation_Numerics",
+    "Win32_Foundation",
+    "Win32_Graphics_DirectWrite",
+    "Win32_Graphics_Direct2D_Common",
+] }
+# `#[implement]` 生成的代码直接引用 `::windows_core`，必须是直接依赖，不能只靠 windows 转出。
+windows-core = "0.62.2"
+windows-numerics = "0.3.1"
+
+[dev-dependencies]
+mw-golden = { path = "../mw-golden" }

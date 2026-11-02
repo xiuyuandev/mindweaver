@@ -1,0 +1,60 @@
+{
+  "package": "SR-01",
+  "title": "保存格式核：fsync、.bak 回滚、原子导出、未知字段保真",
+  "status": "已实现（不记已验证：掉电/磁盘满等真故障无法在本机复现）",
+  "date": "2026-10-30",
+  "track": "可靠性工作包（保存/导出落盘路径）",
+  "_note": "2026-10-31 打磨轮 36 按 report.md 回填；不新增结论。本包不动外观，scenes 为空。",
+  "contract": {
+    "design": "mw-format/src/lib.rs 文件头承诺：任一时点磁盘上至少存在一份完整文件（docs/05 §6）",
+    "code": [
+      "crates/mw-format/src/lib.rs::write_atomic（create → write_all → sync_all → .bak 改名 → rename → sync_dir）",
+      "crates/mw-format/src/lib.rs::sync_dir（Windows 目录句柄失败一律忽略）",
+      "crates/mw-format/src/lib.rs::tmp_path（.{file}.{pid}.{seq}.{nanos}.tmp）",
+      "crates/mw-format/src/lib.rs::sweep_stale_tmp（只删 mtime 早于 1 小时的同前缀 tmp）",
+      "crates/mw-format/src/lib.rs::FileDoc.extra（#[serde(flatten)]）+ EXTRAS_CACHE / DocExtras / merge_node_extras（未知键保真，键到 (docId, 源路径)）",
+      "crates/mw-format/src/lib.rs::normalize_unknown_enums（未知 head → Forward；未知 task → 删键 = None）",
+      "crates/mw-shell/src/export.rs::write_text（同目录 .part → sync_all → rename，失败清理）"
+    ]
+  },
+  "deliverables": {
+    "report": "shots/x100/SR-01/report.md",
+    "manifest": "shots/x100/SR-01/manifest.json"
+  },
+  "scenes": [],
+  "scenes_note": "不改外观、不改 .zmind 结构，无 golden 场景。验收全部是文件系统级单测。",
+  "tests": {
+    "new": [
+      "a_legacy_file_without_any_newer_optional_keys_still_opens",
+      "a_file_with_future_unknown_keys_still_opens",
+      "unknown_keys_survive_a_read_save_read_roundtrip",
+      "extra_keys_are_not_written_when_the_source_path_differs",
+      "a_deleted_node_does_not_resurrect_its_unknown_keys",
+      "unknown_enum_values_degrade_instead_of_failing_the_load",
+      "a_plain_document_writes_the_same_bytes_as_before",
+      "temp_file_names_do_not_collide",
+      "saving_sweeps_only_stale_temp_files",
+      "a_failed_backup_move_keeps_the_original_in_place",
+      "a_failed_commit_restores_the_original_from_the_backup",
+      "text_export_writes_atomically_without_leaving_a_part_file（mw-shell，报告写作时未跑成）",
+      "a_failed_text_export_reports_and_cleans_up_the_part_file（mw-shell，报告写作时未跑成）"
+    ],
+    "total": "mw-format 29 passed / 0 failed（既有 18 + 新增 11）；tests/x100_fixtures.rs 2 passed；mw-shell 两条在报告写作时因他人中间态未能编译，已由 Lead 集成后统一补跑"
+  },
+  "gate": {
+    "script": "scripts/test.ps1 / scripts/ci.ps1（作者未跑阶段门，按派单留给 Lead）",
+    "result": "集成后 workspace 全量测试与两道门绿，见 docs/STATUS.md §1",
+    "verification_limits": "fsync 只证明调了 sync_all，不等于真掉电验证；导出原子性在报告写作时只有隔离探针证据 + 两条待跑单测"
+  },
+  "behaviour_change": "保存/导出不再可能留下半截正本：写前 fsync、.bak 失败回滚、tmp 唯一名、陈旧 tmp 限时清理；未知顶层/节点级键在同一进程同一路径的读-存循环里保真；未知枚举值降级打开而不是整份失败",
+  "known_gaps": [
+    "没有真掉电/故障注入验证",
+    "进程内未知键账本是全局 Mutex（上限 32 份），键到 (docId, 源路径)；理想做法是 mw-core 的 Document 加 flatten extra",
+    "未知键保真只到 doc 级与 node 级；relationships/summaries/boundaries/style 内的未知键仍会丢（需改 mw-core）",
+    "未知枚举值被改写后原值不再保真（head: sideways 存回变成不写 = forward）",
+    "陈旧 tmp 用 mtime >1h 判定，极端情况可能误删/漏删",
+    "Windows 上目录 fsync 大概率是空操作（平台限制，注释写明）",
+    "另存为 / load_from_bytes 后保存 / 自动保存槽位恢复三条路径刻意不写未知键（宁可少写也不搬别的文件的字段）",
+    "报告写作时 mw-shell 两条导出单测未实跑（他人中间态），集成后补跑"
+  ]
+}

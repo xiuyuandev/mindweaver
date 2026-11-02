@@ -1,0 +1,7 @@
+wait 3
+click 115 27
+wait 4
+click 605 365
+wait 2
+move 100 600
+wait 8

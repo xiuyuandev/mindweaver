@@ -1,0 +1,10 @@
+# 确认后：同一位置换成确认后的字，前后行距不许变。
+wait 3
+click 700 244
+wait 1
+key ctrl+End
+wait 1
+ime preedit 你好世界
+wait 2
+ime commit 你好世界
+wait 2

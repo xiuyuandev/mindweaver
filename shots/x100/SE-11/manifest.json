@@ -1,0 +1,84 @@
+{
+  "package": "SE-11",
+  "title": "配色对比度达标 + 令牌归一（可量化视觉修订）",
+  "status": "已实现（机器证据齐）",
+  "date": "2026-10-30",
+  "track": "打磨轮（docs/x100/polish-ledger.md 第 32 轮；docs/30 §5.4 配色）",
+  "_note": "2026-10-31 打磨轮 36 按 report.md 回填；不新增结论。sha256 为回填当日基线（此后第 35 轮只改 harness，未重拍外观）。",
+  "contract": {
+    "design": "WCAG AA 4.5:1（正文）/ 3:1（非正文）；docs/30 §5.4；docs/x100/polish-ledger.md 第 32 轮",
+    "code": [
+      "crates/mw-core/src/theme.rs（snow/mist/sand 的 ui.dim 调深：4.34→4.53 / 4.36→4.56 / 4.31→4.51；ink 不变）",
+      "crates/mw-core/src/design.rs::content::ALPHA.text_faint 0.48→0.56（暗 0.50→0.58）",
+      "crates/mw-core/src/design.rs::text::CANVAS_LEAF = 14.0（字号阶梯第四档令牌化）",
+      "crates/mw-core/src/design.rs::component::FOCUS_RING / FOCUS_RING_OFFSET（直接引用 content::focus 1.5/1.0）",
+      "crates/mw-core/src/layout.rs（删掉零引用的 PAD_X/PAD_Y，真实出口是 design::card_padding）",
+      "crates/mw-core/tests/contrast.rs（7 条硬门）"
+    ]
+  },
+  "deliverables": {
+    "report": "shots/x100/SE-11/report.md",
+    "manifest": "shots/x100/SE-11/manifest.json"
+  },
+  "scenes": [
+    {
+      "name": "theme-ink",
+      "dir": "shots/golden/theme-ink",
+      "sha256_12": "0572F701C158",
+      "env": "MW_THEME=ink",
+      "warmup": 3,
+      "ppp": "1.5",
+      "evidence": "暗主题：dim 不变、faint 0.50→0.58（仍严格淡于 dim）"
+    },
+    {
+      "name": "theme-mist",
+      "dir": "shots/golden/theme-mist",
+      "sha256_12": "D5F1597F4343",
+      "env": "MW_THEME=mist",
+      "warmup": 3,
+      "ppp": "1.5",
+      "evidence": "雾主题：dim 4.36→4.56、faint 2.69→3.28"
+    },
+    {
+      "name": "theme-sand",
+      "dir": "shots/golden/theme-sand",
+      "sha256_12": "276255C3D101",
+      "env": "MW_THEME=sand",
+      "warmup": 3,
+      "ppp": "1.5",
+      "evidence": "沙主题：dim 4.31→4.51、faint 2.64→3.20"
+    },
+    {
+      "name": "inspector",
+      "dir": "shots/golden/inspector",
+      "sha256_12": "02AE8BE17329",
+      "env": "MW_INSPECTOR=1; MW_SELECT_DEMO=1; MW_WINDOW_SIZE=1280x720",
+      "warmup": 8,
+      "ppp": "1.5",
+      "evidence": "面板次要文字全走 dim（分组说明/副行/路径），是 dim 调深的主要观察面"
+    }
+  ],
+  "tests": {
+    "new": [
+      "tests/contrast.rs::secondary_text_clears_aa_on_every_surface（逐主题 × panel/panel2/hover/canvas_bg ≥4.5）",
+      "tests/contrast.rs::faint_text_stays_visible_but_never_becomes_body_text（四底 ≥3.0 且严格淡于 dim）",
+      "design::tests::content_alphas_match_the_contract（新 alpha + 暗≥亮 + faint<secondary）"
+    ],
+    "total": "contrast.rs 7 passed（含新增 2 条）；全量总数未记录"
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1 + scripts/x100-stage-cm-gate.ps1",
+    "stage_b_scenes": 118,
+    "stage_b_comparisons": 236,
+    "stage_cm_scenes": 49,
+    "stage_cm_comparisons": 98,
+    "result": "PASS（当轮两道门绿；具体日志已被后续轮次覆盖，以 docs/STATUS.md §1 为准）",
+    "note": "报告定性：不改布局几何，本包只在文字颜色像素上产生漂移"
+  },
+  "behaviour_change": "浅主题的次要文字略深、faint 略浓；布局、字体、行高、动画时长、主题数量均不变",
+  "known_gaps": [
+    "四家分支色板本来就不等长（snow 8、ink/mist/sand 各 6），不改；只把 docs/30 §5.4 的『6 色循环』改成按 palette.len() 取模",
+    "faint 变浓后若被当极淡装饰线用会略重——已核分隔线走 hairline/divider，不走 text_faint",
+    "对比度由脚本算最终像素（alpha 合成 + sRGB 反伽马），非真机取色器实测"
+  ]
+}

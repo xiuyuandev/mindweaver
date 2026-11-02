@@ -1,0 +1,15 @@
+# cm-outline-link · 大纲里建「概念 + 边」（docs/30 §5.6.1 的 Tab）
+# 预置：MW_CONCEPT_OUTLINE=1（示例概念图进全屏大纲）+ MW_OUTLINE_SELECT=用户痛点。
+# 流程：Tab 建概念并落下一条边 → 打概念名 → Enter → 打短语 → Enter。
+# 短语框是 Tab 建边之后自动立起来的，不是第二次 Tab。
+wait 12
+key Tab
+wait 3
+text 场景
+wait 2
+key Enter
+wait 3
+text 其一
+wait 2
+key Enter
+wait 8

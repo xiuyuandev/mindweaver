@@ -1,0 +1,9 @@
+wait 3
+click 698 473
+key alt+Down
+key alt+Down
+key alt+Down
+wait 2
+key alt+Up
+wait 2
+move 1500 1000

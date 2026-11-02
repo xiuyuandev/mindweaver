@@ -1,0 +1,6 @@
+wait 3
+press 480 330
+move 560 400
+move 640 480
+move 720 560
+wait 3

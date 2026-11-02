@@ -1,0 +1,35 @@
+{
+ "tag": "verify-c",
+ "update": false,
+ "scenes": 153,
+ "failures": [
+  {
+   "name": "card-scroll",
+   "code": 1,
+   "seconds": 5.8,
+   "tail": [
+    "[golden] 离屏渲染 · 基线目录 shots/golden/card-scroll · 容差 0 · warmup 20 帧 · 超时 10s",
+    "[golden] 输入脚本 shots/golden/inputs/card-scroll.txt · 7 帧",
+    "[golden] 回读 1620×1080 @ ppp 1.50 → shots/golden/card-scroll\\shell-ppp1.50.png",
+    "[golden] ✗ 2297/1749600 像素超容差（0.131%），最大差 128，包围盒 x[1607..1612] y[108..490]",
+    "         actual → shots/golden/card-scroll\\actual\\shell-ppp1.50.png",
+    "         diff → shots/golden/card-scroll\\diff\\shell-ppp1.50.png"
+   ]
+  },
+  {
+   "name": "mm-cut-confirm",
+   "code": 1,
+   "seconds": 1.8,
+   "tail": [
+    "[golden] 离屏渲染 · 基线目录 shots/golden/mm-cut-confirm · 容差 0 · warmup 20 帧 · 超时 10s",
+    "[golden] 输入脚本 shots/golden/inputs/mm-cut-confirm.txt · 13 帧",
+    "[golden] 回读 1920×1200 @ ppp 1.00 → shots/golden/mm-cut-confirm\\shell-ppp1.00.png",
+    "[golden] ✗ 2304000/2304000 像素超容差（100.000%），最大差 221，包围盒 x[0..1919] y[0..1199]",
+    "         actual → shots/golden/mm-cut-confirm\\actual\\shell-ppp1.00.png",
+    "         diff → shots/golden/mm-cut-confirm\\diff\\shell-ppp1.00.png"
+   ]
+  }
+ ],
+ "seconds": 377.4,
+ "finished": "2026-11-01 19:47:08"
+}

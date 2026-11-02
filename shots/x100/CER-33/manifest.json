@@ -1,0 +1,79 @@
+{
+  "id": "CER-33",
+  "title": "主题 / DPI / 中文 / 性能总验收（B2-D 第三包）",
+  "date": "2026-11-02",
+  "batch": "B2-D",
+  "status": "进行中（证据齐：36 张矩阵 + 四条性能探针 + CJK/减少动画测试 + release 哈希；只欠实机拼音/系统 DPI 人工核对与 CER-34 两遍门背书）",
+  "scope": [
+    "docs/29 §9 CER-33：四主题 × 1.0/1.5/2.0 DPI、CJK 禁则、微软拼音、20k 大纲、20k 字符卡片、10k 卡片库、减少动画、release 构建",
+    "三界面矩阵 36 张 + 性能日志 + 缺陷清单；不新增功能、不改数据模型"
+  ],
+  "files": [
+    "shots/x100/CER-33/report.md",
+    "shots/x100/CER-33/manifest.json",
+    "scripts/x100-cer33-matrix.ps1",
+    "shots/golden/inputs/library-10k-scroll.txt",
+    "shots/x100/CER-33/matrix/outline/hashes.txt",
+    "shots/x100/CER-33/matrix/card/hashes.txt",
+    "shots/x100/CER-33/matrix/library/hashes.txt",
+    "shots/x100/CER-33/matrix/outline-contact.png",
+    "shots/x100/CER-33/matrix/card-contact.png",
+    "shots/x100/CER-33/matrix/library-contact.png",
+    "shots/x100/CER-33/logs/outline-20k-probe.log",
+    "shots/x100/CER-33/logs/card-20k-perf.log",
+    "shots/x100/CER-33/logs/card-20k-ime.log",
+    "shots/x100/CER-33/logs/library-10k-perf.log",
+    "shots/x100/CER-33/logs/library-10k-stats.log",
+    "shots/x100/CER-33/logs/release-hash.txt"
+  ],
+  "scenes": [
+    {"surface": "outline", "env": "MW_OUTLINE=1 MW_OUTLINE_20K=1 MW_WINDOW_SIZE=1280x800", "themes": ["snow", "ink", "mist", "sand"], "dpi": [1.0, 1.5, 2.0], "shots": 12},
+    {"surface": "card", "env": "MW_CARD_20K=1 MW_WINDOW_SIZE=1200x1000", "themes": ["snow", "ink", "mist", "sand"], "dpi": [1.0, 1.5, 2.0], "shots": 12},
+    {"surface": "library", "env": "MW_LIBRARY_DEMO=long MW_WINDOW_SIZE=1280x800", "themes": ["snow", "ink", "mist", "sand"], "dpi": [1.0, 1.5, 2.0], "shots": 12}
+  ],
+  "tests": [
+    "cargo test -p mw-core --lib text → 35 passed / 0 failed",
+    "cargo test -p mw-render --test text_measure → 12 passed / 0 failed",
+    "cargo test -p mw-shell --bin mw-shell reduce_motion -- --test-threads=1 → 1 passed / 0 failed"
+  ],
+  "golden": {
+    "runs": 36,
+    "diffs": 0,
+    "tol": 0,
+    "note": "矩阵用 --update 写入，不是与旧基线比较；产物 3 表面 × 12 张，全部非空，每表面 hashes.txt 12 行"
+  },
+  "perf": {
+    "outline_20k": {"first_screen_ms": 34.1, "scroll_p50_ms": 0.18, "scroll_p95_ms": 0.51, "scroll_max_ms": 0.73, "collapse_ms": 0.32, "expand_ms": 0.30, "budget": {"first_screen_ms": 100, "p95_ms": 16, "collapse_ms": 16}},
+    "card_20k": {"open_ms": 12.688, "p50_ms": 0.635, "p95_ms": 0.927, "max_ms": 12.688, "frames_over_50ms": 0, "budget": {"open_ms": 150, "max_ms": 50}},
+    "card_20k_ime": {"open_ms": 12.351, "preedit_ms": 3.876, "commit_ms": 1.255, "p95_ms": 2.362, "budget_ms": 16},
+    "library_10k": {"first_screen_ms": 12.971, "p50_ms": 0.147, "p95_ms": 0.760, "max_ms": 12.971, "stats_ui_p50_ms": 0.10, "stats_ui_p95_ms": 0.14, "budget": {"first_screen_ms": 100, "ui_p95_ms": 16}},
+    "probe_pixel_neutral": "shots/golden/library-long 既有基线 --tol 0 比较：零差异"
+  },
+  "release": {
+    "measurements": [
+      {"built_at": "2026-11-02 10:23", "bytes": 25618944, "mib": 24.43, "sha256": "ed2ee62107bfb77a3df931a7a4804064d5053f1cf8def245abf20b2ed7531788", "note": "含 MW_LIBRARY_PERF；矩阵与性能探针用它"},
+      {"built_at": "2026-11-02 10:40", "bytes": 25714688, "mib": 24.52, "sha256": "4178826b6634d3ac16eb2f36098ff81de220d59923a85e284389971d2bf9d35a", "note": "合入并行会话 mw-format 改动；library-long 零差异比较用它；CER-34 按最终树重记"}
+    ]
+  },
+  "code_changes": [
+    "crates/mw-shell/src/trace.rs：新增 library_frame_ms（MW_LIBRARY_PERF）",
+    "crates/mw-shell/src/main.rs：library_ui 外层计时并写探针（仅 env 门控，不改绘制）"
+  ],
+  "reuse": [
+    "shots/x100/CER-11/matrix/（大纲 20k 12 张，2026-10-26）",
+    "shots/x100/CER-20/report.md §4（20k 卡片旧口径）",
+    "shots/golden/library-long（10k 卡片，已进 stage-b 门）"
+  ],
+  "not_done": [
+    "实机微软拼音未核对（沿用 B2-C 欠账）；本轮 IME 只是构造事件",
+    "系统 DPI 缩放切换未测，矩阵只覆盖 harness --ppp",
+    "10k 库夹具不含磁盘索引，首屏数字只算内存建库 + 首帧列表",
+    "新探针需 CER-34 两遍 stage-b 门背书；本轮只做了 library-long 单场零差异比较"
+  ],
+  "risks": [
+    "并行会话改 mw-format 曾把树打断（10:25–10:30），收尾靠等待而非改它的文件；后续仍可能发生",
+    "F1/F2 若在本包修，card-* 基线必须与 CER-34 同批重拍",
+    "离屏 harness 无 vsync，帧率只用 UI p95 判",
+    "MW_LIBRARY_PERF 只是 env 门控探针，但二进制已变；CER-34 两遍门是最终背书"
+  ]
+}

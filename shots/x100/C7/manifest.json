@@ -1,0 +1,72 @@
+{
+  "package": "C7",
+  "title": "整理布局的提示与撤销动线（打磨轮 13 + 18）",
+  "status": "已实现（提示条 + 一条命令一次撤销的单测 + 撤销连取景一起还回来 + 端到端基线；不记已验证：实机键鼠手感未核）",
+  "date": "2026-10-29",
+  "track": "打磨轮（docs/x100/polish-ledger.md §1 C7 行）",
+  "contract": {
+    "design": "docs/30 §5.5「整理布局 …… 一次命令，可撤销」（打磨轮 18 补「撤销连取景一起还回来」）",
+    "code": [
+      "crates/mw-shell/src/canvas/canvas_methods_3.rs::arrange_batch（纯函数：没动的不出命令，多条合成一条 Batch，返回颗数）",
+      "crates/mw-shell/src/canvas/canvas_methods_3.rs::arrange_concepts（bool → Option<usize>；落地后记 arrange_undo_depth）",
+      "crates/mw-shell/src/canvas/canvas_methods_3.rs::undo / redo（踩到整理那一条时 request_fit；重做再 fit 并重新挂栈深）",
+      "crates/mw-shell/src/canvas.rs（新字段 arrange_undo_depth / arrange_redo_fit）",
+      "crates/mw-shell/src/canvas/canvas_methods_2.rs::fit_bounds（新增 `fit zoom= center= bounds=` 轨迹）",
+      "crates/mw-shell/src/app_methods_2.rs（右键菜单落地点补 toast「已整理 N 颗概念 · Ctrl+Z 撤销」）",
+      "crates/mw-shell/src/app_methods_1.rs::set_toast（新增 `toast bad= text=` 轨迹）",
+      "crates/mw-shell/src/app_methods_3.rs::toast_bar（harness 里不按 2.4s 墙钟过期）",
+      "crates/mw-shell/src/canvas/tests.rs::arranging_three_concepts_is_one_undo（新单测）"
+    ]
+  },
+  "deliverables": {
+    "report": "shots/x100/C7/report.md（§9 = 打磨轮 18）",
+    "manifest": "shots/x100/C7/manifest.json",
+    "toast_trace": "shots/x100/C7/toast-trace.txt",
+    "toast_trace_script": "shots/x100/C7/toast-trace-script.txt",
+    "undo_trace": "shots/x100/C7/undo-trace.txt",
+    "undo_fit_trace": "shots/x100/C7/undo-fit-trace.txt",
+    "default_fit_trace": "shots/x100/C7/fit-default-trace.txt",
+    "pixel_proof": "shots/x100/C7/pixel-diff.txt（undo-refit.png vs fit-ref.png）"
+  },
+  "evidence": {
+    "toast": "真实右键菜单路径：menu_activate key=enter label=整理布局 → concept-arrange n=6 moved=6 → toast bad=false text=已整理 6 颗概念 · Ctrl+Z 撤销",
+    "undo": "cm-arrange-undo：concept-arrange n=6 moved=6 → undo label=摆放概念 left=12（一条撤销）",
+    "undo_fit": "打磨轮 18：… → undo fit=1 → fit zoom=1.5000 center=(23.00,3.00) bounds=(-346.0,-246.0,738.0,498.0)",
+    "undo_refit_vs_manual_fit": {
+      "canvas_rows_100_1099_max_diff": 0,
+      "full_px_over_8": 1828,
+      "residual_where": "顶栏（缩放读数 124% vs 150% / 撤销可用态）与左下提示条",
+      "note": "undo-refit.png = 整理 + 一次 Ctrl+Z；fit-ref.png = 同一文档手动 Ctrl+1"
+    },
+    "undo_vs_arranged_px": 40022,
+    "undo_vs_default_px": 40161,
+    "undo_vs_default_note": "这两个数是打磨轮 13 的旧基线；打磨轮 18 之后 cm-arrange-undo 已重拍，画布改由「与手动 fit 逐像素一致」来钉"
+  },
+  "tests": {
+    "new": ["mw-shell::canvas::tests::arranging_three_concepts_is_one_undo"],
+    "total": "935 passed / 0 failed（打磨轮 18 未新增单测：arrange/undo 需要真实 Canvas，单元测试里没有无头构造路径）"
+  },
+  "gate": {
+    "stage_b": "scripts/x100-stage-b-gate.ps1（场次与结论以 docs/STATUS.md §1 为准）",
+    "stage_cm": "scripts/x100-stage-cm-gate.ps1（同上；`cm-arrange-undo` 在打磨轮 18 重拍）",
+    "new_baselines": 1,
+    "note": "打磨轮 13 记的 cm-arrow-menu 2px 假红属门槛脚本注释里的「紧跟重负载第一遍多抓半帧」，与本行无关"
+  },
+  "clippy": {
+    "new": 0,
+    "note": "打磨轮 13 第一版 let...else 被 clippy 判「可用 ?」→ 改成 ?；打磨轮 18 新增 0"
+  },
+  "behaviour_change": [
+    "整理布局从右键菜单触发后弹一条提示：「已整理 N 颗概念 · Ctrl+Z 撤销」；整理未改动任何概念时不弹",
+    "撤销整理布局时取景一起回到「这套位置的适应取景」，重做再回整理后的取景（打磨轮 18）",
+    "离屏 harness 里提示条不按 2.4s 墙钟过期（截图与真实时钟无关）"
+  ],
+  "known_gaps": [
+    "取景是重算 `fit` 而不是回放整理前那一帧的相机：先手动平移过、再整理、再撤销，镜头回的是适应取景",
+    "撤销/重做整理时没有新单测：需要真实 Canvas（wgpu 渲染态），单元测试无无头构造路径；证据靠轨迹 + 像素 + 基线",
+    "toast 文案写死中文，尚无本地化层",
+    "没有「整理后多久按撤销」的行为数据（要埋点）",
+    "实机键位手感（菜单里两次 ↓ 选到「整理布局」）未在真机上试过",
+    "首帧 fit 用的是没落定的视口（同一包围盒首帧 zoom 1.2369、稳定视口 1.5），打磨轮 18 发现、未改，见账本 §3 第 11 条"
+  ]
+}

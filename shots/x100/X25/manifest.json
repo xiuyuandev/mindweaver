@@ -1,0 +1,259 @@
+{
+  "package": "X25",
+  "slice": "X25（本包 = 层级样式与主题默认值的现状审计 + 合同草案，不含实现）",
+  "title": "层级样式（字号/字重/颜色/线宽/内距/间距）× 四主题默认值 × 概念图对照",
+  "status": "进行中",
+  "status_reason": "本包只交 §2 现状测绘与 §3 差距清单；10 条差距全部未实现、§4 十二条验收与 §5 场景全部未开始；本轮按 Lead 收尾通知停在审计态。写作用域只有 shots/x100/X25/，未改任何 crates/",
+  "date": "2026-11-02",
+  "updated": "2026-11-02T21:10:00+08:00",
+  "track": "Stage C 第 1 轮（docs/24 §3 阶段 C 的 X25 行；X21 / X21b / X22 / X23 / X24 并行）",
+  "contract": {
+    "route": "docs/24 §3「- X25 按中心、一级、子主题重新校准层级样式与主题默认值。」+ §4 执行协议（report.md 先行）",
+    "design_tokens": "docs/06 §2.2 令牌表（节点字阶 28/20/15/14、圆角 10、内距 18×9、分支线 4/3/2/1.5、分支色八色、一级填充八色、「节点本身不投影」）——该表自述「外壳/令牌参考」，多处已过时",
+    "design_visual": "docs/06 §2.1 实拍结论（中心 白底+1.5px 描边+黑字加粗+圆角；一级 实色马卡龙填充、无描边、黑字常规；次级 白卡/纯文字、轻描边、字号明显小于一级）",
+    "design_content": "docs/28 §4.1（只用 400 / 500 / 600 三档字重）与 §4.4（阴影只允许浮层；行/卡片/预览/面板一律无阴影）",
+    "design_conceptmap": "docs/30 §5.3（概念盒：文本宽 + 28、最小 96、最大 240、单行高 36、双行 52、椭圆 1.22×1.16 外扩、圆角 10）",
+    "authority": "docs/35 §0.1「几何字阶的取值仍以 mw_core::design 的实现为准」+ T2 工单（theme.rs 注释 28/20/15/14 vs 实际 28/20/16/15）",
+    "status_source": "数字与门状态只以 docs/STATUS.md §1 为准，本文不复制场次",
+    "conflict": "docs/06 §2.2 的色板表自述「与 core/theme.rs 的 snow 主题一致」已不成立（逐值差 ≤62/255）；字阶与内距两列与代码不一致（G-25-02 / -03）"
+  },
+  "scope": {
+    "must": [
+      "读 docs/24 / docs/06 §2 / docs/28 §4 / docs/30 §5 / docs/35 §0 定口径（report §2.0 表）",
+      "只读测绘：层级（中心/一级/二级/三级及更深）× 字号/字重/文字色/填充/描边/行高/内距/盒高/线宽/间距，四主题各一份（report §2.1–§2.4）",
+      "派生链：哪些值是算出来的（mix 0.07 / 0.22 / 0.20、branch_fill、edge_width_at、accented_to、legible）+ 改一个值的连带面（report §2.3）",
+      "主题令牌结构（6 族）与四处收敛缺口（report §2.7）",
+      "概念图 vs 思维导图两套默认值对照（report §2.6）",
+      "差距清单：现状→合同→影响面→是否动令牌或数据模型（report §3，10 条，4 条需重拍）",
+      "验收草案（§4，12 条）与 golden 场景名单（§5，7 新 + 4 既有复跑；只列名字不拍图）",
+      "doc-hygiene 体检"
+    ],
+    "out_of_scope": [
+      "改任何 crates/ 代码（含测试）",
+      "改 docs/（含 docs/STATUS.md）、scripts/、shots/golden/",
+      "重拍任何基线、登记门场次",
+      "重定字阶/字重映射/行高倍数/DPI（属 X22，见 report §1.2）",
+      "形状枚举、圆角体系、边框、阴影（属 X23）",
+      "分支线线型/控制点/箭头/锥形/内缩（属 X24，只衔接其 G-08 / G-12）",
+      "概念图专属主题的色板与概念盒几何（属 CM 轨）",
+      "层级间距要做主题级（需往 .zmind 加字段，属数据模型变更，需拍板）"
+    ]
+  },
+  "current_code_facts": [
+    "crates/mw-core/src/design.rs：pub const CANVAS_SUB: f32 = 16.0; / pub const CANVAS_LEAF: f32 = 15.0; / pub const CANVAS_MAIN: f32 = 20.0; / pub const CANVAS_CENTER: f32 = 28.0;（docs/06 §2.2 写 15/14，差 1px）",
+    "crates/mw-core/src/design.rs：pub const fn line_height(size) → ≤12:1.5、≤15:1.46、≤21:1.44、其余 1.4；pub const fn card_padding(font_size) → ≥26:(26,12)、≥19:(18,10)、≥14.5:(14,8)、其余:(12,7)",
+    "crates/mw-core/src/theme.rs：pub const LEVEL_TYPE: [(f32, bool); 4] = [(CANVAS_CENTER,true),(CANVAS_MAIN,false),(CANVAS_SUB,false),(CANVAS_LEAF,false)] —— 四主题共用，主题改不了字号",
+    "crates/mw-core/src/theme.rs：pub struct LevelStyle { fill, text, font_size, bold: bool, shape, stroke, stroke_width }（7 字段）；pub struct Theme { id,name,appearance,ui,palette,palette_fill,levels,branch_text,main_card,taper,edge_width,edge_width_root }",
+    "crates/mw-core/src/theme.rs：pub fn level(&self, d) → levels[d.min(len-1)]，层表空时兜底再写一份默认值（第三处默认值）",
+    "crates/mw-core/src/theme.rs：一级填色 = palette_fill_at(兄弟序号)；一级描边 = level_fill.mix(branch, 0.22)；二级及以下 fill = level.fill.mix(branch, 0.07)、stroke = level.stroke.mix(branch, 0.20)",
+    "crates/mw-core/src/theme.rs：pub fn edge_widths(child_depth) → (edge_width_at(d-1), if taper { edge_width_at(d) } else { start })；edge_width_at：0=root、1=root×0.75、2=edge_width、≥3=(edge_width×0.75).max(1.0)",
+    "四主题线宽实测：snow 3.5·2.625·1.75·1.3125（edge_width 1.75/root 3.5）、ink 3.2·2.4·1.6·1.2、mist 3.3·2.475·1.65·1.2375、sand 3.4·2.55·1.7·1.275；docs/06 §2.2 合同值 4/3/2/1.5（差 −12.5%/−20%/−17.5%/−15%）",
+    "四主题 palette 长度：snow 8、ink 6、mist 6、sand 6；palette_at = palette[i % len] ⇒ 第 7/8 支与第 1/2 支同色",
+    "四主题 levels 的 font_size/bold/shape 全取 LEVEL_TYPE / Shape::Rounded；branch_text 全 false（字段无一处为 true）、main_card 全 true、taper 全 true",
+    "crates/mw-core/src/theme.rs：fn legible(mut t: Theme) → 色板对画布/一级卡 <3:1 或层级文字 <4.5:1 时按 ×0.93 / ×0.9 逐步压暗（≤24 次，色相不变）；按 WCAG 手算四主题现值全部合规（最低 snow #B98A3E 对画布 3.00:1）⇒ 今天是空操作",
+    "crates/mw-core/src/theme.rs：fn accented_to(&self, hue) 只旋转 ui.accent / ui.accent_soft / palette / palette_fill，**不旋转 levels** ⇒ 设 meta.theme_accent 后中心卡与二三级描边仍是原色相",
+    "crates/mw-core/src/theme.rs：fn with_overrides(&self, o) → level1_fill 同时刷整个 palette_fill；text 刷全部层；text_sub 刷第 2 档及以后；edge_scale 同时乘两个线宽 clamp(0.4,2.5)",
+    "crates/mw-core/src/theme.rs：概念图默认值 const CONCEPT_FONT: f32 = 14.0; / const PRIMARY_FONT: f32 = 15.0;（局部常量，不在 design::text）；apply_concept_defaults 逐项判断显式覆盖；is_concept_theme（id 以 cm- 开头）时不再覆盖填充/形状/描边",
+    "crates/mw-core/src/scene.rs：fn text_height = (lines×line_h + 2×pad_y).max(32.0)；center_text: kind.is_concept_map()；const CONCEPT_PAD_X: f32 = 14.0; / CONCEPT_MIN_W 96 / CONCEPT_MAX_W 240 / CONCEPT_H1 36 / CONCEPT_H2 52 / ELLIPSE_EXTRA_X 0.22 / ELLIPSE_EXTRA_Y 0.16（封顶 24）",
+    "crates/mw-render/src/instances.rs：pub const NODE_RADIUS: f32 = mw_core::design::radius::MD;（=10，主题改不了圆角）",
+    "crates/mw-core/src/model.rs：LayoutSettings 默认 sibling_gap: 24.0, level_gap: 80.0；布局里 .max(4.0) / .max(20.0)；层级间距不是主题级令牌",
+    "单行盒高（按源码复算）：中心 63 / 一级 49 / 二级 39 / 三级 38；二级与三级内距同档 (14,8)，只差 1px 字号与 1px 盒高",
+    "shots/x100/X22/report.md §7.1 给最深层的单行盒高 36，与源码复算 38 不一致（本包按 38 记，列为待核 R-3）"
+  ],
+  "gaps": [
+    {
+      "id": "G-25-01",
+      "summary": "主题默认值只覆盖颜色：字号/内距/行高/圆角/间距都不是主题级令牌；含 X23 委托的「令牌三套语言」「边框色是派生非令牌」「圆角上限与盒高耦合」三条",
+      "repaint": false,
+      "baselines": 0,
+      "needs_decision": "P-1"
+    },
+    {
+      "id": "G-25-02",
+      "summary": "画布字阶 28/20/16/15 vs docs/06 §2.2 的 28/20/15/14",
+      "repaint": false,
+      "baselines": 0,
+      "note": "建议照 X22 G03 同款改文档；若拍板真重校则 71 场重拍",
+      "needs_decision": "P-1"
+    },
+    {
+      "id": "G-25-03",
+      "summary": "内距按字号四档 (26,12)/(18,10)/(14,8)/(14,8) vs 合同单值 18×9；一级盒高 49 vs 47；二三级同档",
+      "repaint": true,
+      "baselines": 71,
+      "needs_decision": "P-2"
+    },
+    {
+      "id": "G-25-04",
+      "summary": "四主题线宽各自一套取值在仓库里无文档（docs/06 只列 snow）；「更深」档有 max(1.0) 钳制",
+      "repaint": false,
+      "baselines": 0,
+      "note": "线宽本身已按 X24 G-08 裁「以代码现值为准、不重拍」",
+      "needs_decision": null
+    },
+    {
+      "id": "G-25-05",
+      "summary": "色板支数 6 vs 8（第 7/8 支取模重复）；docs/06 两张色板表与 snow 逐值不同（ΔRGB ≤62）且自称「一致」",
+      "repaint": false,
+      "baselines": 0,
+      "note": "已按 X24 G-12 裁「补合同」",
+      "needs_decision": null
+    },
+    {
+      "id": "G-25-06",
+      "summary": "文档级强调色覆盖只旋转 palette/palette_fill，不旋转 levels（中心卡与二三级描边不跟色相）",
+      "repaint": false,
+      "baselines": 0,
+      "needs_decision": "P-4"
+    },
+    {
+      "id": "G-25-07",
+      "summary": "概念图字号是 theme.rs 局部常量（14/15）且比画布最深 15 更小 1px；无两套默认值对照表",
+      "repaint": true,
+      "baselines": 80,
+      "needs_decision": "P-3"
+    },
+    {
+      "id": "G-25-08",
+      "summary": "LevelStyle.bold: bool 表达不了 500（docs/28 §4.1 三档字重），要「一级 500」得扩字段",
+      "repaint": false,
+      "baselines": 0,
+      "needs_decision": null
+    },
+    {
+      "id": "G-25-09",
+      "summary": "主题默认值无单一出口：四份手写 levels + Theme::level() 兜底再抄一份 + legible() 运行时改写",
+      "repaint": false,
+      "baselines": 0,
+      "needs_decision": null
+    },
+    {
+      "id": "G-25-10",
+      "summary": "层级间距（兄弟 24 / 层 80）在 LayoutSettings 里、无合同值；要主题级需动 .zmind",
+      "repaint": false,
+      "baselines": 0,
+      "note": "已按 X24 G-10 裁「补合同」",
+      "needs_decision": null
+    }
+  ],
+  "gap_totals": {
+    "gaps": 10,
+    "repaint_gaps": 2,
+    "repaint_detail": [
+      "G-25-03 收细三级内距 → 71 场 stage-b / 142 次比较",
+      "G-25-07 抬概念图字号 → 80 场（stage-b 7 + stage-cm 73）"
+    ],
+    "affected_stage_b_scenes": 71,
+    "affected_stage_b_comparisons": 142,
+    "affected_stage_cm_scenes": 73,
+    "affected_stage_b_cm_scenes": 7,
+    "affected_if_both": 151,
+    "decisions_pending": [
+      "P-1 画布字阶：确认以代码为准改文档（0 重拍），还是按 docs/06 重校成 15/14（71 场重拍）；连带字号是否升为主题级令牌",
+      "P-2 内距是否改写为四档表并接受二三级同档，还是要求三级更紧（71 场重拍）",
+      "P-3 概念图字号 14/15 是否跟着画布校准（80 场重拍）",
+      "P-4 强调色覆盖是否连带旋转 levels（0 重拍，需新增 1 场 golden）"
+    ],
+    "closed_by_lead_decision": [
+      "线宽以代码现值为准（X24 G-08）",
+      "色板与层级间距补合同（X24 G-12/G-10）",
+      "节点不加阴影（X23 G-1）"
+    ]
+  },
+  "acceptance_draft": [
+    {
+      "id": "AC-01",
+      "criterion": "四主题 × 4 层 ×（字号/行高/内距/盒高/weight/fill/stroke/stroke_width/线宽 start,end）整表快照单测"
+    },
+    {
+      "id": "AC-02",
+      "criterion": "思维导图四档与概念图两档的对照表：概念 14/15 低于画布最深 15 这个差异必须显式登记"
+    },
+    {
+      "id": "AC-03",
+      "criterion": "legible() 触发面：现状四主题全免修（snow 赭石 3.00 临界）；调亮 5% 必被压暗且色相不变"
+    },
+    {
+      "id": "AC-04",
+      "criterion": "meta.theme_accent 异色相后 levels[0].fill 变/不变二选一写死（按 P-4）"
+    },
+    {
+      "id": "AC-05",
+      "criterion": "palette.len() == palette_fill.len() 且 ≥ 计划值；补到 8 支则断言 palette_at(6) != palette_at(0)"
+    },
+    {
+      "id": "AC-06",
+      "criterion": "card_padding 四档单调 + 显式声明最深档是否必须更紧"
+    },
+    {
+      "id": "AC-07",
+      "criterion": "盒高表 63 / 49 / 39 / 38（±0.01），一级与 docs/06 的 47 差 1.8 写进注释"
+    },
+    {
+      "id": "AC-08",
+      "criterion": "四主题 × 4 档 × (start,end) = 16 个线宽数值逐个断言 + 每条边 end <= start"
+    },
+    {
+      "id": "AC-09",
+      "criterion": "golden：§5 新场景与重拍场次双跑 --tol 0 零差异"
+    },
+    {
+      "id": "AC-10",
+      "criterion": "PNG / SVG / PDF 三处的字号/字重/填充/描边一致（SVG 读 font-size/fill/stroke-width）"
+    },
+    {
+      "id": "AC-11",
+      "criterion": "crates/mw-core/tests/contrast.rs 四主题 × 4 层文字/填充 ≥4.5、分支线 ≥3 全过"
+    },
+    {
+      "id": "AC-12",
+      "criterion": "概念图四主题与思维导图四主题令牌零共享（concept_themes_do_not_share_tokens_with_mindmap_themes）"
+    }
+  ],
+  "golden_plan": {
+    "new": [
+      "x25-hierarchy-snow",
+      "x25-hierarchy-ink",
+      "x25-hierarchy-mist",
+      "x25-hierarchy-sand",
+      "x25-weights",
+      "x25-accent-override",
+      "x25-palette-8",
+      "x25-concept-defaults",
+      "x25-deep-fallback"
+    ],
+    "rerun": [
+      "theme-ink",
+      "theme-mist",
+      "theme-sand",
+      "base-ppp1",
+      "base-ppp2",
+      "mm-collapse",
+      "inspector"
+    ],
+    "captured": "本包不拍图（§5 只列名字）"
+  },
+  "evidence": {
+    "audit": "report.md §2 六张现状表（层级×属性、四主题取值、派生链、线宽、色板对照、概念图对照、令牌结构）",
+    "gaps": "report.md §3（10 条，逐条给「现状 → 合同 → 影响面 → 是否动令牌」）",
+    "contrast": "WCAG 手算四主题（非实测）：palette 对画布最低 snow 3.00、层级文字最低 5.84；源脚本见会话记录（未落盘，只读计算）",
+    "repaint": "受影响 71 场 stage-b（base 3 + theme 3 + mm 42 + inspector 15 + search 8）/ 142 次比较；概念图另 80 场",
+    "hygiene": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/doc-hygiene.ps1"
+  },
+  "tests": {
+    "new": [],
+    "note": "本包不改代码、不加测试；未跑 cargo（并行会话在构建，会撞锁）"
+  },
+  "gate": {
+    "id": null,
+    "verdict": "本包无人工门；Stage C 批次末端人工验收",
+    "blocking": "P-1…P-4 四项拍板（字阶权威口径 / 内距分档 / 线宽抬档 / 强调色是否连带层级）"
+  },
+  "incomplete": [
+    "§2.7 令牌族只到「族 + 字段清单」级，没有逐字段的命名一致性矩阵",
+    "未跑 cargo：legible() 后的运行时色值与盒高都是按源码公式/WCAG 手算，非实测（§6 R-3 记了与 X22 §7.1 的 36 vs 38 差异）",
+    "G-25-01/08 若动 Theme 结构，只给了半张字段表，没按 docs/32 §12 写完整提案",
+    "P-1…P-4 未拍板，故 §4 AC-04 的判据二选一留空",
+    "受影响基线按族计数（71 / 80），未逐场核对是否真的画布可见"
+  ]
+}

@@ -1,0 +1,7 @@
+# M19（打磨轮 41）：链接命中。样例文档里 `https` 只出现在「纯 Rust 原生」的链接
+# （`MW_SEARCH_DEMO=1` 播种 `https://wgpu.rs`），标题与备注里都没有。
+wait 8
+key ctrl+f
+wait 4
+text https
+wait 8

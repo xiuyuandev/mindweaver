@@ -1,0 +1,5 @@
+wait 6
+key Home
+wait 6
+move 24 690
+wait 2

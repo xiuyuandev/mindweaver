@@ -1,0 +1,41 @@
+{
+  "package": "CM-02",
+  "title": "概念图画布渲染（盒子 / 直线 / 短语 / 居中）",
+  "status": "进行中（本包主渲染已落地；交互场景随 CM-03/CM-05 验，见 report §6）",
+  "date": "2026-10-26",
+  "track": "M 轨 概念图（docs/31 §6）",
+  "_note": "补记（2026-10-29，打磨轮 17）：本包当时只留了 report.md，没有 manifest；这里按报告原文回填，不新增结论。状态沿用报告里的「进行中」。",
+  "contract": {
+    "design": "docs/30 §5.3（节点）§5.4（连线）§5.5（布局/取景）§5.9（禁止项）",
+    "execute": "docs/31 §6",
+    "code": [
+      "mw-core::layout::LayoutKind::ConceptMap（+ from_kind / as_str / is_concept_map，不再冒充 Mindmap）",
+      "mw-core::theme::apply_concept_defaults（级联之后统一覆盖默认值，仍尊重 Node.style 的显式覆盖）",
+      "mw-core::scene::NodeSizer::measure_concept（宽 = 文本 + 28，夹 96–240；高 36 / 双行 52；≤2 行）",
+      "mw-core::scene::SceneNode.center_text（概念图为 true）",
+      "mw-render::text::node_text_align（居中与卡片内距左对齐两条路）",
+      "mw-core::scene::straight_between（直线 + 箭头 + 短语落在线段中点）",
+      "mw-render::instances（概念图关系线不描边胶囊、不画起点圆点）"
+    ]
+  },
+  "scenes": ["cm-default", "cm-narrow"],
+  "tests": {
+    "new": [
+      "concept_boxes_follow_the_node_contract（盒宽 96–240、盒高 36/52、居中、字号 14（主概念 15）、≤2 行）",
+      "concept_relationships_are_straight_while_mindmap_keeps_curves（同文档换 kind：Line vs Quad，短语落在线段中点）"
+    ],
+    "result": "cargo test -p mw-core scene:: 全绿，含这 2 条"
+  },
+  "gate": {
+    "goldens": "cm-default（1280×800 @1.0，warmup 6）与 cm-narrow（640×460 @1.5，warmup 6）各双跑 --tol 0，0 差异"
+  },
+  "behaviour_change": "概念图从「冒充思维导图样式」变成浅色圆角盒 + 深色字 + 居中文字 + 直线箭头 + 无描边短语胶囊",
+  "known_gaps": [
+    "圆角是 12 而不是规格里的 8（Shape::Rounded 用全局 NODE_RADIUS，ResolvedStyle 没有 radius 字段）",
+    "箭头几何 8.4×9 世界单位，不是 6×4 CSS（箭头在 build_scene 里按世界单位写死）",
+    "悬停/选中 1px/1.5px 描边沿用画布既有选中环，未按概念图单独调",
+    "短语胶囊 20px 高、线断 8px 沿用 REL_LABEL_H，未单独为概念图调断口",
+    "相机 fit 只用全部节点包围盒，不含概念图专用留白",
+    "交互场景（cm-node-edit / cm-crosslink 等）随 CM-03 / CM-05 一起验"
+  ]
+}

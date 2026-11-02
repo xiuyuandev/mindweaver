@@ -1,0 +1,5 @@
+wait 8
+key ArrowDown
+wait 2
+key Enter
+wait 8

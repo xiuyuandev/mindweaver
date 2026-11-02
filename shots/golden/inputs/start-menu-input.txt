@@ -1,0 +1,5 @@
+wait 8
+click 114 27
+wait 6
+key 1
+wait 8

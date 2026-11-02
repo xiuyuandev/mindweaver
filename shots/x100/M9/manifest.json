@@ -1,0 +1,91 @@
+{
+  "package": "M9",
+  "title": "折叠/展开与折叠圆点（动画中间帧 + 热区）",
+  "status": "已实现（离屏等效：四张基线 + toggle 轨迹 + 三档缩放热区单测）；实机手感与 150% 档 未验证",
+  "date": "2026-10-29",
+  "track": "打磨轮（docs/x100/polish-ledger.md M9）",
+  "contract": {
+    "design": "账本 §1 M9 行「折叠/展开与折叠数徽标」，已知粗糙「折叠动画与点击热区」",
+    "code": [
+      "crates/mw-shell/src/canvas/canvas_methods_3.rs::toggle（toggle 轨迹）",
+      "crates/mw-render/src/hit.rs::toggle_hit_ring_keeps_its_screen_size_across_zoom（新单测）",
+      "scripts/x100-stage-b-gate.ps1（+4 场）"
+    ],
+    "note": "本轮无产品行为改动：动画与热区本来就对，缺的是证据"
+  },
+  "deliverables": {
+    "report": "shots/x100/M9/report.md",
+    "manifest": "shots/x100/M9/manifest.json"
+  },
+  "scenes": [
+    {
+      "name": "mm-collapse",
+      "dir": "shots/golden/mm-collapse",
+      "sha256_12": "226BE8F67DFD",
+      "input": "shots/golden/inputs/mm-collapse.txt",
+      "evidence": "点「纯 Rust 原生」的圆点 (522,429)：子节点 13 → 11，圆点变＋",
+      "correction_2026_10_31": "坐标原记 (623,473)，第 19 轮落定相机后一直点空；打磨轮 37 重标并重拍。旧图 hash 84BE6968C60C（锁的是没折），新图 vs 旧图 108 025 px"
+    },
+    {
+      "name": "mm-collapse-mid",
+      "dir": "shots/golden/mm-collapse-mid",
+      "sha256_12": "7475441AD2E9",
+      "input": "shots/golden/inputs/mm-collapse-mid.txt",
+      "evidence": "同一脚本 + MW_MOTION_T=0.5：消失的两颗滑向父节点、alpha=0.5；与终态差 62 619 px",
+      "correction_2026_10_31": "原记 27 913 px（1.595%）是点空后的伪中间帧；重标后与终态差 62 619 px，bbox x76..841 y361..725（见 shots/x100/M17/diff.txt §2）"
+    },
+    {
+      "name": "mm-toggle-edge",
+      "dir": "shots/golden/mm-toggle-edge",
+      "sha256_12": "226BE8F67DFD",
+      "input": "shots/golden/inputs/mm-toggle-edge.txt",
+      "evidence": "圆心下方 9px (522,438)（环 r8 之外、命中半径 r10 之内）仍折叠；图与 mm-collapse 逐字节相同，证据在 toggle 轨迹",
+      "correction_2026_10_31": "坐标原记 (623,482)；重拍后与 mm-collapse 仍为 0 px（旧 hash 84BE6968C60C 也是点空态）"
+    },
+    {
+      "name": "mm-toggle-miss",
+      "dir": "shots/golden/mm-toggle-miss",
+      "sha256_12": "EC6764C12E40",
+      "input": "shots/golden/inputs/mm-toggle-miss.txt",
+      "evidence": "圆心下方 12px (522,441)：canvas_click hit=none，没有 toggle 事件，两个子节点仍在",
+      "correction_2026_10_31": "坐标原记 (623,485)；新旧图 0 px（两次都是落空），行为与像素均未变"
+    }
+  ],
+  "trace": {
+    "files": [
+      "shots/x100/M9/trace-collapse.txt",
+      "shots/x100/M9/trace-toggle-edge.txt",
+      "shots/x100/M9/trace-toggle-miss.txt"
+    ],
+    "toggle": "`toggle idx=<场景下标> collapsed=<新状态> kids=<子节点数>`",
+    "reading": "配合 `canvas_click … hit=` 看：hit 非 none + toggle 行 = 点在热区内；hit=none 且无 toggle 行 = 点在热区外"
+  },
+  "motion_pins": {
+    "MW_MOTION_T=0.0": "与终态差 34374 px（1.965%），最大差 208",
+    "MW_MOTION_T=0.5": "与终态差 27913 px（1.595%），最大差 191",
+    "MW_MOTION_T=1.0": "与终态逐字节一致（0 px）",
+    "bbox": "x[339..829] y[429..663]，落在被收起的两条分支与连线上",
+    "correction_2026_10_31": "以上三档都是 2026-10-29 在被点空的状态下量的，不能再用；打磨轮 37 重标后只复测了 t=0.5 与终态（62 619 px）"
+  },
+  "tests": {
+    "new": [
+      "hit::tests::toggle_hit_ring_keeps_its_screen_size_across_zoom"
+    ],
+    "total": "922 passed / 0 failed / 1 ignored"
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1 (+ scripts/x100-stage-cm-gate.ps1)",
+    "stage_b_scenes": 98,
+    "stage_b_comparisons": 196,
+    "cm_scenes": 46,
+    "cm_comparisons": 92,
+    "result": "PASS",
+    "note": "既有 94 张 stage-b 与 46 张 cm-* 基线逐字节未动"
+  },
+  "known_gaps": [
+    "实机手感（触控笔、按住不放、150%/200% DPI）没量",
+    "热区半径 10 CSS px 是原值，没有证据说明该大该小；要改需先有手感数据",
+    "只拍 ppp 1.0",
+    "整图折叠 set_all_collapsed 与聚焦模式下的圆点没拍"
+  ]
+}

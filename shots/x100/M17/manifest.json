@@ -1,0 +1,100 @@
+{
+  "package": "M17",
+  "title": "折叠圆点 / 概要 / 边界的悬停反馈（1.3× 圆点 + 注解加亮）",
+  "status": "已实现（机器门绿；人工门未开，不记已验证）",
+  "date": "2026-10-31",
+  "track": "打磨轮（docs/x100/polish-ledger.md 第 37 轮；HANDOFF §7.5②）",
+  "contract": {
+    "design": "HANDOFF.md §7.5②「悬停反馈只做了一半」；docs/06 §5「折叠圆点：悬停放大 1.3 倍」；docs/30 §7 第 6 条「看得见才存在」",
+    "code": [
+      "crates/mw-shell/src/canvas/hover.rs::HoverDetail / hover_detail_of / toggle_hover_scale / toggle_screen_radius / paint_hover_detail",
+      "crates/mw-shell/src/canvas.rs::Canvas::hover_detail / hover_detail_alpha（120ms，design::motion::FAST）",
+      "crates/mw-shell/src/canvas/canvas_methods_2.rs::show（与节点悬停同组门；detail 变化发 hover_detail 轨迹）",
+      "crates/mw-shell/src/canvas/canvas_methods_2.rs::show（MW_TRACE 新增 scene_summary / scene_summary_brace / scene_boundary / scene_toggle）",
+      "scripts/x100-stage-b-gate.ps1（+1 场）",
+      "scripts/x100-stage-cm-gate.ps1（+2 场）"
+    ],
+    "note": "不改 mw_render::Frame / instances.rs / 导出路径；悬停是交互态，离屏导出不经过 Canvas::show 的覆盖层"
+  },
+  "deliverables": {
+    "report": "shots/x100/M17/report.md",
+    "manifest": "shots/x100/M17/manifest.json",
+    "trace": "shots/x100/M17/trace.txt",
+    "diff": "shots/x100/M17/diff.txt"
+  },
+  "scenes": [
+    {
+      "name": "mm-toggle-hover",
+      "dir": "shots/golden/mm-toggle-hover",
+      "sha256_12": "2757CE6896F8",
+      "input": "shots/golden/inputs/mm-toggle-hover.txt",
+      "evidence": "默认夹具，指针停 (522,429) 的圆点：1.3× 放大 + 1.5px 光晕；与同帧「指针在节点本体」差 377 px，bbox 仅圆点 24×24"
+    },
+    {
+      "name": "mm-summary-hover",
+      "dir": "shots/golden/mm-summary-hover",
+      "sha256_12": "FE49054F063B",
+      "input": "shots/golden/inputs/mm-summary-hover.txt",
+      "evidence": "tiny-cn.zmind + 1280×800，指针停概要主题盒 (176,481)：主题盒外扩 2px 描圈、花括号/连接线加亮；与无指针对照差 1 484 px，bbox 只在概要"
+    },
+    {
+      "name": "mm-boundary-hover",
+      "dir": "shots/golden/mm-boundary-hover",
+      "sha256_12": "64F68BB70826",
+      "input": "shots/golden/inputs/mm-boundary-hover.txt",
+      "evidence": "tiny-cn.zmind + 1280×800，指针停边界左边线 (1123,482)：圆角圈外扩 2px 描一圈；与无指针对照差 2 748 px，bbox 只在边界矩形"
+    },
+    {
+      "name": "mm-collapse（重拍）",
+      "dir": "shots/golden/mm-collapse",
+      "sha256_12": "226BE8F67DFD",
+      "input": "shots/golden/inputs/mm-collapse.txt",
+      "evidence": "点 (522,429) 圆心：hit=toggle、collapsed=true kids=2；旧坐标 (623,473) 自第 19 轮起落空，旧图锁的是没折（vs 新图 108 025 px）"
+    },
+    {
+      "name": "mm-collapse-mid（重拍）",
+      "dir": "shots/golden/mm-collapse-mid",
+      "sha256_12": "7475441AD2E9",
+      "input": "shots/golden/inputs/mm-collapse-mid.txt",
+      "evidence": "同上 + MW_MOTION_T=0.5：过渡中点与终态差 62 619 px（旧记 27 913 是点空后的伪中间帧）"
+    },
+    {
+      "name": "mm-toggle-edge（重拍）",
+      "dir": "shots/golden/mm-toggle-edge",
+      "sha256_12": "226BE8F67DFD",
+      "input": "shots/golden/inputs/mm-toggle-edge.txt",
+      "evidence": "点 (522,438)（圆心下 9px）：仍折叠，与 mm-collapse 0 px"
+    },
+    {
+      "name": "mm-toggle-miss（重拍）",
+      "dir": "shots/golden/mm-toggle-miss",
+      "sha256_12": "EC6764C12E40",
+      "input": "shots/golden/inputs/mm-toggle-miss.txt",
+      "evidence": "点 (522,441)（圆心下 12px）：hit=none，不误折叠；新旧图 0 px"
+    }
+  ],
+  "tests": {
+    "new": [
+      "hover::tests::every_hit_target_maps_to_its_own_hover_feedback",
+      "hover::tests::toggle_grows_from_exact_size_to_one_point_three",
+      "hover::tests::toggle_radius_keeps_the_world_floor"
+    ],
+    "total": "1025 passed / 0 failed / 1 ignored（23 个套件；mw-shell --bins 592）"
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1 + scripts/x100-stage-cm-gate.ps1",
+    "stage_b_scenes": 119,
+    "stage_b_comparisons": 238,
+    "stage_cm_scenes": 51,
+    "stage_cm_comparisons": 102,
+    "result": "PASS（两遍 --tol 0；见 docs/STATUS.md §1 场次与日志）",
+    "human_gate": "未开（实机 60Hz/高刷的淡入手感需人工）"
+  },
+  "behaviour_change": "指着折叠圆点时圆点从 8px 放大到 1.3×（屏幕恒定，随缩放）；指着概要/边界时强调色半透明加亮。悬停不等于选中，不发命令、不改文档、导出无变化",
+  "known_gaps": [
+    "实机鼠标淡入手感未量，只做了 harness 定格（与节点悬停同一 120ms）",
+    "圆点重绘与合成器是两套 AA 实现，基线像素差 377 px 里含边缘 AA 差异",
+    "概要悬停不区分『指着花括号』与『指着主题盒』（刻意整体语义）",
+    "只拍 ppp 1.0；150%/200% DPI 未拍"
+  ]
+}

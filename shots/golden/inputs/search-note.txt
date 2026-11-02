@@ -1,0 +1,7 @@
+# M19（打磨轮 41）：备注命中。样例文档里 `html` 只出现在「纯 Rust 原生」的备注
+# （`MW_SEARCH_DEMO=1` 播种），标题里没有；改前这一场是「没有找到匹配的主题」。
+wait 8
+key ctrl+f
+wait 4
+text html
+wait 8

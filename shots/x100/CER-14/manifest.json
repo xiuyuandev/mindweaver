@@ -1,0 +1,78 @@
+{
+  "package": "CER-14",
+  "batch": "B2-B",
+  "title": "标题 / 元信息 / 标签 / 来源 / 反链",
+  "status": "已实现",
+  "date": "2026-10-28",
+  "contract": {
+    "design": "docs/28 §6.1 §6.2",
+    "exec": "docs/29 §7 CER-14"
+  },
+  "evidence": {
+    "report": "shots/x100/CER-14/report.md",
+    "scenes": [
+      "card-tags",
+      "card-default",
+      "card-empty",
+      "card-long",
+      "card-narrow",
+      "card-slash",
+      "cm-card-link"
+    ],
+    "measurements": {
+      "ppp": 1.5,
+      "card_tags": {
+        "h1_box_css_px": [
+          122.1,
+          162.1
+        ],
+        "meta_box_css_px": [
+          162.1,
+          180.1
+        ],
+        "tags_box_css_px": [
+          192.1,
+          212.1
+        ],
+        "body_first_line_top_css_px": 252.1,
+        "gaps": [
+          8,
+          12,
+          40
+        ],
+        "tag_row_height": 20,
+        "backlink_heading_y": 403.3,
+        "backlink_entries_y": [
+          426,
+          446
+        ],
+        "broken_ref_y": 472
+      }
+    },
+    "tests": {
+      "command": "cargo test -p mw-shell --bin mw-shell -- note_view::tests",
+      "passed": 19,
+      "failed": 0
+    },
+    "tool": "target/x100/cer14_measure.py"
+  },
+  "changes": [
+    "标签：彩色 chip → 纯文字 13/20，hover 才出下划线与 ×",
+    "新增元信息行 12/18：更新于 / 来源（可点）/ 字数",
+    "顺序改为 H1 30/40 → 8 → 元信息 → 12 → 标签 → 40 → 正文",
+    "反链/断链移到页尾：32 留白 + 1px 分隔线 + 反向链接 13/20/600 + 条目 13/20",
+    "标题字号走 design::content::PAGE_TITLE（30/40/600）",
+    "顶栏面包屑带节点名且可点回，删掉重复的「回到节点」按钮",
+    "标签输入剥掉前导 #"
+  ],
+  "incidental_fixes": [
+    "ui.vertical 默认 item_spacing.y=8 叠加在 add_space 上（间距偏大 8–13px）→ 正文栏归零",
+    "控件默认 interact_size.y=30 把 12/18 与 13/20 两行撑到 30 → 分行设 18/20",
+    "正文 desired_rows(24) 把页尾反链顶出窗口（实测 y718）→ desired_rows(6)"
+  ],
+  "known_gaps": [
+    "H1 仍始终可编辑，未做双击/F2 编辑态（单一表面取舍，已在报告记录）",
+    "反链为夹具造出的数据流，端到端路径属 B2-C",
+    "断链不可点重建，属 CER-19/21"
+  ]
+}

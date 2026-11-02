@@ -1,0 +1,84 @@
+{
+  "baseline": {
+    "product": "织思 MindWeaver",
+    "version": "0.1.0 development",
+    "date": "2026-10-22",
+    "source": "existing acceptance captures; not a new screenshot run",
+    "logicalViewport": "1080x720",
+    "pixelRatio": 1.5,
+    "pixelSize": "1620x1080"
+  },
+  "scenarios": [
+    {
+      "id": "shell.start",
+      "image": "shots/final/start-snow/shell-ppp1.50.png",
+      "theme": "snow",
+      "state": "start page",
+      "confidence": "high"
+    },
+    {
+      "id": "canvas.default-with-inspector",
+      "image": "shots/final/acceptance/inspector-p1.50/run1/shell-ppp1.50.png",
+      "theme": "snow",
+      "state": "fixture document, inspector open",
+      "confidence": "high"
+    },
+    {
+      "id": "canvas.default",
+      "image": "shots/final/acceptance/canvas-p1.50/run1/shell-ppp1.50.png",
+      "theme": "snow",
+      "state": "fixture document",
+      "confidence": "high"
+    },
+    {
+      "id": "outline.default",
+      "image": "shots/final/acceptance/outline-p1.50/run1/shell-ppp1.50.png",
+      "theme": "snow",
+      "state": "outline root selected",
+      "confidence": "high"
+    },
+    {
+      "id": "library.default",
+      "image": "shots/final/acceptance/library-p1.50/run1/shell-ppp1.50.png",
+      "theme": "snow",
+      "state": "card library sample",
+      "confidence": "high"
+    },
+    {
+      "id": "card.default",
+      "image": "shots/final/acceptance/card-p1.50/run1/shell-ppp1.50.png",
+      "theme": "snow",
+      "state": "card reader/editor sample",
+      "confidence": "high"
+    },
+    {
+      "id": "canvas.physical-1280x800",
+      "image": "shots/x100/X04/actual-1280x800-p1.5/shell-ppp1.50.png",
+      "theme": "snow",
+      "state": "fixture document, physical size matched to legacy Xmind capture",
+      "confidence": "high"
+    },
+    {
+      "id": "outline.hover-scroll-smoke",
+      "image": "shots/x100/X07/actual/shell-ppp1.50.png",
+      "theme": "snow",
+      "state": "outline after deterministic hover hold and wheel event",
+      "confidence": "high"
+    }
+  ],
+  "pairedReference": {
+    "canvas.default-with-inspector": "inspector.style",
+    "canvas.default": "shell.canvas",
+    "outline.default": "outline",
+    "shell.start": "start.recent"
+  },
+  "notYetCaptured": [
+    "selection toolbar",
+    "drag hold and drop zones",
+    "context menu at same viewport",
+    "dark theme shell and full canvas",
+    "Xmind-style outline hover and row menu",
+    "multi-DPI matched pairs",
+    "error/read-only/conflict states"
+  ]
+}

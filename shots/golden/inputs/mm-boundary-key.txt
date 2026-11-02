@@ -1,0 +1,6 @@
+# M24：选中「禁则换行」→ Ctrl+B 建边界（与右键菜单同名项同一动作）。
+wait 3
+click 1409 503
+wait 2
+key ctrl+b
+wait 4

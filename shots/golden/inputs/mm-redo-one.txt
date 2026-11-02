@@ -1,0 +1,27 @@
+# mm-redo-one · 撤干净之后按一次 Ctrl+Y：甲带着名字回来
+# 重做要连字一起回来（`SetText` 并进了「新建节点」那一条，不是只把盒子放回来）。
+wait 3
+click 876 552
+wait 2
+key Tab
+wait 1
+text 甲
+key Tab
+wait 1
+text 乙
+key Tab
+wait 1
+text 丙
+wait 1
+click 1200 760
+wait 2
+move 1500 1000
+wait 1
+key ctrl+z
+wait 1
+key ctrl+z
+wait 1
+key ctrl+z
+wait 1
+key ctrl+y
+wait 3

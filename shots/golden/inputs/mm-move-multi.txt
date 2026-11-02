@@ -1,0 +1,16 @@
+# 框选左侧两颗同级子主题（轨迹 `marquee picked=2`）→ Alt+↓ 一次整组下移一格。
+# 打磨轮 60 复核：旧脚本 (600,430)→(780,640) 实际只框到根「织思」，
+# Alt+↓ 被 `move_block_reason=Root` 拦住（基线锁的是「静默不动」）；
+# 现在改框 (500,380)→(760,680)，真正选中两颗可动子主题，走 batch 成功路径。
+wait 20
+press 500 380
+move 560 450
+move 620 520
+move 700 620
+move 760 680
+release 760 680
+wait 2
+key alt+Down
+wait 2
+move 1500 1000
+wait 4

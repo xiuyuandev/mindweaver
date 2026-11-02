@@ -1,0 +1,12 @@
+wait 3
+click 1027 631
+wait 2
+mods ctrl
+press 480 330
+move 560 400
+move 640 480
+move 720 560
+release 720 560
+mods none
+wait 2
+move 1500 200

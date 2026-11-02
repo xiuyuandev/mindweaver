@@ -1,0 +1,74 @@
+{
+  "package": "M23",
+  "title": "思维导图插入关系线（Ctrl+L / 右键菜单）",
+  "status": "已实现（机器门绿；人工门未开，不记已验证）",
+  "date": "2026-10-31",
+  "track": "打磨轮（docs/x100/polish-ledger.md 第 46 轮；docs/02 §10 Ctrl+L + §3 关系线；docs/06 §5/§6）",
+  "contract": {
+    "design": "docs/02 §10 快捷键表「Ctrl+L 插入关系线」；§3 节点编辑的关系线；docs/06 §5 画布交互表「Ctrl+L 插入关系线」与 §6 节点上下文菜单",
+    "code": [
+      "crates/mw-shell/src/canvas.rs::Canvas.rel_link / RelLinkStep / rel_link_step / paint_rel_link_preview",
+      "crates/mw-shell/src/canvas/canvas_methods_3.rs::begin_relationship_action / cancel_rel_link / commit_relationship_link（Ctrl+L 与 Esc 优先级）",
+      "crates/mw-shell/src/canvas/canvas_methods_2.rs（点击落点、十字光标、锚点与拖动门控、预览绘制）",
+      "crates/mw-shell/src/app_methods_2.rs（节点菜单「插入关系线 Ctrl+L」+ A::BeginRelationship）",
+      "crates/mw-shell/src/panels/context.rs::Action::BeginRelationship",
+      "scripts/x100-stage-b-gate.ps1（+2 场 mm-rel-link / mm-rel-link-created）",
+      "shots/golden/inputs/mm-rel-link.txt / mm-rel-link-created.txt"
+    ],
+    "note": "不改 Node / Relationship / .zmind 字段；插入态是视图态（Option<String>），落地只发一条 Command::AddRelationship，取消不入撤销栈"
+  },
+  "deliverables": {
+    "report": "shots/x100/M23/report.md",
+    "manifest": "shots/x100/M23/manifest.json",
+    "trace": "shots/x100/M23/trace.txt",
+    "diff": "shots/x100/M23/diff.txt",
+    "screens": [
+      "shots/x100/M23/before.png",
+      "shots/x100/M23/preview.png",
+      "shots/x100/M23/created.png"
+    ]
+  },
+  "scenes": [
+    {
+      "name": "mm-rel-link",
+      "dir": "shots/golden/mm-rel-link",
+      "sha256_12": "E7E0682C9B43",
+      "input": "shots/golden/inputs/mm-rel-link.txt",
+      "evidence": "click「中文排版」(1167,503) → Ctrl+L → 指针移到「交互与性能」(626,634)。轨迹 rel_link_mode source=… + toast「点击另一个主题建立关系线 · Esc 取消」；源主题 2px 强调环、目标主题 2px 环、虚线从源中心跟随指针、3.5px 指针圆点。与同脚本只选中帧（before.png）差 43 869 px / 2.5074%（画布 33 109、提示条 10 760）"
+    },
+    {
+      "name": "mm-rel-link-created",
+      "dir": "shots/golden/mm-rel-link-created",
+      "sha256_12": "2EC078FE25E8",
+      "input": "shots/golden/inputs/mm-rel-link-created.txt",
+      "evidence": "同上，第 14 帧 click 目标：轨迹 rel_link_created from=… to=… id=… + select relationship … + toast「已插入关系线 · Ctrl+Z 撤销」，标题栏变「未保存」、状态栏选择从节点换到关系线。与预览帧差 38 459 px / 2.1982%（画布 21 616、提示条 3 270、标题栏 1 843、状态栏 1 274）"
+    }
+  ],
+  "tests": {
+    "new": [
+      "canvas::tests::rel_link_step_commits_only_on_another_node",
+      "canvas::tests::escape_walks_rel_link_then_relationship_then_focus_then_selection"
+    ],
+    "existing": [
+      "mw_core::document::tests::relationship_add_delete_cleanup_and_undo"
+    ],
+    "total": "1067 passed / 0 failed / 1 ignored（23 个套件；mw-shell --bins 605 + 1 ignored）"
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1 + scripts/x100-stage-cm-gate.ps1",
+    "stage_b_scenes": 129,
+    "stage_b_comparisons": 258,
+    "stage_cm_scenes": 58,
+    "stage_cm_comparisons": 116,
+    "result": "PASS（stage-b 10:04:10–10:12:12 129/258、stage-cm 10:17:02–10:21:51 58/116，均两遍 --tol 0）",
+    "human_gate": "未开（X20 人工判词不代判）"
+  },
+  "behaviour_change": "思维导图里选中恰好一个主题后，按 Ctrl+L 或点右键「插入关系线」进入插入态（源环 + 跟随指针的虚线 + 十字光标 + 提示条）。点另一个主题落一条关系线并选中它（检查器可改颜色/箭头/标签，Ctrl+Z 一步收回）；点回源主题/空白/注解/折叠点会取消插入态且这一击照常生效；Esc 或再按 Ctrl+L 取消。同一对主题已有线时提示「两节点之间已存在关系线」、不落地。概念图不响应（连线仍是拖出命题的手势）。节点菜单多一行「插入关系线」使 menu/menu-narrow 基线有意重拍（132 584 px / 7.578%、39 286 px / 5.931%），640×460 下菜单因此进入滚动。",
+  "known_gaps": [
+    "跨标签页的插入态不主动清理（切页后落点找不到源节点会取消并提示）",
+    "关系线新建后不自动进标签编辑（F2 / 双击线中点是既有入口）",
+    "取消/重复对路径只有单测与代码路径覆盖，未单独拍金样",
+    "640×460 矮窗的节点菜单因多一行而滚动，「聚焦」不再一屏可见",
+    "实机 IME 与键盘手感未核（与 M4 同一缺口），Ctrl+L 在中文输入法下的归属未实机验证"
+  ]
+}

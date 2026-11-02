@@ -1,0 +1,48 @@
+{
+  "package": "CER-03",
+  "status": "已实现",
+  "date": "2026-10-25",
+  "design_contract": "docs/28 §4.6、§5.4/§5.5、§6.8、§7.8",
+  "execution_contract": "docs/29 §6",
+  "batch": "B2-A",
+  "gate": null,
+  "scenes": [],
+  "themes": [],
+  "dpi": [],
+  "scripts": [
+    "shots/x100/CER-03/scripts/library-modal-input.txt",
+    "shots/x100/CER-03/scripts/start-menu-input.txt",
+    "shots/x100/CER-03/scripts/start-menu-esc.txt",
+    "shots/x100/CER-03/traces/README.md"
+  ],
+  "evidence": [
+    "shots/x100/CER-03/report.md",
+    "shots/x100/CER-03/traces/library-modal.trace",
+    "shots/x100/CER-03/traces/start-menu-input.trace",
+    "shots/x100/CER-03/traces/start-menu-esc.trace",
+    "shots/x100/CER-03/traces/library-modal/shell-ppp1.50.png"
+  ],
+  "old_hashes": {},
+  "new_hashes": {},
+  "tests": { "passed": 781, "failed": 0 },
+  "golden": { "runs": 2, "diffs": 0, "tol": 0, "note": "零视觉改动；旧 31 组矩阵双跑 PASS + 13 组 content-kit 双跑 0（target/x100/cer-03-golden.log）" },
+  "engineering": {
+    "fmt": "clean",
+    "clippy_mw_shell_new": 0,
+    "release_build": "pass"
+  },
+  "changes": {
+    "code": [
+      "crates/mw-shell/src/content_keys.rs（新增：Foreground + 门判定 + IME/焦点/Tab 助手 + 4 测试）",
+      "crates/mw-shell/src/app_methods_1.rs（home_bare_keys_owned 委托同源门）",
+      "crates/mw-shell/src/note_library.rs（page_keys_owned 委托同源门）",
+      "crates/mw-shell/src/main.rs（mod content_keys）"
+    ],
+    "behavior": "既有行为脚本（library-modal / start-menu-input / start-menu-esc）复跑结果与 X20 修复后逐位一致"
+  },
+  "known_gaps": [
+    "editor_owns_text_keys / ime_composing* / save_focus / restore_focus / tab_cycle 为前瞻 API，CER-04/07/29 接线",
+    "Foreground.slash_open 与 drag_active 暂无采集方（CER-09/18）",
+    "开始页速查表（F1）未单独实拍（沿 X20 未做项）"
+  ]
+}

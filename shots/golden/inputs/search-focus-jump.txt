@@ -1,0 +1,9 @@
+# M22（打磨轮 45）：聚焦「中文排版」后搜视图外的 wgpu，按 Enter 应退出聚焦并跳过去。
+# 夹具 MW_FOCUS_DEMO=中文排版 先聚焦；脚本只做「搜索 → 跳转」这两件事。
+wait 8
+key ctrl+f
+wait 4
+text wgpu
+wait 8
+key Enter
+wait 12

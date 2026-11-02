@@ -1,0 +1,38 @@
+[package]
+name = "mw-shell"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "织思原生壳层：Mica 材质、合并标题栏、自绘窗口按钮、PMv2 DPI（docs/13 §3 壳层，M0 骨架）"
+
+[dev-dependencies]
+# 导入回归要真的写一个 .xmind 容器；zip 已在 mw-io 的依赖图里，这里只提到直接依赖。
+zip = "9"
+
+[dependencies]
+eframe = "=0.37.0"
+mw-core = { path = "../mw-core" }
+mw-format = { path = "../mw-format" }
+mw-io = { path = "../mw-io" }
+mw-markdown = { path = "../mw-markdown" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+arboard = "3"
+mw-render = { path = "../mw-render" }
+mw-ui = { path = "../mw-ui" }
+mw-golden = { path = "../mw-golden" }
+# PDF 里的图像样本必须 FlateDecode；zip 已经把它带进依赖图，这里只是把它提到直接依赖。
+flate2 = "1"
+raw-window-handle = "0.6"
+windows = { version = "0.62.2", features = [
+    "Win32_Foundation",
+    "Win32_Graphics_Dwm",
+    "Win32_System_Com",
+    # egui 中文字体走只读文件映射（CreateFileMappingW/MapViewOfFile），省私有堆。
+    "Win32_System_Memory",
+    "Win32_UI_Shell",
+    # `COMDLG_FILTERSPEC`（导出对话框的文件类型过滤器）只在这个子特性里。
+    "Win32_UI_Shell_Common",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_System_SystemInformation",
+] }

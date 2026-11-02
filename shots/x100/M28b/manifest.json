@@ -1,0 +1,54 @@
+{
+  "id": "M28b",
+  "title": "撤销栈上限调低的提示（保存前说清丢几步）",
+  "date": "2026-11-01",
+  "round": 59,
+  "status": "已实现（机器门绿；实机 IME/键盘未核）",
+  "scope": [
+    "纯函数 settings::undo_limit_dropped(old, new, depth)：只有「真的会丢记录」才算数",
+    "设置中心「编辑」组滑轨下方新增 28px 警告行（warn 10% 底 + warn 文字），文案带步数；不丢时不占位",
+    "验收旋钮 MW_SETTINGS_DRAFT_UNDO（只改草稿）、MW_SETTINGS_AFTER（第 n 帧自动开设置）、MW_SETTINGS_NOTES_DIR（固定笔记路径显示）",
+    "笔记库路径行显示改用草稿值 s.notes_root()（改路径时即时预览）",
+    "轨迹 settings warning dropped=… depth=… limit=…（警告行出现且步数变化时记一笔）",
+    "新基线 settings-undo-warn 进 stage-b 门（144 → 145 场 / 288 → 290 次比较）"
+  ],
+  "files": [
+    "crates/mw-shell/src/settings.rs",
+    "crates/mw-shell/src/settings_ui.rs",
+    "crates/mw-shell/src/main.rs",
+    "crates/mw-shell/src/app_methods_1.rs",
+    "scripts/x100-stage-b-gate.ps1",
+    "shots/golden/settings-undo-warn/shell-ppp1.00.png",
+    "shots/golden/inputs/settings-undo-warn.txt",
+    "docs/x100/polish-ledger.md"
+  ],
+  "scenes": [
+    {"name": "settings-undo-warn", "warmup": 8, "env": "MW_SETTINGS_DRAFT_UNDO=100; MW_SETTINGS_AFTER=240; MW_SETTINGS_NOTES_DIR=C:/织思笔记; MW_NOTES=none; MW_GOLDEN_INPUT=shots/golden/inputs/settings-undo-warn.txt", "trace": "settings warning dropped=27 depth=127 limit=100；警告色像素 377 / bbox x[577..774] y[546..556]"}
+  ],
+  "tests": {
+    "before": 1123,
+    "after": 1124,
+    "new": [
+      "settings::tests::undo_limit_dropped_counts_only_real_losses"
+    ],
+    "existing": [
+      "settings::tests::settings_roundtrip_and_clamp",
+      "settings::tests::undo_limit_missing_uses_default_and_clamps"
+    ]
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1",
+    "result": "PASS（145 场 / 290 次比较，两遍 --tol 0）",
+    "human_gate": "未开（X20 人工判词不代判）"
+  },
+  "deliverables": [
+    "report.md",
+    "manifest.json",
+    "shell-ppp1.00.png"
+  ],
+  "known_gaps": [
+    "不弹模态、不改保存按钮文案（本轮只把不可逆在保存前说清楚）",
+    "滑轨仍步进 100",
+    "实机 IME / 键盘手感未核"
+  ]
+}

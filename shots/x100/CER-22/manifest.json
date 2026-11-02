@@ -1,0 +1,46 @@
+{
+  "id": "CER-22",
+  "title": "笔记库信息架构与查询 API（CardQuery 单一入口 + NoteCard.archived）",
+  "date": "2026-11-02",
+  "batch": "B2-C",
+  "status": "已实现（机器证据齐；G-B2-3 人工门未开）",
+  "scope": [
+    "CardScope::{All,Inbox,Untagged,Archived} 边界写死在 mw-core（Inbox = 未归档且无标签且未挂节点）",
+    "CardQuery{scope,tags AND,sort} 唯一查询入口：accepts/filter/sort_in_place/sort_owned/cmp_cards",
+    "TagNode 标签树最多两级（TAG_TREE_DEPTH=2），计数只数未归档且聚合子标签",
+    "NoteCard.archived: bool（docs/32 §14 拍板：不升 FORMAT_VERSION、缺键即老行为、无迁移；set_archived 不碰 updated_at）",
+    "NoteStore 批量 API 一律返回 BatchReport（逐 id 报成败）"
+  ],
+  "files": [
+    "crates/mw-core/src/note.rs",
+    "crates/mw-shell/src/note_store.rs",
+    "crates/mw-shell/src/note_library.rs",
+    "crates/mw-shell/src/note_library/sidebar.rs",
+    "docs/32-概念图数据结构提案.md"
+  ],
+  "scenes": [
+    {"name": "library-archive", "sha256_12": "F1DADFE672E8", "warmup": 3, "env": "MW_LIBRARY_DEMO=archive MW_WINDOW_SIZE=1280x800"},
+    {"name": "library-tag-filter", "sha256_12": "8CD6A191A704", "warmup": 3, "env": "MW_LIBRARY_DEMO=tag-filter MW_WINDOW_SIZE=1280x800"}
+  ],
+  "tests": {
+    "new_or_changed": [
+      "note::tests::new_cards_start_unarchived",
+      "note::tests::inbox_is_a_strict_subset_of_all",
+      "note::tests::archived_cards_leave_every_scope_except_archive",
+      "note::tests::untagged_includes_attached_cards",
+      "note::tests::tag_filter_is_and_and_reaches_descendants",
+      "note::tests::sorts_are_total_and_stable",
+      "note::tests::tag_tree_caps_at_two_levels_and_counts_unarchived_only",
+      "note_store::tests::archiving_keeps_updated_at_and_survives_reopen",
+      "note_store::tests::archived_cards_only_show_up_under_archive",
+      "note_store::tests::batch_reports_every_id_including_failures",
+      "note_library::tests::sidebar_counts_are_one_source_of_truth",
+      "note_library::tests::archived_scope_shows_only_archived",
+      "note_library::tests::scope_switch_keeps_filters_visible"
+    ]
+  },
+  "not_done": [
+    "页头「更多」里的库级标签管理入口（留 CER-24）",
+    "按归档时间排序（docs/32 §14 否决，不加 archived_at）"
+  ]
+}

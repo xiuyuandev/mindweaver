@@ -1,0 +1,114 @@
+{
+  "round": "CER-15",
+  "title": "卡片页块级排版收口",
+  "date": "2026-10-28",
+  "batch": "B2-B",
+  "status": "已实现",
+  "scenes": [
+    {
+      "name": "card-blocks",
+      "dir": "shots/golden/card-blocks",
+      "ppp": 1,
+      "window": "1200x1000",
+      "env": [
+        "MW_CARD_BLOCKS=1"
+      ],
+      "warmup": 3
+    },
+    {
+      "name": "card-default",
+      "dir": "shots/golden/card-default",
+      "ppp": 1.5,
+      "env": [
+        "MW_CARD_DEMO=1"
+      ],
+      "warmup": 3
+    },
+    {
+      "name": "card-empty",
+      "dir": "shots/golden/card-empty",
+      "ppp": 1.5,
+      "env": [
+        "MW_CARD_EMPTY=1"
+      ],
+      "warmup": 3
+    },
+    {
+      "name": "card-long",
+      "dir": "shots/golden/card-long",
+      "ppp": 1.5,
+      "env": [
+        "MW_CARD_LONG=1"
+      ],
+      "warmup": 3
+    },
+    {
+      "name": "card-narrow",
+      "dir": "shots/golden/card-narrow",
+      "ppp": 1.5,
+      "env": [
+        "MW_CARD_LONG=1",
+        "MW_WINDOW_SIZE=900x700"
+      ],
+      "warmup": 3
+    },
+    {
+      "name": "card-tags",
+      "dir": "shots/golden/card-tags",
+      "ppp": 1.5,
+      "env": [
+        "MW_CARD_TAGS=1"
+      ],
+      "warmup": 3
+    },
+    {
+      "name": "card-slash",
+      "dir": "shots/golden/card-slash",
+      "ppp": 1.5,
+      "env": [
+        "MW_CARD_DEMO=1",
+        "MW_CARD_SLASH=1"
+      ],
+      "warmup": 3
+    },
+    {
+      "name": "cm-card-link",
+      "dir": "shots/golden/cm-card-link",
+      "ppp": 1,
+      "window": "1280x800",
+      "env": [
+        "MW_CONCEPT_DEMO=1",
+        "MW_CONCEPT_CARD=1"
+      ],
+      "warmup": 6
+    },
+    {
+      "name": "cm-card-link-back",
+      "dir": "shots/golden/cm-card-link-back",
+      "ppp": 1,
+      "window": "1280x800",
+      "env": [
+        "MW_CONCEPT_DEMO=1",
+        "MW_CONCEPT_CARD=1",
+        "MW_CONCEPT_CARD_BACK=用户痛点"
+      ],
+      "warmup": 6
+    }
+  ],
+  "tests": [
+    "note_view::tests（21 条）"
+  ],
+  "evidence": [
+    "report.md",
+    "rows.txt",
+    "card-blocks.png（ppp1.0）"
+  ],
+  "deviations": [
+    "列表项间 4px 记在上一条行高里",
+    "代码块容器不含围栏行",
+    "表格未做（合同无该行）",
+    "H1 由 CER-14 标题框承担",
+    "未做实机 IME 复核",
+    "G-B2-2 人工视觉门未开"
+  ]
+}

@@ -1,0 +1,12 @@
+wait 10
+# 聚焦问题带中心 (960,75)：双击进编辑 → Shift+Home 选中整行 → 整句替换 → 回车提交
+doubleclick 960 75
+wait 3
+key shift+Home
+text 我们要回答什么
+wait 2
+key Enter
+wait 4
+# 指针移开：别把带子的 hover 高亮烤进基线
+move 200 700
+wait 8

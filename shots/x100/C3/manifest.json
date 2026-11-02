@@ -1,0 +1,59 @@
+{
+  "package": "C3",
+  "title": "关系端点拖拽的落点余量（打磨轮 12）",
+  "status": "已实现（12 css px 吸附 + 拖拽途中目标框；单测 3 条、新基线 1 张；缺实机鼠标手感核对，故不记已验证）",
+  "date": "2026-10-29",
+  "track": "打磨轮（docs/x100/polish-ledger.md §1 C3 行）",
+  "contract": {
+    "design": "docs/30 §12 第 1c 条（本轮新增）；落空即新建的语义见 §12 第 1、1b 条",
+    "code": [
+      "crates/mw-ui/src/link.rs::target_node_snapped（压中优先，其次 12px 内的最近矩形）",
+      "crates/mw-ui/src/link.rs::target_node（委托，余量 0，原行为）",
+      "crates/mw-shell/src/canvas/consts.rs::LINK_SNAP_CSS = 12.0（屏幕像素，经镜头换算成世界单位）",
+      "crates/mw-shell/src/canvas/canvas_methods_2.rs（DragKind::Link / DragKind::Relink 两处落点判定）",
+      "crates/mw-shell/src/canvas/canvas_methods_2.rs::begin_relink_drag_label（夹具走真实判定，不再写死 target=None）",
+      "crates/mw-shell/src/canvas/canvas_methods_2.rs（relink-preview 轨迹补 target=）"
+    ]
+  },
+  "deliverables": {
+    "report": "shots/x100/C3/report.md",
+    "manifest": "shots/x100/C3/manifest.json",
+    "ab_before": "shots/x100/C3/before-snap0.png",
+    "ab_after": "shots/x100/C3/after-snap12.png",
+    "ab_crops": ["shots/x100/C3/before-crop.png", "shots/x100/C3/after-crop.png"]
+  },
+  "measurements": {
+    "snap_radius": "12 css px → 示例图镜头 0.808× 下 9.7 世界单位",
+    "ab_pixel_diff": {
+      "changed_px": 6991,
+      "bbox": [557, 741, 806, 839],
+      "method": "同一场景同一帧，只把 LINK_SNAP_CSS 在 0 / 12 之间切换各拍一次（重建 mw-shell 两次）"
+    },
+    "trace": "relink-preview ... target=None（余量 0） / target=Some(\"…\")（余量 12）"
+  },
+  "tests": {
+    "new": [
+      "mw_ui::link::tests::a_near_miss_snaps_inside_the_margin_only",
+      "mw_ui::link::tests::an_inside_hit_beats_a_nearer_outside_one",
+      "mw_ui::link::tests::the_nearest_outside_node_wins"
+    ],
+    "total": "931 passed / 0 failed / 1 ignored"
+  },
+  "gate": {
+    "stage_b": "scripts/x100-stage-b-gate.ps1 → 100 场 / 200 次比较（target/x100/gate-b-c3.log）",
+    "stage_cm": "scripts/x100-stage-cm-gate.ps1 → 47 场 / 94 次比较（target/x100/gate-cm-c3.log）",
+    "new_baselines": 1,
+    "drift": "既有 150 张基线零漂移"
+  },
+  "clippy": {
+    "new": 0,
+    "baseline": "37 条指纹；顺手把打磨轮 11 留下的 9 条行号漂移重生成进基线（种类 0 变化）"
+  },
+  "behaviour_change": "指针落在概念框外 12 css px 以内时，改端点/连线会吸附到该概念，而不是判为落空去新建概念；拖拽途中目标框会亮起",
+  "known_gaps": [
+    "实机鼠标手感没量：12px 是 UI 惯例，不是在真机上试出来的；离屏 harness 只有几何没有指针节拍",
+    "圆角盒按外接矩形算余量，四个角各多出约 1px 量级",
+    "吸附没有中间态（进入余量就整块高亮，没有越近越明显的渐变）",
+    "只覆盖同一个 target_node 入口；卡片页/大纲没有拖连线，不涉及"
+  ]
+}

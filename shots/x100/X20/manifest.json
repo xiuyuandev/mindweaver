@@ -1,0 +1,406 @@
+{
+  "round": "X20",
+  "status": "implemented",
+  "referenceVersion": "26.5.1107.202609082009",
+  "date": "2026-10-25",
+  "build": {
+    "commit": null,
+    "binary": "target/release/mw-shell.exe",
+    "binarySha256": "78a01487aab6a8de51ff278d0b238bbdc8c5a14663f87d36997021e6dc5f49de",
+    "binarySize": 23470592
+  },
+  "scenarios": [
+    {
+      "id": "snow-shell-across-dpi-and-window-sizes",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/26-X100完成定义与验收规范.md",
+        "shots/x100/X04/canvas.png"
+      ],
+      "actual": [
+        "shots/x100/X20/actual/shell-snow-1620x1080-p100.png",
+        "shots/x100/X20/actual/shell-snow-1440x900-p125.png",
+        "shots/x100/X20/actual/shell-snow-1080x720-p100.png",
+        "shots/x100/X20/actual/shell-snow-1080x720-p125.png",
+        "shots/x100/X20/actual/shell-snow-1080x720-p150.png",
+        "shots/x100/X20/actual/shell-snow-640x460-p150.png",
+        "shots/x100/X20/actual/shell-snow-640x460-p200.png",
+        "shots/x100/X20/actual/shell-snow-800x600-p200.png"
+      ],
+      "trace": [
+        "shots/x100/X20/traces/matrix-captures.log",
+        "shots/x100/X20/inputs/home.txt",
+        "shots/x100/X20/traces/stage-b-gate.log"
+      ],
+      "result": "pass",
+      "notes": "snow 外壳 8 个组合：1620×1080 @1.0 / 1440×900 @1.25 / 1080×720 @1.0·1.25·1.5 / 640×460 @1.5·2.0 / 800×600 @2.0。宿主 1920×1200 物理 @1.5，通过 MW_WINDOW_SIZE=逻辑×ppp/1.5 补偿，物理像素与目标逻辑×ppp 完全一致（8/8 回读校验）。home.txt 让相机回中后再截，标题栏、工具栏、画布、缩放条和状态区在四档 DPI 下无裁切/重叠。"
+    },
+    {
+      "id": "ink-shell-overlays-and-panels",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/archive/16-视觉重塑基准.md",
+        "shots/x100/X04/canvas.png",
+        "shots/x100/X04/node-context-menu.png",
+        "shots/x100/X04/export-dialog.png",
+        "shots/x100/X04/outline.png",
+        "shots/x100/X04/inspector-style.png"
+      ],
+      "actual": [
+        "shots/x100/X20/actual/shell-ink-1080x720-p150.png",
+        "shots/x100/X20/actual/shell-ink-1440x900-p125.png",
+        "shots/x100/X20/actual/shell-ink-640x460-p200.png",
+        "shots/x100/X20/actual/tabs-ink-1080x720-p150.png",
+        "shots/x100/X20/actual/menu-ink-1080x720-p150.png",
+        "shots/x100/X20/actual/dialog-ink-1080x720-p150.png",
+        "shots/x100/X20/actual/opening-ink-960x680-p150.png",
+        "shots/x100/X20/actual/open-error-ink-960x680-p150.png",
+        "shots/x100/X20/actual/outline-ink-1080x720-p150.png",
+        "shots/x100/X20/actual/inspector-ink-1080x720-p150.png"
+      ],
+      "trace": [
+        "shots/x100/X20/traces/matrix-captures.log",
+        "shots/x100/X20/traces/stage-b-gate.log",
+        "shots/x100/X20/traces/golden-check.log",
+        "shots/x100/X20/traces/caretaker-tabs-overflow-2026-10-25.md",
+        "shots/x100/X20/traces/caretaker-tabs-overflow-2026-10-25.trace"
+      ],
+      "result": "pass",
+      "notes": "深色主题覆盖画布三种窗口/DPI（1080×720 @1.5、1440×900 @1.25、640×460 @2.0）以及标签条、右键菜单、统一弹窗、正在打开、打开失败、大纲和检查器。遮罩/弹窗在冻结 egui 时间动画后取终态：opening/open-error 为整幅遮罩 + 居中卡片，dialog 为同一壳的标题/内容/按钮区；ink 下正文与面板对比度由 theme_ui_contrast_meets_wcag_aa 断言。 门后维护 ⑤：标签条横向溢出新增活动标签揭示与 20px 边缘渐隐；640×460 / ppp 1.5、9 标签下「文档 6」居中且加号不动，见 traces/caretaker-tabs-overflow-2026-10-25.md。"
+    },
+    {
+      "id": "inspector-density-themes-and-accent-chips",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/archive/16-视觉重塑基准.md",
+        "shots/x100/X04/inspector-style.png"
+      ],
+      "actual": [
+        "shots/x100/X20/actual/inspector-snow-1080x720-p150.png",
+        "shots/x100/X20/actual/inspector-ink-1080x720-p150.png",
+        "shots/x100/X20/actual/theme-mist-1440x900-p125.png",
+        "shots/x100/X20/actual/theme-sand-1440x900-p125.png"
+      ],
+      "trace": [
+        "shots/x100/X20/traces/matrix-captures.log",
+        "shots/x100/X20/inputs/home.txt",
+        "shots/x100/X20/traces/stage-b-gate.log"
+      ],
+      "result": "pass",
+      "notes": "检查器 11 颗强调色点按面板宽度均分为 6+5 两排，不再留下最后一排单颗；snow 与 ink 各一张实拍。mist/sand 两套主题在 1440×900 @1.25 下验证色条、底纹与选中语义。sand 强调色改为 #a45c43（对 ui.panel 4.69:1，OKLCH 色相 39.77° 留在原位），主按钮过 AA；四套主题新增 WCAG AA 单测。"
+    },
+    {
+      "id": "start-page-and-narrow-window",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/26-X100完成定义与验收规范.md",
+        "shots/x100/X04/start-page.png"
+      ],
+      "actual": [
+        "shots/x100/X20/actual/start-ink-1440x900-p125.png",
+        "shots/x100/X20/actual/start-640x460-p200.png",
+        "shots/x100/X20/actual/start-640x460-p200-scroll.png",
+        "shots/x100/X20/actual/shell-snow-640x460-p150.png",
+        "shots/x100/X20/actual/shell-snow-640x460-p200.png",
+        "shots/x100/X20/actual/shell-ink-640x460-p200.png",
+        "shots/x100/X20/actual/narrow-menu-snow-640x460-p150.png"
+      ],
+      "trace": [
+        "shots/x100/X20/traces/matrix-captures.log",
+        "shots/x100/X20/inputs/start-scroll.txt",
+        "shots/x100/X20/inputs/narrow-menu.txt"
+      ],
+      "result": "pass",
+      "notes": "开始页在 1440×900 @1.25（ink）与 640×460 @2.0（snow）两档实拍；640×460 下第二排模板被裁掉，start-scroll.txt 用两次滚轮 -240 证明可滚到第二排（滚动前后两张）。窄窗外壳在 640×460 的 1.5/2.0 与 ink 2.0 下标题栏、工具栏、状态区无重叠；narrow-menu 打开应用菜单后指针移开，菜单不因悬停丢失。"
+    },
+    {
+      "id": "scene-contact-sheet",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/26-X100完成定义与验收规范.md"
+      ],
+      "actual": [
+        "shots/x100/X20/actual/contact-sheet.png"
+      ],
+      "trace": [
+        "shots/x100/X20/traces/matrix-captures.log",
+        "shots/x100/X20/traces/hashes.txt"
+      ],
+      "result": "pass",
+      "notes": "25 个场景拼成 1896×1480 的五列联系表，每格带中文场景名，便于人工一眼扫完主题/DPI/状态；矩阵日志逐场景记录逻辑尺寸、ppp、补偿后的 MW_WINDOW_SIZE 和物理像素，25/25 尺寸精确。"
+    },
+    {
+      "id": "golden-baselines-and-determinism",
+      "reference": [
+        "docs/26-X100完成定义与验收规范.md",
+        "docs/24-X100升级路线.md",
+        "scripts/ci.ps1"
+      ],
+      "actual": [
+        "shots/x100/X20/golden/theme-sand-shell-ppp1.50.png",
+        "shots/x100/X20/golden/dialog-shell-ppp1.50.png",
+        "shots/x100/X20/golden/opening-shell-ppp1.50.png",
+        "shots/x100/X20/golden/open-error-shell-ppp1.50.png",
+        "shots/x100/X20/golden/shell-narrow-shell-ppp1.50.png",
+        "shots/x100/X20/golden/shell-ink-compact-shell-ppp1.50.png",
+        "shots/x100/X20/golden/tabs-overflow-shell-ppp1.50.png",
+        "shots/x100/X20/golden/tabs-wheel-shell-ppp1.50.png",
+        "shots/x100/X20/golden/tabs-wheel-line-shell-ppp1.50.png",
+        "shots/x100/X20/golden/start-tab-focus-shell-ppp1.50.png",
+        "shots/x100/X20/golden/tabs-modal-input-shell-ppp1.50.png",
+        "shots/x100/X20/golden/menu-canvas-click-shell-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X20/traces/golden-check.log",
+        "shots/x100/X20/traces/stage-b-gate.log",
+        "shots/x100/X20/traces/hashes.txt",
+        "shots/golden/inputs/tabs-overflow.txt",
+        "shots/x100/X20/traces/caretaker-tabs-overflow-2026-10-25.md",
+        "shots/x100/X20/traces/caretaker-tabs-overflow-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-stage-b-gate-tabs-overflow-2026-10-25.log",
+        "shots/golden/inputs/tabs-wheel.txt",
+        "shots/x100/X20/traces/caretaker-tabs-wheel-2026-10-25.md",
+        "shots/x100/X20/traces/caretaker-tabs-wheel-9-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-tabs-wheel-8-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-tabs-wheel-before-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-tabs-wheel-before-2026-10-25.png",
+        "shots/x100/X20/traces/caretaker-tabs-wheel-after-2026-10-25.png",
+        "shots/x100/X20/traces/caretaker-stage-b-gate-tabs-wheel-2026-10-25.log",
+        "shots/golden/inputs/tabs-wheel-lines.txt",
+        "shots/x100/X20/traces/caretaker-tabs-wheel-unit-2026-10-25.md",
+        "shots/x100/X20/traces/caretaker-tabs-wheel-unit-before-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-tabs-wheel-unit-after-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-stage-b-gate-tabs-wheel-unit-2026-10-25.log",
+        "shots/golden/inputs/start-tab-focus.txt",
+        "shots/x100/X20/traces/caretaker-start-focus-scroll-2026-10-25.md",
+        "shots/x100/X20/traces/caretaker-start-focus-scroll-before-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-start-focus-scroll-after-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-stage-b-gate-start-focus-2026-10-25.log",
+        "shots/golden/inputs/tabs-modal-input.txt",
+        "shots/x100/X20/traces/caretaker-tabs-modal-isolation-2026-10-25.md",
+        "shots/x100/X20/traces/caretaker-tabs-modal-isolation-before-wheel-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-tabs-modal-isolation-after-wheel-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-tabs-modal-isolation-before-drag-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-tabs-modal-isolation-after-drag-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-tabs-menu-passthrough-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-tabs-modal-input-golden-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-stage-b-gate-tabs-modal-2026-10-25.log",
+        "shots/golden/inputs/menu-canvas-click.txt",
+        "shots/x100/X20/traces/caretaker-menu-canvas-ownership-2026-10-25.md",
+        "shots/x100/X20/traces/caretaker-menu-canvas-ownership-before-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-menu-canvas-ownership-after-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-menu-canvas-ownership-golden-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-stage-b-gate-menu-canvas-2026-10-25.log"
+      ],
+      "result": "pass",
+      "notes": "31 组 golden 比较 / 27 个目录（base 与 library 各跨 1.0/1.5/2.0），2 次 --tol 0 全部无差异（62/62）。门后维护 ③ 新增 start-scroll、④ 新增 menu-narrow、⑤ 新增 tabs-overflow、⑥ 新增 tabs-wheel、⑦ 新增 tabs-wheel-line、⑧ 新增 start-tab-focus、⑨ 新增 tabs-modal-input、⑩ 新增 menu-canvas-click；tabs 保持 F11988FD…AD2553F，既有基线未被 --update 改写。已知漂移：theme-sand 0.552% / 最大 2（强调色修正）、dialog 4.016% / 最大 2；opening/open-error 在冻结动画后重拍，与既有基线逐字节一致。"
+    },
+    {
+      "id": "tabs-wheel-unit-normalization",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/x100/stage-b-report.md"
+      ],
+      "actual": [
+        "shots/x100/X20/traces/caretaker-tabs-wheel-unit-before-2026-10-25.png",
+        "shots/x100/X20/traces/caretaker-tabs-wheel-unit-after-2026-10-25.png",
+        "shots/x100/X20/golden/tabs-wheel-line-shell-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X20/traces/caretaker-tabs-wheel-unit-2026-10-25.md",
+        "shots/x100/X20/traces/caretaker-tabs-wheel-unit-before-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-tabs-wheel-unit-after-2026-10-25.trace",
+        "shots/golden/inputs/tabs-wheel-lines.txt",
+        "shots/x100/X20/traces/caretaker-stage-b-gate-tabs-wheel-unit-2026-10-25.log"
+      ],
+      "result": "pass",
+      "notes": "标签条滚轮忽略 MouseWheelUnit：真实鼠标 Line（一格 ±1）被当成 1px。修复为 Point 原样 / Line × line_scroll_speed / Page × 视口高，换算后再滤 0.5px 抖动；MW_GOLDEN_INPUT 新增 scroll_lines 原语。3 格证据：修复前 dx=-3.00、tab_scroll x=3.0；修复后 dx=-120.00、x=120.0。前后 960×690 差异 12,691 px = 1.916%，bbox x[2..894] y[72..122] 全在标签条；新增第 28 组 golden tabs-wheel-line（111,498 B / 03E71072…75091E）双跑 0 差异；tabs / tabs-wheel / tabs-overflow 逐字节未变。"
+    },
+    {
+      "id": "start-keyboard-focus-scroll",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/x100/stage-b-report.md"
+      ],
+      "actual": [
+        "shots/x100/X20/traces/caretaker-start-focus-scroll-before-2026-10-25.png",
+        "shots/x100/X20/traces/caretaker-start-focus-scroll-after-2026-10-25.png",
+        "shots/x100/X20/golden/start-tab-focus-shell-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X20/traces/caretaker-start-focus-scroll-2026-10-25.md",
+        "shots/x100/X20/traces/caretaker-start-focus-scroll-before-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-start-focus-scroll-after-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-start-focus-titlebar-2026-10-25.png",
+        "shots/x100/X20/traces/caretaker-start-focus-titlebar-2026-10-25.trace",
+        "shots/golden/inputs/start-tab-focus.txt",
+        "shots/x100/X20/traces/caretaker-stage-b-gate-start-focus-2026-10-25.log"
+      ],
+      "result": "pass",
+      "notes": "开始页键盘焦点落到首屏外时不滚入视野：640×460 下第 7 次 Tab 到「模板」时焦点环画在屏幕外。修复为 focus_scroll_target 纯函数（8px 边距最小滚动、夹取、卡片高于视口顶对齐），只在焦点 id 变化且来源为 Tab/自动聚焦时触发，鼠标与标题栏焦点不滚、焦点不变不抢。新增第 29 组 golden start-tab-focus（960×690 / 223,988 B / 007C6DD7…7B86F4A9）双跑 0 差异；修复前 trace 只有 focus 变化，修复后 3 次 start_focus_scroll（0→41.3→93.3→335.3）；前后差异 440,664 px = 66.525%，bbox=(1,72,959,654) 全在开始页内容区；start / start-narrow / start-scroll 逐字节未变。"
+    },
+    {
+      "id": "tabs-input-isolation-behind-modals",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/x100/stage-b-report.md"
+      ],
+      "actual": [
+        "shots/x100/X20/traces/caretaker-tabs-modal-isolation-before-wheel-2026-10-25.png",
+        "shots/x100/X20/traces/caretaker-tabs-modal-isolation-after-wheel-2026-10-25.png",
+        "shots/x100/X20/traces/caretaker-tabs-modal-isolation-before-drag-2026-10-25.png",
+        "shots/x100/X20/traces/caretaker-tabs-modal-isolation-after-drag-2026-10-25.png",
+        "shots/x100/X20/traces/caretaker-tabs-menu-passthrough-2026-10-25.png",
+        "shots/x100/X20/golden/tabs-modal-input-shell-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X20/traces/caretaker-tabs-modal-isolation-2026-10-25.md",
+        "shots/x100/X20/traces/caretaker-tabs-modal-isolation-before-wheel-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-tabs-modal-isolation-after-wheel-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-tabs-modal-isolation-before-drag-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-tabs-modal-isolation-after-drag-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-tabs-menu-passthrough-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-tabs-modal-input-golden-2026-10-25.trace",
+        "shots/golden/inputs/tabs-modal-input.txt",
+        "shots/x100/X20/traces/caretaker-stage-b-gate-tabs-modal-2026-10-25.log"
+      ],
+      "result": "pass",
+      "notes": "标签条滚轮与拖拽重排读裸指针，绕开 egui 层级命中：新建文档对话框打开时，暗幕后的标签条仍滚动 100px，拖 200px 会 tab_reorder from=2 slot=5 active=0 并换掉活动文档；confirm_close_tab 按下标记目标，可能在确认框背后关错标签并丢未保存内容。修复为 foreground = overlay_state().top_modal() || dialog_demo || Popup::is_any_open(ctx)，前台存在时取消在途拖拽并门控滚轮/重排/加号；tooltip 是 OpenKind::Open + hover，不触发该门。修复前 trace tab_wheel dx=-100.00 / tab_scroll x=100.0 与 tab_reorder from=2 slot=5 active=0，修复后两条 trace 均 0 条标签事件；实拍 107,839 B / 901B2361…70B3FBE → 108,398 B / 01ACE0A2…C896648。前后差异：滚轮 12,106 px = 1.828%（bbox x[1..899] y[72..122] 全在标签条），拖动 2,767 px = 0.418%（bbox x[354..791] y[88..495]，含画布，证明活动文档被换）。文件菜单打开时滚轮 0 条标签事件。新增第 30 组 golden tabs-modal-input 双跑 0 差异；其余基线 0 差异且未被改写。"
+    },
+    {
+      "id": "stage-b-engineering-gate",
+      "reference": [
+        "docs/26-X100完成定义与验收规范.md",
+        "docs/24-X100升级路线.md"
+      ],
+      "actual": [],
+      "trace": [
+        "shots/x100/X20/traces/stage-b-gate.log",
+        "shots/x100/X20/traces/tests-final.txt",
+        "shots/x100/X20/traces/clippy-final.txt",
+        "shots/x100/X20/traces/fmt-final.txt"
+      ],
+      "result": "pass",
+      "notes": "scripts/x100-stage-b-gate.ps1 一次跑完：X11–X19 证据包 PASS、全部 x100-*.ps1 语法 PASS、fmt 干净、mw-shell clippy 仅 3 条 export_pdf 历史告警（X20 改动文件 0 新增；mw-core theme.rs:22 历史告警按精确位置白名单）、全量串行 747 passed/0 failed、release 构建成功、23 组 golden 双跑 46/46。结论行 MACHINE GATE PASS; HUMAN X20 REVIEW IS STILL REQUIRED。首轮门因函数把 cargo stdout 与退出码一起返回而误报，修复后重跑。"
+    },
+    {
+      "id": "canvas-click-ownership-under-titlebar-menu",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/x100/stage-b-report.md"
+      ],
+      "actual": [
+        "shots/x100/X20/traces/caretaker-menu-canvas-ownership-before-2026-10-25.png",
+        "shots/x100/X20/traces/caretaker-menu-canvas-ownership-after-2026-10-25.png",
+        "shots/x100/X20/traces/caretaker-menu-canvas-ownership-menu-open-2026-10-25.png",
+        "shots/x100/X20/golden/menu-canvas-click-shell-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X20/traces/caretaker-menu-canvas-ownership-2026-10-25.md",
+        "shots/x100/X20/traces/caretaker-menu-canvas-ownership-before-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-menu-canvas-ownership-after-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-menu-canvas-ownership-golden-2026-10-25.trace",
+        "shots/golden/inputs/menu-canvas-click.txt",
+        "shots/x100/X20/traces/caretaker-stage-b-gate-menu-canvas-2026-10-25.log"
+      ],
+      "result": "pass",
+      "notes": "标题栏菜单是 egui Memory 弹层，不进 overlay 状态，旧 input_blocked 也没看它：1080×720 / ppp 1.5 打开「文件」后点「织思」，菜单收起的同时节点被选中（状态栏「已选：织思」），trace canvas_click blocked=false。修复为 input_blocked 加入 Popup::is_any_open(ctx)（同 ⑨ 的标签条 foreground），画布不收指针与画布快捷键，在途手势清空；tooltip 不写 Memory 不受影响。修复后 trace canvas_click blocked=true、无选中/工具条；前后差异 29,917 px = 1.710%（最大 205，bbox=(267,87,1022,1071)）；新增第 31 组 golden menu-canvas-click（1620×1080 / 175,220 B / 811C6D36…9CF925）双跑 0 差异；阶段门 31×2=62/62、761 tests、fmt/clippy 干净、MACHINE GATE PASS。方向键与其他 Memory 弹层未单独取证。"
+    },
+    {
+      "id": "outline-keyboard-isolation-behind-overlays",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/x100/stage-b-report.md"
+      ],
+      "actual": [
+        "shots/x100/X20/traces/caretaker-outline-keys-before-modal-2026-10-25.png",
+        "shots/x100/X20/traces/caretaker-outline-keys-after-modal-2026-10-25.png",
+        "shots/x100/X20/traces/caretaker-outline-keys-menu-open-2026-10-25.png",
+        "shots/x100/X20/traces/caretaker-outline-keys-after-menu-2026-10-25.png"
+      ],
+      "trace": [
+        "shots/x100/X20/traces/caretaker-outline-keys-2026-10-25.md",
+        "shots/x100/X20/traces/caretaker-outline-keys-before-modal-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-outline-keys-after-modal-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-outline-keys-menu-open-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-outline-keys-after-menu-2026-10-25.trace",
+        "shots/x100/X20/traces/caretaker-outline-keys-prefix-modal-input-2026-10-25.txt",
+        "shots/golden/inputs/outline-modal-input.txt",
+        "shots/golden/inputs/outline-menu-input.txt",
+        "shots/x100/X20/traces/caretaker-stage-b-gate-outline-keys-2026-10-25.log"
+      ],
+      "result": "pass",
+      "notes": "全屏大纲直接读 ui.input/consume_key，egui::Modal 只挡指针与 Tab 巡游、标题栏菜单是 Memory 弹层，两者都挡不住裸键：弹窗开着 Delete 删节点、Enter 加同级并进入编辑、Tab 缩进，均为暗幕背后改文档。修复为 show 接收既有 input_blocked（与 ⑨ 标签条、⑩ 画布同一谓词），新增 row_keys_owned 纯函数与单测；键盘链整段跳过并只发 outline_key_blocked，门开不改选择/缩进/焦点，门关保持原行焦点。修复前 26 帧 trace 三条改文档事件；修复后 Delete/Tab/Home 全部 blocked，弹窗保持打开、大纲 3/13 行与层级不变（1620×1080 / 156,211 B / 2E51E8E1…D912D61D1）；菜单场景展开对照 146,684 B / ADA89176…DAD2F0C，按 Delete 只有 outline_key_blocked，菜单由 PopupNav 收起（119,369 B / 96487082…504E26A9）。无外观变化，outline 三组基线逐字节未变；阶段门 31×2=62/62、763 tests、fmt/clippy 干净。修复后 Enter 会关掉弹窗，归档脚本因此改用 Delete/Tab/Home。行内编辑提交路径与卡片库/阅读页未扩面。"
+    },
+    {
+      "id": "card-demo-date-determinism",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/x100/stage-b-report.md"
+      ],
+      "actual": [
+        "shots/x100/X20/traces/caretaker-card-demo-date-context-baseline-2026-10-25.png",
+        "shots/x100/X20/traces/caretaker-card-demo-date-baseline-crop-2026-10-25.png",
+        "shots/x100/X20/traces/caretaker-card-demo-date-drift-crop-2026-10-25.png"
+      ],
+      "trace": [
+        "shots/x100/X20/traces/caretaker-card-demo-date-2026-10-25.md",
+        "shots/x100/X20/traces/caretaker-stage-b-gate-card-date-fail-2026-10-25.log",
+        "shots/x100/X20/traces/caretaker-stage-b-gate-card-date-2026-10-25.log"
+      ],
+      "result": "pass",
+      "notes": "MW_CARD_DEMO 示例卡片时间戳取 now_ms()，阅读页渲染创建于/更新于，format_date 按 UTC 取日；本地 08:00（UTC+8）跨日后字符串从 2026-10-24 变 2026-10-25，card-slash 基线（2026-10-24 22:30 生成）每天漂一天。08:27 阶段门两遍均在 x[1380..1390] y[370..415] 超差 198 px（0.011%，最大 92），07:52 同门仍 62/62（当时 UTC 仍是 10-24）。修复为 DEMO_CARD_TS_MS=1_792_800_000_000（2026-10-24 00:00 UTC），新增 card_demo_timestamp_is_frozen_for_golden 单测；真实笔记仍用 now_ms()，不改 NoteCard，不重拍基线。card-slash 单跑 --tol 0 0 差异；复跑阶段门 62/62、763 tests、fmt/clippy 干净。其他演示日期已固定但未逐场景核对。"
+    }
+  ],
+  "tests": [
+    "cargo fmt --all -- --check (clean; traces/fmt-final.txt empty)",
+    "cargo clippy -p mw-shell --all-targets (mw-shell 3 historical export_pdf warnings, 0 new in X20-touched files; traces/clippy-final.txt)",
+    "cargo test --workspace -- --test-threads=1 (747 passed / 0 failed; traces/tests-final.txt)",
+    "theme::tests::theme_ui_contrast_meets_wcag_aa (new): four themes text/panel, text/bg, dim/panel, primary >= 4.5:1 and accent/panel >= 3:1",
+    "theme::tests::the_override_lands_on_the_hue_the_user_picked: per-channel diff <= 1 and failure message includes theme id",
+    "scripts/x100-stage-b-gate.ps1: machine gate pass; 23 golden comparisons x 2 runs at --tol 0 (46/46 clean; traces/stage-b-gate.log)",
+    "target/x20-matrix.sh: 25 scenes captured with exact physical sizes verified by Pillow (traces/matrix-captures.log)",
+    "target/x20-golden-check.sh: 15 non-sand golden dirs verified clean at tol 0 (traces/golden-check.log)",
+    "X20 post-gate maintenance ⑤ (2026-10-25 05:16:19 +08:00): cargo test --workspace -- --test-threads=1 -> 755 passed / 0 failed; 26 golden comparisons x 2 runs at --tol 0 (52/52); fmt clean; mw-shell clippy 3 historical export_pdf warnings, 0 new (traces/caretaker-stage-b-gate-tabs-overflow-2026-10-25.log)",
+    "mw-shell tab_strip::tests: 11 tests incl. wheel_scroll_x and edge_fade_strengths (no overflow / 1px tolerance / zero viewport; start, middle, end, clamp)",
+    "X20 post-gate maintenance ⑥ (2026-10-25 05:46:09 +08:00): tab strip wheel mapping now runs once per frame instead of once per tab (9 tabs previously multiplied the same wheel delta by 9); 756 passed / 0 failed; 27 golden comparisons x 2 runs at --tol 0 (54/54); fmt clean; mw-shell clippy 3 historical export_pdf warnings, 0 new (traces/caretaker-stage-b-gate-tabs-wheel-2026-10-25.log)",
+    "mw-shell tab_strip::tests: 11 tests incl. wheel_scroll_x (empty / zoom-modified / 0.5px jitter / dy-only / dx+dy / dx-only / multi-event sum)",
+    "X20 post-gate maintenance ⑦ (2026-10-25 06:15:06 +08:00): tab strip wheel deltas normalize MouseWheelUnit before summing (Point as-is, Line x line_scroll_speed, Page x viewport height); a real mouse notch previously moved 1px instead of 40px. 758 passed / 0 failed; 28 golden comparisons x 2 runs at --tol 0 (56/56); fmt clean; mw-shell clippy 3 historical export_pdf warnings, 0 new (traces/caretaker-stage-b-gate-tabs-wheel-unit-2026-10-25.log)",
+    "mw-shell golden_input::tests: scroll_lines emits MouseWheelUnit::Line while scroll stays Point; tab_strip::tests: wheel_scroll_x covers Point passthrough, Line x speed (3 notches = 120px), Page x viewport height, and jitter after conversion (12 tab_strip tests total)",
+    "X20 post-gate maintenance ⑧ (2026-10-25 06:44:37 +08:00): start page now scrolls keyboard focus into view with an 8px margin, only on Tab/auto-focus and only when the focus id changes; 761 passed / 0 failed; 29 golden comparisons x 2 runs at --tol 0 (58/58); fmt clean; mw-shell clippy 3 historical export_pdf warnings, 0 new (traces/caretaker-stage-b-gate-start-focus-2026-10-25.log)",
+    "mw-shell start::tests: 13 tests incl. focus_scroll_target (fully visible -> None / below minimal scroll / above rollback clamped at 0 / bottom clamp / tall card top-align / no overflow)",
+    "X20 post-gate maintenance ⑨ (2026-10-25 07:17:07 +08:00): tab strip input is gated by overlay_state().top_modal() / dialog_demo / Popup::is_any_open, so wheel and drag-reorder no longer reach tabs behind a modal or an open menu (a reorder previously swapped the active document behind the dialog); 761 passed / 0 failed; 30 golden comparisons x 2 runs at --tol 0 (60/60); fmt clean; mw-shell clippy 3 historical export_pdf warnings, 0 new (traces/caretaker-stage-b-gate-tabs-modal-2026-10-25.log)",
+    "X20 post-gate maintenance ⑩ (2026-10-25 07:52:52 +08:00): titlebar menu popups now feed input_blocked via Popup::is_any_open, so the click that dismisses a menu no longer selects or starts canvas gestures; 761 passed / 0 failed; 31 golden comparisons x 2 runs at --tol 0 (62/62); fmt clean; mw-shell clippy 3 historical export_pdf warnings, 0 new (traces/caretaker-stage-b-gate-menu-canvas-2026-10-25.log)",
+    "X20 post-gate maintenance ⑪ (2026-10-25 08:34:09 +08:00): full-screen outline now shares input_blocked with the tab strip and canvas, so Delete / Enter / Tab / arrow keys no longer mutate the document while a modal or titlebar menu is in front; row_keys_owned unit test + outline-modal-input / outline-menu-input scripts; 763 passed / 0 failed; 31 golden comparisons x 2 runs at --tol 0 (62/62); outline / outline-focus / outline-compact byte-identical; fmt clean; mw-shell clippy 3 historical export_pdf warnings, 0 new (traces/caretaker-stage-b-gate-outline-keys-2026-10-25.log)",
+    "mw-shell panels::outline::tests: 33 tests incl. row_keys_are_owned_only_without_foreground_or_field (blocked / editing / search field each deny row keys; only all-false owns them)",
+    "X20 post-gate maintenance ⑫ (2026-10-25 08:34:09 +08:00): MW_CARD_DEMO card timestamp frozen to DEMO_CARD_TS_MS (2026-10-24 00:00 UTC) so card-slash no longer drifts one day after the 08:00 UTC+8 date boundary; card demo timestamp test; card-slash single run at --tol 0 clean; 763 passed / 0 failed; 31x2=62/62; fmt/clippy clean (traces/caretaker-stage-b-gate-card-date-2026-10-25.log; before-fix failure traces/caretaker-stage-b-gate-card-date-fail-2026-10-25.log)",
+    "mw-shell app_tests::tests: card_demo_timestamp_is_frozen_for_golden asserts format_date(DEMO_CARD_TS_MS) == 2026-10-24 (UTC)",
+    "X20 post-gate maintenance ⑬ (2026-10-25 09:08:57 +08:00): the start page no longer consumes bare keys (Esc/Enter/1-5) while a titlebar Memory menu or the shortcuts sheet is in front. Before: pressing 1 behind the File menu replaced the start page with a template document and focused the canvas; Esc was eaten by window_shortcuts so the menu could not close. home_bare_keys_owned unit test + start-menu-open/input/esc scripts; 765 passed / 0 failed; 31x2=62/62 at --tol 0; no baseline rewritten (traces/caretaker-stage-b-gate-start-menu-library-2026-10-25.log)",
+    "mw-shell app_tests::tests: start_page_bare_keys_yield_to_foreground_layers (menu or help sheet in front denies bare keys; both clear owns them)",
+    "X20 post-gate maintenance ⑭ (2026-10-25 09:08:57 +08:00): the note library page no longer consumes Esc/ArrowUp-Down/Enter while a modal or dialog demo is on top. Before: ArrowDown moved the preview behind the scrim (keyboard palette -> view sync) and Enter opened the card reader over the dialog. page_keys_owned unit test + library-modal-input script; 765 passed / 0 failed; 31x2=62/62; no baseline rewritten (traces/caretaker-stage-b-gate-start-menu-library-2026-10-25.log)",
+    "mw-shell note_library::tests: page_keys_yield_to_foreground_modals (top modal or dialog demo denies page keys; both clear owns them)"
+  ],
+  "knownGaps": [
+    "No live Xmind side-by-side this round: visual references are archived X04 screenshots of 26.5.1107; the gate proves no regression against those references, not pixel proximity to a currently running Xmind.",
+    "State x DPI is not fully crossed: canvas shell covers 4 DPI levels and 5 window sizes, but tabs/menu/dialog/opening/open-error/outline/inspector were captured only at ppp 1.5; start page only at 1.25 and 2.0.",
+    "1620x1080 @ ppp 2.0 needs 3240x2160 physical pixels, beyond the 1920x1200 host; likewise 1080x720 @ 2.0. DPI 2.0 is limited to 640x460 and 800x600.",
+    "Resolved 2026-10-25 post-gate maintenance: the start page now draws a 4px draggable scroll thumb plus 40px top/bottom fades; start-scroll golden and replay trace archived (traces/caretaker-start-scroll-2026-10-25.md).",
+    "The matrix captures terminal states only; hover, focus rings and mid-drag shell states are covered by X13-X19 goldens/traces, not by the 25 X20 images.",
+    "Freezing animation_time serves goldens only; live fade duration/curve and frame pacing were not measured.",
+    "Resolved 2026-10-25 post-gate maintenance: the 640x460 canvas context menu now clamps its card height, scrolls with a 4px resting thumb, and keyboard navigation reveals off-screen rows; menu-narrow golden archived (traces/caretaker-menu-overflow-2026-10-25.md).",
+    "Inspector chip balancing is verified only at the default panel width (6+5 at 1080x720); narrower/wider panel row counts have no captures.",
+    "Gate clippy allowlist is an exact location (mw-core/src/theme.rs:22 self_named_constructors); any new warning elsewhere in the touched files still fails the gate.",
+    "All evidence uses demo/isolated profiles; no real user documents, IME composition or long-run memory/frame-rate data.",
+    "Tab strip overflow evidence covers only 640x460 at ppp 1.5; 200% DPI, trackpad horizontal swipe and Shift+wheel have no dedicated captures.",
+    "Tab wheel scrolling is captured only at ppp 1.5; the 9-tab 640x460 overflow + wheel combination at ppp 2.0 is not captured.",
+    "Trackpad mapping is covered by a scripted dx wheel event, not by a real touchpad sample; tab wheel scrolling is intentionally immediate (ScrollAnimation::none) so there is no inertia/flick physics to tune.",
+    "2.0 DPI line-unit wheel and real mouse/trackpad sampling are still missing; scroll_lines is protocol-level injection, not hardware capture.",
+    "Resolved 2026-10-25 post-gate maintenance ⑧: the start page scrolls keyboard focus into view (8px margin, Tab/auto-focus only) and start-tab-focus golden was added. Shift+Tab reverse, ppp 2.0 / shorter windows and real keyboard or screen-reader sampling remain uncovered.",
+    "Resolved 2026-10-25 post-gate maintenance ⑨: the tab strip no longer reads raw pointer/wheel input while a modal, the dialog demo or a Memory popup is in front, and an in-flight reorder is cancelled; tabs-modal-input golden was added. The File-menu path has only after-fix evidence (no before/after trace), other top_modal() variants were not captured individually, and tooltips intentionally do not freeze the strip.",
+    "Resolved 2026-10-25 post-gate maintenance ⑩: a canvas click under an open titlebar menu now only dismisses the menu and no longer selects the node (before: status bar showed 已选：织思 while trace was canvas_click blocked=false); menu-canvas-click golden added. Keyboard arrows, other Memory popups (outline/more menus) and real menu animation remain uncovered.",
+    "Resolved 2026-10-25 post-gate maintenance ⑪: the full-screen outline no longer reads raw keys while a modal, dialog demo, titlebar menu or other overlay is in front, so Delete/Enter/Tab can no longer mutate the document behind a scrim; outline-modal-input and outline-menu-input scripts added. Row inline-editor commit under a modal and card-library/reader page overlays remain unaudited.",
+    "Resolved 2026-10-25 post-gate maintenance ⑫: golden-visible dates must not read the wall clock. card-slash rendered 2026-10-24 from now_ms() and drifted to 2026-10-25 at the 08:00 UTC+8 boundary, failing the gate by 198 px; the demo card timestamp is now frozen and unit-tested. Other demo timestamps (library BASE_TS) are fixed but not cross-checked scene by scene.",
+    "Resolved 2026-10-25 post-gate maintenance ⑬: the start page now yields its bare keys to titlebar Memory menus and the shortcuts sheet, so 1-5/Enter cannot create a document behind an open menu and Esc reaches PopupNav. The shortcuts sheet itself was validated by the pure-function gate and unit test only, not by a dedicated screenshot.",
+    "Resolved 2026-10-25 post-gate maintenance ⑭: the note library page now yields Esc/ArrowUp-Down/Enter to modal dialogs, closing the card-library half of the ⑪ residual. Reader page and other page-type overlays remain unaudited."
+  ]
+}

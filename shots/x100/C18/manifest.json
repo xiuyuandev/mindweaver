@@ -1,0 +1,73 @@
+{
+  "package": "C18",
+  "title": "概念图「钉住」概念与「只整理选中」布局（Command::SetConceptPinned + arrange_scoped + 右键菜单与微标）",
+  "status": "已实现（机器门绿；人工门未开，不记已验证）",
+  "date": "2026-10-31",
+  "track": "打磨轮（docs/x100/polish-ledger.md 第 53 轮；HANDOFF.md §7.5(5)；docs/30 §5.5 手工位置受保护）",
+  "contract": {
+    "design": "docs/30 §5.5（手工位置受保护：用户应能「钉住」特定概念，整理布局时钉住的概念保持原位，其余概念依其拓扑关系环绕排布并避让）、HANDOFF.md §7.5(5)（钉住 / 只整理选中未做项收口）",
+    "code": [
+      "crates/mw-core/src/concept_layout.rs::arrange_scoped（fixed 概念锚定原位，其余概念分层与避让）",
+      "crates/mw-core/src/document.rs::apply_inner（Command::SetConceptPinned 落地、撤销/重做与拒绝树节点边界）",
+      "crates/mw-shell/src/canvas/canvas_methods_3.rs::is_concept_pinned / toggle_concept_pinned / toggle_concept_pinned_selected / selected_concept_ids",
+      "crates/mw-shell/src/canvas/canvas_methods_3.rs::arrange_concepts（映射 fixed 数组传给 arrange_scoped）",
+      "crates/mw-shell/src/canvas/canvas_methods_3.rs::arrange_selected_concepts（仅选中且未钉住概念可动）",
+      "crates/mw-shell/src/canvas/canvas_methods_3.rs::paint_pinned_badges（壳层覆盖层绘制绿色受保护圆点微标，不改 Frame ABI）",
+      "crates/mw-shell/src/canvas/canvas_methods_2.rs（调用 paint_pinned_badges）",
+      "crates/mw-shell/src/panels/context.rs::Action（ToggleConceptPinned、ArrangeSelectedConcepts）",
+      "crates/mw-shell/src/app_methods_2.rs（概念图单选/多选右键菜单接入「钉住位置/取消钉住位置」、「整理选中概念」、「整理全部布局」及 toast 反馈）",
+      "crates/mw-shell/src/app_methods_1.rs（MW_CONCEPT_PIN 验收钩子）",
+      "scripts/x100-stage-cm-gate.ps1（+2 场新基线 cm-pin / cm-arrange-pinned，cm-multi-menu 与 cm-submenu-bottom 菜单改动更新基线，总场次 58 → 60）"
+    ],
+    "note": "不升 FORMAT_VERSION；不动 Frame ABI；钉住标记画在 egui 画布覆盖层"
+  },
+  "deliverables": {
+    "report": "shots/x100/C18/report.md",
+    "manifest": "shots/x100/C18/manifest.json",
+    "trace": "shots/x100/C18/trace.txt",
+    "diff": "shots/x100/C18/diff.txt"
+  },
+  "scenes": [
+    {
+      "name": "cm-pin",
+      "dir": "shots/golden/cm-pin",
+      "sha256_12": "F5BB4AA8DBC8",
+      "size": 133274,
+      "evidence": "MW_CONCEPT_PIN=技术方案；右上角内侧绘制受保护绿色圆点微标（117 像素微标，5.5px 半径），其余画面逐像素稳定"
+    },
+    {
+      "name": "cm-arrange-pinned",
+      "dir": "shots/golden/cm-arrange-pinned",
+      "sha256_12": "8C2D3960524A",
+      "size": 119036,
+      "evidence": "MW_CONCEPT_PIN=技术方案 + MW_CONCEPT_ARRANGE=1；钉住的「技术方案」保持手工坐标 (280, 40) 不动，其余概念环绕重排并避让；与 cm-arrange 差异 42 569 px 落在 (414, 466, 1506, 758)"
+    },
+    {
+      "name": "cm-multi-menu",
+      "dir": "shots/golden/cm-multi-menu",
+      "sha256_12": "F47BEFEAAC5F",
+      "size": 161809,
+      "evidence": "概念图多选右键菜单扩展：新增「整理选中概念」、「整理全部布局」与「钉住位置」"
+    },
+    {
+      "name": "cm-submenu-bottom",
+      "dir": "shots/golden/cm-submenu-bottom",
+      "sha256_12": "DF00C44F0969",
+      "size": 136393,
+      "evidence": "矮窗贴底夹取多选菜单：包含更新后的父菜单项"
+    }
+  ],
+  "tests": {
+    "new": [
+      "concept_layout::tests::arrange_scoped_empty_fixed_matches_arrange",
+      "concept_layout::tests::arrange_scoped_all_fixed_keeps_current_positions",
+      "concept_layout::tests::arrange_scoped_fixed_node_stays_put_and_movable_nodes_move",
+      "concept_layout::tests::arrange_scoped_handles_short_and_long_fixed_slices",
+      "document::tests::set_concept_pinned_toggles_and_undoes_in_one_step",
+      "document::tests::set_concept_pinned_rejects_tree_node_and_mind_map"
+    ],
+    "passed": 1109,
+    "failed": 0,
+    "ignored": 1
+  }
+}

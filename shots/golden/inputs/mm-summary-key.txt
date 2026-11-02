@@ -1,0 +1,8 @@
+# M24：点「禁则换行」→ Shift 点「字形图集」→ Ctrl+] 建概要（覆盖同一父级的两颗）。
+wait 3
+click 1409 503
+wait 1
+sclick 1409 586
+wait 2
+key ctrl+]
+wait 4

@@ -1,0 +1,6 @@
+# 参照：同样的落点，但什么都不粘（用来和 card-paste-undo 比）。
+wait 3
+click 700 276
+wait 1
+key End
+wait 7

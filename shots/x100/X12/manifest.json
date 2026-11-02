@@ -1,0 +1,65 @@
+{
+  "round": "X12",
+  "status": "verified",
+  "referenceVersion": "26.5.1107.202609082009",
+  "date": "2026-10-24",
+  "build": {
+    "commit": null,
+    "binary": "target/release/mw-shell.exe",
+    "binarySha256": "b7dd3e07289f93499325536ef7850c5aaff9d8e8124bba8e80e634e951bb3f44"
+  },
+  "scenarios": [
+    {
+      "id": "vector-icon-system",
+      "reference": ["docs/24-X100升级路线.md", "docs/archive/16-视觉重塑基准.md"],
+      "actual": [
+        "shots/x100/X12/actual/shell-ppp1.50.png",
+        "shots/x100/X12/actual/outline-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X12/traces/tests.txt",
+        "shots/x100/X12/traces/clippy.txt",
+        "shots/x100/X12/traces/golden-verify.log",
+        "shots/x100/X12/traces/hashes.txt"
+      ],
+      "result": "pass",
+      "notes": "30 icons share a 16-unit grid, screen-space stroke and 24px hit zone. Glyph buttons (▾ ✕ ↺ ⋯ ＋ ‹ ›) were removed from menu, toolbar, outline header, inspector, theme studio and canvas hover bar."
+    }
+  ],
+  "tests": [
+    "cargo test --workspace -- --test-threads=1",
+    "cargo test -p mw-shell icon_paint::",
+    "cargo test -p mw-core --lib design::tests",
+    "cargo fmt --all -- --check",
+    "cargo clippy -p mw-shell --all-targets",
+    "cargo golden --tol 0 (13 scenarios, twice)"
+  ],
+  "totals": { "passed": 694, "failed": 0 },
+  "clippy": { "total": 3, "new": 0, "known": "export_pdf.rs" },
+  "golden": {
+    "baseline": "shots/golden/shell-ppp1.50.png",
+    "sha256": "180b9b7826a1fed18377d1ebd9266fb7d36e231f0f8ba10da543b3182714752d",
+    "outlineBaseline": "shots/golden/outline/shell-ppp1.50.png",
+    "outlineSha256": "ebce4e2ff9a25f84b3c88c4b8479fae95f502a9be14105373553d57278919c2f",
+    "size": "1620x1080",
+    "tolerance": 0,
+    "scenarios": 13,
+    "runs": 2,
+    "differences": 0,
+    "preUpdateDrift": {
+      "shell@1.0": "379 px (0.022%)",
+      "shell@1.5": "595 px (0.034%)",
+      "shell@2.0": "818 px (0.047%)",
+      "library@1.5": "60 px (0.003%)",
+      "outline@1.5": "1247 px (0.071%)",
+      "outline-focus@1.5": "1246 px (0.071%)",
+      "card-slash@1.5": "266 px (0.015%)"
+    }
+  },
+  "knownGaps": [
+    "Window minimize/maximize/restore keep their own geometry; only the 1.2px stroke token is shared.",
+    "Outline fold triangle, canvas fold dot and span/link handles are figures, not icons; they stay outside Icon.",
+    "Historical interaction baselines under shots/golden/o03, o04 and outline-edit were not refreshed; they are not part of CI.",
+    "Icon state colours (normal/hover/disabled) are supplied by callers; component-level state tokens land in X13/X14."
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "id": "CER-28",
+  "title": "笔记库多选与批量操作",
+  "date": "2026-11-02",
+  "batch": "B2-C",
+  "status": "已实现（机器证据齐；G-B2-3 人工门未开）",
+  "scope": [
+    "Ctrl+click 进入选择模式并切换；选择模式下单击切换；纯点击只移焦点",
+    "Shift+click 与 Shift+↑↓ 从锚点范围选择；Ctrl+A 只取过滤后的行",
+    "Esc / 批量条「取消」退出，同时清勾选与锚点；复选框只在选择模式出现",
+    "44px 批量条在列表栏内：归档(取消归档)/导出/加标签/移出/取消，取消恒可点",
+    "移出 = 危险动作：confirm_remove -> crate::dialog 二次确认（默认取消）",
+    "一次批量 = 一次确认 + 一条 toast；失败张数与第一条原因必须说出来",
+    "BatchReport{changed,skipped,failed,index_lagged} 逐 id 报成败",
+    "选择按 id 不漂移：排序/筛选/批量后 sync 对齐；导出没选回落到当前筛选全部"
+  ],
+  "files": [
+    "crates/mw-shell/src/note_library.rs",
+    "crates/mw-shell/src/note_library/list.rs",
+    "crates/mw-shell/src/note_store.rs",
+    "crates/mw-shell/src/app_methods_3.rs"
+  ],
+  "scenes": [
+    {"name": "library-select", "sha256_12": "A410C9FA1B5E", "warmup": 3, "env": "MW_LIBRARY_DEMO=select MW_WINDOW_SIZE=1280x800", "note": "选择模式：勾选框 + 44px 批量条"}
+  ],
+  "tests": {
+    "new_or_changed": [
+      "note_library::tests::ctrl_click_enters_select_mode_and_toggles",
+      "note_library::tests::shift_click_selects_the_range_from_the_anchor",
+      "note_library::tests::select_all_only_takes_the_filtered_rows",
+      "note_library::tests::exit_select_clears_both_kinds_of_state",
+      "note_library::tests::export_falls_back_to_the_whole_filter",
+      "note_library::tests::sync_drops_selection_for_cards_that_are_gone"
+    ],
+    "supporting": [
+      "note_store::tests::batch_reports_every_id_including_failures（CER-22 拥有）",
+      "note_library::tests::plain_click_moves_focus_without_selecting（CER-25 拥有）"
+    ]
+  },
+  "not_done": [
+    "卡片批量不进撤销栈（NoteStore 无撤销语义）；合同要的一次确认 + 一条提示已满足",
+    "移出不可撤销、无回收站（§8.1 不做）"
+  ]
+}

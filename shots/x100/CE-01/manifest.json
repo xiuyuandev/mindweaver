@@ -1,0 +1,63 @@
+{
+  "package": "CE-01",
+  "title": "卡片笔记编辑体验（光标 · 滚动条 · 列表与键盘）",
+  "status": "已实现（卡片场景 34 场 ×2 遍全绿；整道 stage-b 未复跑；人工门未开，不记已验证）",
+  "date": "2026-11-01",
+  "track": "打磨轮旁支（docs/x100/polish-ledger.md §4 卡片笔记；docs/28 §6）",
+  "contract": {
+    "design": "docs/28 §6.1–§6.9（卡片笔记页：单一表面、正文排版、语法揭示、专注/打字机、斜杠菜单、键盘、长文）；§4.5（滚动条 6/4/8、默认透明、悬停淡入、空闲淡出）",
+    "code": [
+      "crates/mw-shell/src/note_view.rs::build_job（keep_trailing_whitespace；光标行夹取与空行行高 max(gap, BODY_LINE)）",
+      "crates/mw-shell/src/note_view.rs::MarkerMode::active_line（暴露光标行给排版）",
+      "crates/mw-shell/src/note_view.rs::marker_indent（去掉 hide 分支：缩进恒定，标记交给绘制层）",
+      "crates/mw-shell/src/note_view.rs::push_line（有序列表编号只留透明占位）",
+      "crates/mw-shell/src/note_view.rs::ordered_marker（编号文本与占位字符数）",
+      "crates/mw-shell/src/note_view.rs::paint_block_decorations（编号按 20px 列右对齐绘制）",
+      "crates/mw-shell/src/note_view.rs::indent_edit（Tab / Shift+Tab → 空格缩进）",
+      "crates/mw-shell/src/note_view.rs::backspace_marker（行首退格退出列表）",
+      "crates/mw-shell/src/note_view.rs::draw_scroll_bar（贴窗口右缘的自绘滚动条）",
+      "crates/mw-shell/src/scroll_bar.rs（新模块：overflow / thumb_len / layout / offset_for_thumb_top / Fade / paint）",
+      "crates/mw-shell/src/main.rs（mod scroll_bar）",
+      "crates/mw-golden/examples/crop.rs（证据放大镜：裁块 + 最近邻放大）",
+      "scripts/ce01-card-sweep.sh（卡片场景批量复核：与门同款 APPDATA/TEMP 隔离）",
+      "scripts/x100-stage-b-gate.ps1（+2 场：card-blank-caret / card-scroll）"
+    ],
+    "note": "不改 .zmind、不升 FORMAT_VERSION、不动 Frame ABI、不碰画布/概念图/检查器/大纲"
+  },
+  "deliverables": {
+    "report": "shots/x100/CE-01/report.md",
+    "manifest": "shots/x100/CE-01/manifest.json",
+    "drift": "shots/x100/CE-01/drift-before-reshoot.txt"
+  },
+  "scenes": [
+    {
+      "name": "card-blank-caret",
+      "dir": "shots/golden/card-blank-caret",
+      "sha256_12": "3E68FC4EA480",
+      "size": 69703,
+      "evidence": "MW_CARD_ENTER=1 + 脚本（点列表行尾 → Enter 续写 → Enter 退出列表）；光标停在空段落上且是**一整行高**。改前该行行高 0、光标矩形 (0,28)-(0,28)"
+    },
+    {
+      "name": "card-scroll",
+      "dir": "shots/golden/card-scroll",
+      "sha256_12": "7128033FB08B",
+      "size": 332660,
+      "evidence": "MW_CARD_TALL=1 + 脚本（指针停在窗口右缘 400ms）；窗口右缘出现 4px 细条，轨道 x=[1070,1076]。改前同场景 x≥1350 全是纯背景，一条滚动条都没有"
+    }
+  ],
+  "reshot": {
+    "count": 34,
+    "reason": "有序列表编号从 4px 墨点改成正常字号（D3）、列表正文起点从 9/17 固定到 24（D3b）、空行光标行行高（D1）",
+    "zero_drift": ["card-empty", "card-long", "card-narrow", "card-tags"]
+  },
+  "tests": {
+    "workspace_shell": "658 passed / 0 failed / 1 ignored（2026-11-01 18:1x 本机实测）",
+    "new_unit": "卡片编辑 10 条 + scroll_bar 5 条",
+    "card_sweep": "34 scenes × 2 passes = 68 comparisons, 0 drift (--tol 0)",
+    "stage_b_gate": "未复跑（本轮整门跑过一次但卡住 4 小时无输出，已终止；登记应为 147 场）",
+    "known_red_outside_scope": [
+      "收尾时另一会话把 canvas.rs / canvas_methods_2.rs / canvas_methods_3.rs 改到半完成（RelationshipSelection 类型已改、调用点未跟上），cargo build 失败；本包未碰 canvas",
+      "chrome::tests::shell_sources_do_not_hardcode_font_sizes 与 menu::tests::height_counts_padding_and_row_kinds 一度为红灯（并行会话的改动），18:1x 全量时已转绿"
+    ]
+  }
+}

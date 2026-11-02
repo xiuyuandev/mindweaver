@@ -1,0 +1,8 @@
+# 右键 → ↓ → Enter：第一项「新建子主题」落地，新行进入编辑态（与 Tab 同一条路径）。
+wait 8
+rightclick 700 208
+wait 4
+key ArrowDown
+wait 2
+key Enter
+wait 6

@@ -1,0 +1,79 @@
+{
+  "package": "M12e",
+  "title": "撤销/重做走缓存账：两代账 + 先试上一代（打磨轮 15）",
+  "status": "已实现（20k 撤销/重做 43 → 15.5/15.4ms，结构撤销 15.8/17.1ms；P9 30ms 两条路都达标）",
+  "date": "2026-10-29",
+  "track": "打磨轮（docs/x100/polish-ledger.md §1 M12 行的 P9 残账）",
+  "contract": {
+    "design": "docs/08 §2 P9（撤销/重做 ≤ 30ms）",
+    "code": [
+      "crates/mw-core/src/scene.rs::SceneCache.prev_memo（账本留两代）",
+      "crates/mw-core/src/scene.rs::SceneCache::prefer_previous（撤销/重做时先试上一代）",
+      "crates/mw-core/src/scene.rs::build_scene_cached（两代候选按「复用得更全」选，只差一颗就不再试另一代）",
+      "crates/mw-core/src/layout.rs::compute_layout_memo_with_reach（返回复用颗数，供场景层选代）",
+      "crates/mw-shell/src/canvas/canvas_methods_3.rs::undo / redo（rebuild 前 prefer_previous）",
+      "crates/mw-core/examples/perf_scene.rs（三段缓存路径撤销/重做例程）",
+      "crates/mw-core/src/scene.rs::build_scene_cached（候选只挑指纹对得上的；对不上的那代留作 spare——结构撤销靠它）"
+    ]
+  },
+  "deliverables": {
+    "report": "shots/x100/M12e/report.md",
+    "manifest": "shots/x100/M12e/manifest.json",
+    "perf": "shots/x100/M12e/perf.txt"
+  },
+  "measurements": {
+    "method": "perf_scene（release，20k 合成语料，各 40 次/20 次取中位与 p95），全部走 build_scene_cached（应用真实路径）",
+    "undo_text_20k_ms": {
+      "before_uncached": 43.1,
+      "after_median": 15.5,
+      "after_p95": 17.3,
+      "budget": 30
+    },
+    "redo_text_20k_ms": {
+      "after_median": 15.4,
+      "after_p95": 17.2,
+      "budget": 30
+    },
+    "undo_structural_20k_ms": {
+      "after_median": 15.8,
+      "after_p95": 17.1,
+      "budget": 30,
+      "first_step_median": 28.9,
+      "first_step_p95": 31.1
+    },
+    "typing_20k_ms": {
+      "before_median": 15.9,
+      "after_median": 16.2,
+      "note": "持平（两代账没有拖慢打字路径）"
+    },
+    "undo_5k_ms": {
+      "text": 2.8,
+      "structural": 4.7
+    }
+  },
+  "tests": {
+    "new": [
+      "scene::tests::undo_hits_the_previous_generation_of_the_memo",
+      "scene::tests::a_structural_undo_reuses_the_previous_generation"
+    ],
+    "mutation_check": "第一版实现（用掉的那代不进 spare）让这条测试直接红——撤销永远命中不了",
+    "total": "935 passed / 0 failed / 1 ignored"
+  },
+  "gate": {
+    "stage_b": "scripts/x100-stage-b-gate.ps1 → 100 场 / 200 次比较（target/x100/gate-b-m12e2.log）",
+    "stage_cm": "scripts/x100-stage-cm-gate.ps1 → 48 场 / 96 次比较（target/x100/gate-cm-m12e2.log）",
+    "new_baselines": 0,
+    "drift": "152 个场次逐字节零漂移（无视觉改动）"
+  },
+  "clippy": {
+    "new": 0,
+    "note": "指纹 37 条 + 手工补一条 `glyph.rs:281`（同一条 `let glyph = glyph;` 在 lib 与 lib-test 两次检查里偶尔只报一处，ci 的「集合比对」因此偶发假红；把两处都写进基线，少报只算 gone 不算新增）"
+  },
+  "behaviour_change": "无（撤销/重做的结果与之前相同，只是更快；152 场零漂移）",
+  "known_gaps": [
+    "结构撤销的 resolve 仍可能整段重算（本轮靠「上一代」绕开，不是因为样式真的没变）",
+    "账本内存翻倍：20k 下几十 MB 量级；未按节点数封顶",
+    "概念图与卡片页不走账本，撤销仍是全量",
+    "实机「按住 Ctrl+Z 连撤」的帧率没量（离屏只有单次成本）"
+  ]
+}

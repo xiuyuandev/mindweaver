@@ -1,0 +1,38 @@
+﻿{
+    "round": "X04",
+    "status": "implemented",
+    "referenceVersion": "26.5.1107.202609082009",
+    "date": "2026-10-22",
+  "build": { "commit": null, "binarySha256": "64C27A6BFE1B7EE70393FFDDDA62DAFC42D94EBD59F5F861D04628ED87D0C18A" },
+    "scenarios": [{
+        "id": "canvas-inspector-pair",
+        "reference": ["shots/qa/xmind-nodebar.png"],
+        "actual": ["shots/x100/X04/canvas-inspector.png"],
+        "trace": [],
+        "result": "pass",
+        "notes": "Side-by-side evidence generated; geometry is not normalized because reference content differs."
+    }, {
+        "id": "size-matched-shell-pair",
+        "reference": ["shots/reference/xmind-home2.png"],
+        "actual": ["shots/x100/X04/size-matched-shell.png"],
+        "trace": [],
+        "result": "partial",
+        "notes": "Both source images are 1280x800 physical pixels, but document states differ."
+    }, {
+        "id": "extended-triage-pairs",
+        "reference": ["shots/qa/xmind-style.png", "shots/qa/xmind-context.png", "shots/qa/xmind-export.png", "shots/qa/xmind-present.png", "shots/qa/xmind-themes.png"],
+        "actual": ["shots/x100/X04/inspector-style.png", "shots/x100/X04/node-context-menu.png", "shots/x100/X04/export-dialog.png", "shots/x100/X04/presentation.png", "shots/x100/X04/theme-workflow.png"],
+        "trace": [],
+        "result": "partial",
+        "notes": "Sixteen triage sheets cover canvas, inspector, node menu, export, presentation, themes and start."
+    }, {
+        "id": "live-reference-pairs",
+        "reference": ["shots/reference/xmind-26.5.1107/live/home-clean.png", "shots/reference/xmind-26.5.1107/live/default-map-selected.png", "shots/reference/xmind-26.5.1107/live/outline-default.png", "shots/reference/xmind-26.5.1107/live/node-context-menu.png", "shots/reference/xmind-26.5.1107/live/presentation-default.png", "shots/reference/xmind-26.5.1107/live/export-menu.png"],
+        "actual": ["shots/x100/X04/live-home.png", "shots/x100/X04/live-canvas.png", "shots/x100/X04/live-outline.png", "shots/x100/X04/live-node-menu.png", "shots/x100/X04/live-presentation.png", "shots/x100/X04/live-export.png"],
+        "trace": [],
+        "result": "pass",
+        "notes": "Side-by-side evidence now uses clean Xmind 26.5.1107 captures for six major surfaces."
+    }],
+    "tests": ["golden captures at 1620x1080 and 1280x800"],
+    "knownGaps": ["Mouse-down drag preview, dark appearance and matched DPI pairs remain."]
+}

@@ -1,0 +1,8 @@
+# outline-paste-lines · 多行粘贴拆节点（docs/28 §5.4）
+# MW_OUTLINE_EDIT 进入编辑（全选）；三行粘贴：首行替换本行，余行提交时拆成同级。
+# Enter 提交 → 一条 Batch（SetText + 两个 AddNode），一次撤销。
+wait 12
+paste 第一行\n第二行\n第三行
+wait 2
+key Enter
+wait 2

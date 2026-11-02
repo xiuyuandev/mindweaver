@@ -1,0 +1,47 @@
+{
+  "id": "CER-29",
+  "title": "笔记库键盘 / 焦点 / 模态 / IME / 空·加载·错误态",
+  "date": "2026-11-02",
+  "batch": "B2-C",
+  "status": "已实现（机器证据齐；G-B2-3 人工门未开）",
+  "scope": [
+    "§7.8 键表逐条落地：Ctrl+F / ↑↓ J-K / Enter(IME 门) / Space / Shift+↑↓ / Ctrl+A / Esc 六级 / Tab 环 / Ctrl+Shift+N",
+    "F6 沿用壳层 Action::PaneCycle；库页打开时画布整帧早退，库内焦点交接走 Tab 环",
+    "单字母键被 typing 门住（搜索框内不拦截）；菜单先于本页收键",
+    "page_keys_owned 委托 content_keys::page_owns_bare_keys（同源门，逐位一致有单测）",
+    "IME 组合态不收 Enter（ime_composing_now）；加标签行内输入开着时键盘全归它",
+    "空态左对齐两句不画大图标；加载 = 3 行 x 60px 骨架不转菊花；错误 = 页头下 32px 行内条 + 重试",
+    "三态互斥：empty / loading / no-results 各有基线"
+  ],
+  "files": [
+    "crates/mw-shell/src/note_library.rs",
+    "crates/mw-shell/src/note_library/list.rs",
+    "crates/mw-shell/src/content_keys.rs",
+    "crates/mw-shell/src/content_kit.rs",
+    "crates/mw-shell/src/main.rs"
+  ],
+  "scenes": [
+    {"name": "library-empty", "sha256_12": "78025B35C396", "warmup": 3, "env": "MW_LIBRARY_DEMO=empty MW_WINDOW_SIZE=1280x800", "note": "空库：左对齐两句"},
+    {"name": "library-loading", "sha256_12": "7BFCCB39B08F", "warmup": 3, "env": "MW_LIBRARY_DEMO=loading MW_WINDOW_SIZE=1280x800", "note": "notes=None：三行骨架"},
+    {"name": "library-no-results", "sha256_12": "A20C8075D8BD", "warmup": 3, "env": "MW_LIBRARY_DEMO=no-results MW_WINDOW_SIZE=1280x800", "note": "有库零命中，与空库对照"}
+  ],
+  "tests": {
+    "new_or_changed": [],
+    "supporting": [
+      "note_library::tests::tab_ring_three_pane_cycles_all_three（CER-23 拥有）",
+      "note_library::tests::tab_ring_two_pane_skips_the_docked_preview（CER-23 拥有）",
+      "note_library::tests::tab_ring_one_pane_skips_a_closed_drawer（CER-23 拥有）",
+      "note_library::tests::empty_library_has_no_cursor_and_no_focus（CER-25 拥有）",
+      "note_library::tests::move_cursor_stops_at_both_ends（CER-25 拥有）",
+      "content_keys::tests::legacy_page_gates_delegate_bit_for_bit",
+      "content_keys::tests::gate_matrix_covers_every_foreground_combination",
+      "content_keys::tests::ime_composing_only_for_nonempty_preedit",
+      "content_kit 单测 assert_eq!(BANNER_H, 32.0)"
+    ]
+  },
+  "not_done": [
+    "Esc 六级阶梯没有单测钉顺序（代码 + 轨迹 library_esc step=… 作证）",
+    "F6 在库页内无可见效果（沿用现有口径，未新造语义）",
+    "实机微软拼音组合窗未核对（与 B2-A 第 8 条同一欠账）"
+  ]
+}

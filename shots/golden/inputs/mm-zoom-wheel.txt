@@ -1,0 +1,17 @@
+# X21 缩放：Ctrl+滚轮 = 以指针为锚缩放（不是平移）。
+# 关键点：`mods ctrl` 之后滚轮事件自己带修饰键（`Event::MouseWheel.modifiers`），
+# 这是 egui 判「Ctrl+滚轮 = 缩放」的唯一依据；只发 `ModifiersChanged` 会被读成平移。
+# 两格滚轮（每格 50）→ exp(0.005*100) ≈ 1.6487 倍，缩放条读数应落在 164% 一带；
+# 末尾把指针挪回空白，避免悬停态把覆盖率/节点画面带进基线。
+wait 3
+hover 700 500
+wait 2
+mods ctrl
+scroll 0 50
+wait 2
+scroll 0 50
+wait 2
+mods none
+wait 6
+move 1500 1000
+wait 2

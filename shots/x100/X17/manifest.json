@@ -1,0 +1,104 @@
+{
+  "round": "X17",
+  "status": "verified",
+  "referenceVersion": "26.5.1107.202609082009",
+  "date": "2026-10-25",
+  "build": {
+    "commit": null,
+    "binary": "target/release/mw-shell.exe",
+    "binarySha256": "8aaaaa0fad900d385920ecefb8aa58de375ebb13210aa69940503135e97d6ac2",
+    "binarySize": 23356416
+  },
+  "scenarios": [
+    {
+      "id": "unified-dialog-shell-and-tab-trap",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/26-X100完成定义与验收规范.md"
+      ],
+      "actual": [
+        "shots/x100/X17/actual/golden-dialog-ppp1.50.png",
+        "shots/x100/X17/actual/dialog-tab-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X17/inputs/dialog-tab.txt",
+        "shots/x100/X17/traces/dialog-tab.trace",
+        "shots/x100/X17/traces/geometry.trace",
+        "shots/x100/X17/traces/tests.txt"
+      ],
+      "result": "pass",
+      "notes": "卡片 450×220 逻辑像素，居中于 (315.3,250)-(765.3,470)，标题 44 / 内容 82 / 按钮区 56；暗幕 alpha 80。打开首帧焦点落到 dialog action 1 · 确定；三次 Tab 依次到 dialog close → 示例开关 → dialog action 0 · 取消，焦点始终在弹窗内；关闭后焦点回到 canvas。geometry.trace 显示首帧 content=76 在第二帧收敛到 82 后不再抖动。"
+    },
+    {
+      "id": "escape-and-enter-close",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/06-界面布局与交互设计.md"
+      ],
+      "actual": [
+        "shots/x100/X17/actual/dialog-escape-ppp1.50.png",
+        "shots/x100/X17/actual/dialog-enter-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X17/inputs/dialog-escape.txt",
+        "shots/x100/X17/traces/dialog-escape.trace",
+        "shots/x100/X17/inputs/dialog-enter.txt",
+        "shots/x100/X17/traces/dialog-enter.trace"
+      ],
+      "result": "pass",
+      "notes": "Esc → dialog demo closed、焦点回到 canvas；Enter → dialog demo action 1 → dialog demo closed、焦点回到 canvas。两张实拍都是动作完成后的稳定态（演示弹窗没有确认中间态），动作由 trace 证明。新增单测 escape_does_not_leak_into_the_next_frame_or_lower_dialog 锁住叠层 Esc 不跨帧泄漏。"
+    },
+    {
+      "id": "modal-layer-priority-and-migration",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/26-X100完成定义与验收规范.md"
+      ],
+      "actual": [
+        "shots/x100/X17/actual/golden-dialog-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X17/traces/tests.txt",
+        "shots/x100/X17/traces/fmt.txt",
+        "shots/x100/X17/traces/clippy.txt"
+      ],
+      "result": "pass",
+      "notes": "overlay 的 19 种 Modal 全可达、优先级从低到高与 modal_count 有单测；同一帧只绘制 top_modal。19 处调用点全部走 dialog::show（recovery/conflict/stats/outline-info/export/import-warnings/import-busy/onboarding/tag-manager/library-dialog/close-confirm/discard-prompt/tab-close-prompt/recovery-point/history/library-remove/settings/shortcuts/theme-studio）；ui_kit::modal 与 ui_kit::footer 已删除；仅知识视图保留 egui::Window（页面而非模态）。731 tests / 0 failed。"
+    },
+    {
+      "id": "dialog-golden-baseline",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/26-X100完成定义与验收规范.md",
+        "scripts/ci.ps1"
+      ],
+      "actual": [
+        "shots/x100/X17/actual/golden-dialog-ppp1.50.png",
+        "shots/golden/dialog/shell-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X17/traces/ci-pass1.log",
+        "shots/x100/X17/traces/ci-pass2.log",
+        "shots/x100/X17/traces/hashes.txt"
+      ],
+      "result": "pass",
+      "notes": "dialog 是第 16 个 golden 场景（ppp 1.5、MW_DIALOG_DEMO=1、--warmup 8、隔离 APPDATA）。16 个场景 × 2 次 --tol 0 全部无差异（32/32）；新增基线 SHA256 3f4aa383…b675a262，15 个既有场景的基线与 X16 逐字节一致。warmup 用 8 而非口径写的 2：首帧卡高仍在校准，第二帧才稳定。"
+    }
+  ],
+  "tests": [
+    "cargo fmt --all -- --check (clean)",
+    "cargo clippy -p mw-shell --all-targets (mw-shell: 3 historical export_pdf warnings, 0 new; dependency crates unchanged: mw-core 10 / mw-io 1 / mw-render 7)",
+    "cargo test --workspace -- --test-threads=1 (731 passed / 0 failed; traces/tests.txt)",
+    "mw-shell dialog module: 7 unit tests (width clamp, action tiling, single Esc per frame, cross-frame Esc isolation, non-dismissible Esc, Enter with text focus, Tab trap + focus restore)",
+    "mw-shell overlay: every_modal_is_reachable / modal_stack_orders_low_to_high / modal_count (19 variants)",
+    "scripts/ci.ps1 -SkipClippy, two consecutive passes, isolated APPDATA: 16 scenarios x 2 runs at --tol 0 (32/32 clean; traces/ci-pass1.log, traces/ci-pass2.log)"
+  ],
+  "knownGaps": [
+    "dialog golden uses --warmup 8 instead of the spec's --warmup 2; the first frame still settles its card height, so 8 frames match the menu scenario and are proven stable across two runs.",
+    "The Esc and Enter captures are post-dismissal states; the demo dialog has no confirmed intermediate state, so the action itself is proven by trace events rather than pixels.",
+    "The dialog golden covers only the default snow theme at ppp 1.5 with the demo body; over-tall scrolling content, disabled actions, danger tone, the 360px narrow width and scrim clicks have no dedicated screenshots.",
+    "All 19 migration sites share the shell and are covered by compilation plus existing business tests, but only the demo dialog has scripted visual evidence; import-busy (non-dismissible) and stacked-modal runtime visuals are not separately captured.",
+    "Backdrop clicks not closing is guaranteed by ignoring ModalResponse::should_close, with no scripted pointer test; single-top-modal drawing is covered by top_modal unit tests, not a two-modal screenshot.",
+    "No dedicated IME composition capture for dialog Enter/focus routing; the text-focus Enter path is covered by a pure event unit test."
+  ]
+}

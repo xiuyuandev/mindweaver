@@ -1,0 +1,18 @@
+# 斜杠菜单滚动：10 条、最多 8 行。连按 8 次 ↓ 把高亮推到底（分割线），菜单应滚动且高亮整行可见。
+wait 4
+key ArrowDown
+wait 1
+key ArrowDown
+wait 1
+key ArrowDown
+wait 1
+key ArrowDown
+wait 1
+key ArrowDown
+wait 1
+key ArrowDown
+wait 1
+key ArrowDown
+wait 1
+key ArrowDown
+wait 4

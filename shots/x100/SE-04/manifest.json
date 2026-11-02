@@ -1,0 +1,45 @@
+{
+  "package": "SE-04",
+  "title": "起始页证据包与 G-B3-1（最近文件缺失行保留 + 全量条款审计）",
+  "status": "已实现（机器门绿；G-B3-1 人工判词未写，不记已验证）",
+  "date": "2026-10-30",
+  "track": "P 轨 外壳体验（docs/31 §4；依赖 SE-01–SE-03）",
+  "contract": {
+    "design": "docs/30 §3（起始页 v2 全节）",
+    "execute": "docs/31 §4 + §3 完成定义",
+    "audit": "对着 §3.1–§3.7 逐条查代码：几何/字号/断点/视觉/键盘/四入口/七条禁止项全部已在（SE-01–03）；唯一没做到的是 §3.4「最近文件缺失」——启动时 prune_missing 把那一行删掉，与「保留行 + 标灰 + 点它走打开失败态」相反，见 shots/x100/SE-04/report.md §1"
+  },
+  "code": [
+    "crates/mw-shell/src/recent.rs::Entry.missing（`#[serde(skip)]`：只进内存，recent.json 语义不变）",
+    "crates/mw-shell/src/recent.rs::Recent::mark_missing（载入/触摸时算一次，**不删**缺文件的条目）",
+    "crates/mw-shell/src/recent.rs::Recent::mark_demo_missing（`MW_RECENTS_MISSING=<n>` 验收钩子）",
+    "crates/mw-shell/src/start.rs::recents_card（缺失行：标题 secondary、副行「文件已移动」、轨迹 `recents row missing title=…`）",
+    "crates/mw-shell/src/app_methods_1.rs / main.rs（启动与异步载入都改调 mark_missing）"
+  ],
+  "scenes": ["start-missing"],
+  "evidence": {
+    "scene": "shots/golden/start-missing/shell-ppp1.00.png（--tol 0 双跑零差异）",
+    "row_only": "shots/x100/SE-04/missing-row-diff.txt（与 start 逐像素比：1082 px，bbox x562..627 y441..470 = 第二条行的标题 + 副行，行外 0 差异）",
+    "trace": "shots/x100/SE-04/missing-trace.txt（`recents row missing title=读书笔记`）"
+  },
+  "tests": {
+    "new": ["mw-shell::recent::tests::missing_files_stay_in_the_list_and_get_marked"],
+    "removed": ["mw-shell::recent::tests::missing_files_are_pruned（语义反转：现在不删）"],
+    "total": "939（见 docs/STATUS.md §1）"
+  },
+  "gate": {
+    "stage_b": "scripts/x100-stage-b-gate.ps1 → 107 场 / 214 次比较，2026-10-30 00:40 双跑全过（SE-04 补 start-missing 一场；日志 target/x100/stage-b-gate.log）",
+    "stage_cm": "scripts/x100-stage-cm-gate.ps1 → 48 场 / 96 次比较，2026-10-30 00:43 双跑全过（本包只动起始页与最近文件，概念图基线零漂移）",
+    "human": "G-B3-1 五判词见 shots/x100/SE-04/gate.md；未判之前 SE-01–04 只记「已实现」"
+  },
+  "behaviour_change": [
+    "最近文件里指向已删文件的条目不再消失：行留着、标题标灰、副行说「文件已移动」",
+    "点它会走既有打开失败弹窗（from_recent = true，弹窗里可选「从最近列表移除」）",
+    "缺失判断只在载入/触摸时算一次，不每帧 stat"
+  ],
+  "known_gaps": [
+    "G-B3-1 的人工判词（docs/30 §3 逐条「做到/没做到/为什么」）还没写：本轮只把机器证据凑齐",
+    "ci.ps1 的 start 场景没加 start-missing（ci 用独立 APPDATA，本来就不读用户列表）；要不要同步进 ci 另说",
+    "文件在运行期间被删掉的那种缺失，要等下一次载入才标出来（没有文件系统监视，合同也没要求）"
+  ]
+}

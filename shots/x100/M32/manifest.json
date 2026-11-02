@@ -1,0 +1,98 @@
+{
+  "id": "M32",
+  "title": "双击折叠圆点「展开到下一级」（逐级深入）",
+  "date": "2026-11-01",
+  "round": 66,
+  "status": "已实现（stage-b 机器门绿；实机双击节奏未核。stage-cm 门红与本包无关，见 gate/ 与 known_gaps）",
+  "contract": [
+    "docs/02 视图与导航「展开层级」P2：双击折叠圆点展开到下一级，区别于全展开",
+    "docs/06 §5 折叠圆点行（本轮把「未实现」改成真行为）"
+  ],
+  "scope": [
+    "mw_core::drill::drill_toggle_command(doc, id) -> Option<Command>：在点之前的状态上算「恰好露一层」；折叠态 = 展开自己 + 有下一层的直接子级折回；展开态 = 展开直接子级；顺序先父后子；多条合成一条 Command::Batch（一次撤销）；0 条变化返回 None（不发命令、不留空撤销）",
+    "叶子不参与：写叶子的 collapsed 不可见却会多一条撤销记录",
+    "显式拒绝概念图（无折叠语义）、叶子、未知 id",
+    "mw_ui::drill_click::ToggleClickMemory：双击识别纯逻辑（同节点 + ≤500ms + ≤4 css px + 撤销深度没变），is_double/take/remember 两段式，第三击不连着下钻",
+    "壳层 Target::Toggle 分支：第一击照常落地并记现场；第二击命中则先 undo() 撤掉第一击、再按点之前的状态下钻；点别处 clear()",
+    "轨迹 toggle_drill id=… depth=N open=0|1",
+    "验收夹具 MW_DRILL_DEMO=<节点文字>：在指定节点的第一颗直接子级下再挂一颗，给「再深入一层」第三层可露；默认样例不变",
+    "新基线 mm-toggle-drill / mm-toggle-drill-deep 进 stage-b 门",
+    "文档：docs/02 该行补验收要点、docs/06 折叠圆点行改成真行为"
+  ],
+  "non_goals": [
+    "不改全展开 / 全折叠（Ctrl+Shift+/ 与 Ctrl+/）与 set_collapsed_all 口径",
+    "不做折叠过渡动画（沿用既有 motion）",
+    "不改折叠圆点命中半径（10 css px、与缩放无关）",
+    "不读系统双击间隔（写死 500ms）",
+    "概念图不涉及"
+  ],
+  "files": [
+    "crates/mw-core/src/drill.rs",
+    "crates/mw-core/src/lib.rs",
+    "crates/mw-ui/src/drill_click.rs",
+    "crates/mw-ui/src/lib.rs",
+    "crates/mw-shell/src/canvas.rs",
+    "crates/mw-shell/src/canvas/canvas_methods_1.rs",
+    "crates/mw-shell/src/canvas/canvas_methods_2.rs",
+    "crates/mw-shell/src/canvas/canvas_methods_3.rs",
+    "crates/mw-shell/src/app_methods_1.rs",
+    "scripts/x100-stage-b-gate.ps1",
+    "shots/golden/inputs/mm-toggle-drill.txt",
+    "shots/golden/inputs/mm-toggle-drill-deep.txt",
+    "shots/golden/mm-toggle-drill/shell-ppp1.00.png",
+    "shots/golden/mm-toggle-drill-deep/shell-ppp1.00.png",
+    "docs/02-功能需求清单.md",
+    "docs/06-界面布局与交互设计.md"
+  ],
+  "scenes": [
+    {
+      "name": "mm-toggle-drill",
+      "ppp": "1.0",
+      "warmup": 20,
+      "env": "MW_NOTES=none; MW_DRILL_DEMO=纯 Rust 原生; MW_GOLDEN_INPUT=shots/golden/inputs/mm-toggle-drill.txt",
+      "sha256_12": "3C799A366D85",
+      "trace": "toggle idx=1 collapsed=true kids=2 → toggle idx=1 collapsed=false kids=2 → undo label=折叠/展开 left=19 → toggle_drill id=… depth=1 open=1",
+      "note": "单击折叠 → 双击 → 只露直接子级，孙级仍隐藏；对「只单击折叠」的对照帧差 61 774 px / 3.5307%（bbox (271,381)–(934,720)）"
+    },
+    {
+      "name": "mm-toggle-drill-deep",
+      "ppp": "1.0",
+      "warmup": 20,
+      "env": "MW_NOTES=none; MW_DRILL_DEMO=纯 Rust 原生; MW_GOLDEN_INPUT=shots/golden/inputs/mm-toggle-drill-deep.txt",
+      "sha256_12": "69083B4AF024",
+      "trace": "…同上… → toggle idx=1 collapsed=true kids=2 → undo label=折叠/展开 left=20 → toggle_drill id=… depth=1 open=0",
+      "note": "再双击一次 → 直接子级展开、第三层「GPU 合成」出现；对 mm-toggle-drill 差 11 975 px / 0.6844%（bbox (73,381)–(394,502)）"
+    }
+  ],
+  "tests": {
+    "new": [
+      "drill::tests::drilling_into_a_collapsed_node_reveals_exactly_one_level",
+      "drill::tests::drilling_into_an_expanded_node_opens_only_its_direct_children",
+      "drill::tests::drilling_is_a_noop_when_nothing_would_change",
+      "drill::tests::the_plan_skips_children_already_in_the_target_state",
+      "drill::tests::leaves_never_get_a_collapsed_flag_written",
+      "drill::tests::drilling_is_one_undo",
+      "drill::tests::leaves_unknown_ids_and_concept_maps_do_not_drill",
+      "drill_click::tests::two_clicks_on_the_same_dot_within_the_window_are_a_double_click",
+      "drill_click::tests::a_third_click_does_not_repeat_the_drill",
+      "drill_click::tests::a_different_node_restarts_the_clock",
+      "drill_click::tests::clicks_outside_the_window_are_not_a_double_click",
+      "drill_click::tests::moving_more_than_four_css_pixels_is_not_a_double_click",
+      "drill_click::tests::a_command_between_the_two_clicks_cancels_the_drill"
+    ],
+    "note": "mw-core 7 条 + mw-ui 6 条 = 13 条。全量 1202 passed / 0 failed / 1 ignored（23 套件，2026-11-01 21:02 正式 stage-b 门内实测）；这 13 条在 20:12 TYPO-01 的 1202 里已计入，本轮测试数不变"
+  },
+  "gate": {
+    "stage_b": "scripts/x100-stage-b-gate.ps1 · 20:52–21:02 · PASS（证据包 X11–X19 / PowerShell 语法 / fmt / clippy 新增 0 / 1202 测试 / 153 场 × 两遍 = 306 次比较零差异，含本包两张）· 日志 target/x100/stage-b-gate.log，副本 gate/stage-b-summary.txt",
+    "stage_cm": "scripts/x100-stage-cm-gate.ps1 · 21:03–21:07 · FAIL（70/72 绿；cm-multi-menu 2.913% 与 cm-submenu-bottom 16.288% 两遍逐位相同地漂）· 根因＝并行会话未经拍板实现 CM-18，概念多选菜单首行插「创建分组」；本包不碰概念图，副本 gate/stage-cm-summary.txt",
+    "note": "TYPO-01 当时用 19:30 冻结二进制逐场复刻门环境；本轮是并行会话停止后**按当前源码重编**的正式门，两份 target/x100/*.log 都补齐了",
+    "human_gate": "未开（X20 人工判词不代判）"
+  },
+  "known_gaps": [
+    "不读系统双击间隔，写死 500ms；实机鼠标节奏未核",
+    "双击前一帧会闪出第一击的中间态（金样按最终帧截取，不受影响）",
+    "折叠态双击时叶子子级不参与折叠（它们没有可见的折叠态），口径由 leaves_never_get_a_collapsed_flag_written 钉住",
+    "stage-cm 门红：与 M32 无关，等用户对 CM-18 拍板（docs/STATUS.md §6 第 11 条）",
+    "本轮收口时才发现 docs/STATUS.md 的 CM-18 行「未写一行代码」与工作树实际不符（含 .zmind 顶层 groups 键）——已更正，未替它重拍盖章"
+  ]
+}

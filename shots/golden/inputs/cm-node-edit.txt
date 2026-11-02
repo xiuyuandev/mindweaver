@@ -1,0 +1,8 @@
+# cm-node-edit · 概念就地改名（docs/30 §5.3 文本 / §5.7 改概念文字走 SetText）
+# MW_CONCEPT_SELECT=用户痛点 → MW_CONCEPT_EDIT=用户痛点 进编辑（光标落在末尾，与双击/F2 同源）。
+# 不按 Ctrl+A：节点编辑框没有「进编辑全选」的语义（光标在末尾），
+# 所以这里直接把尾巴续上——顺带验证「框宽随文本重算」这件事。
+wait 8
+text 与场景
+key Enter
+wait 4

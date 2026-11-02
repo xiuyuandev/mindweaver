@@ -1,0 +1,63 @@
+{
+  "id": "C20",
+  "title": "概念图大纲行菜单（⋯ 与行右键）",
+  "date": "2026-11-01",
+  "round": 56,
+  "status": "已实现（机器门绿；实机键鼠未核）",
+  "scope": [
+    "概念图大纲行尾显示同一枚 16px ⋯（24px 动作道沿用 M25 的布局尺），悬停/选中出现",
+    "⋯ 与行右键共用一张概念图行菜单：新建概念并连线(Tab) / 新建概念(Enter) / 编辑连接短语(Shift+F2) / 断开进入的边(Shift+Delete) / 重命名概念(F2) / 复制(Ctrl+C) / 删除概念(Delete)",
+    "RowAction 新增 LinkConcept / NewConcept / EditVia / Unlink，全部复用既有 OA 动作，无新命令",
+    "Outline::row_edge(id) + concept_row_items(has_edge, can_delete) 纯函数；无进来边的行禁用改短语/断边",
+    "退役 outline_row_menu_skipped reason=concept_map 轨迹；行菜单轨迹新增 concept=0|1",
+    "新基线 cm-outline-menu / cm-outline-menu-cancel 进 stage-cm 门（62 → 64 场 / 124 → 128 次比较）",
+    "cm-outline-via / cm-outline-via-clear / cm-outline-unlink 因选中行出现 ⋯ 各差 36 px，有意重拍"
+  ],
+  "files": [
+    "crates/mw-shell/src/panels/outline.rs",
+    "crates/mw-shell/src/app_methods_2.rs",
+    "scripts/x100-stage-cm-gate.ps1",
+    "shots/golden/cm-outline-menu/shell-ppp1.00.png",
+    "shots/golden/cm-outline-menu-cancel/shell-ppp1.00.png",
+    "shots/golden/inputs/cm-outline-menu.txt",
+    "shots/golden/inputs/cm-outline-menu-cancel.txt",
+    "shots/golden/cm-outline-via/shell-ppp1.00.png",
+    "shots/golden/cm-outline-via-clear/shell-ppp1.00.png",
+    "shots/golden/cm-outline-unlink/shell-ppp1.00.png",
+    "docs/x100/polish-ledger.md"
+  ],
+  "scenes": [
+    {"name": "cm-outline-menu", "warmup": 3, "env": "MW_CONCEPT_OUTLINE=1; MW_OUTLINE_SELECT=用户痛点; MW_WINDOW_SIZE=1280x800; MW_GOLDEN_INPUT=shots/golden/inputs/cm-outline-menu.txt", "vs_control": "25848 px / bbox x[561..1358] y[153..437]"},
+    {"name": "cm-outline-menu-cancel", "warmup": 3, "env": "MW_CONCEPT_OUTLINE=1; MW_OUTLINE_SELECT=用户痛点; MW_WINDOW_SIZE=1280x800; MW_GOLDEN_INPUT=shots/golden/inputs/cm-outline-menu-cancel.txt", "vs_control": "3284 px / bbox x[561..1358] y[153..182]（仅选中行焦点/底色，无命令落地）"},
+    {"name": "cm-outline-via", "drift": "36 px / 0.002%", "bbox": "x[1336..1351] y[166..169]"},
+    {"name": "cm-outline-via-clear", "drift": "36 px / 0.002%", "bbox": "x[1336..1351] y[166..169]"},
+    {"name": "cm-outline-unlink", "drift": "36 px / 0.002%", "bbox": "x[1336..1351] y[166..169]"}
+  ],
+  "tests": {
+    "before": 1120,
+    "after": 1121,
+    "new": [
+      "panels::outline::tests::concept_row_menu_is_proposition_only"
+    ],
+    "existing": [
+      "panels::outline::tests::row_menu_scope_keeps_a_multi_selection_only_for_its_members",
+      "panels::outline::tests::row_more_rect_sits_in_the_action_lane"
+    ]
+  },
+  "gate": {
+    "script": "scripts/x100-stage-cm-gate.ps1",
+    "result": "PASS（64 场 / 128 次比较，两遍 --tol 0，03:19:30–03:22:45）；stage-b 142/284 顺序复跑 PASS（03:23:17–03:30:32）",
+    "human_gate": "未开（G-CM-2 人工判词不代判）"
+  },
+  "deliverables": [
+    "report.md",
+    "manifest.json",
+    "shell-ppp1.00.png (menu)",
+    "shell-ppp1.00.png (cancel)"
+  ],
+  "known_gaps": [
+    "概念图多选只给「复制 / 删除概念」两项，没有批量改短语 / 批量断边",
+    "菜单从右键锚点展开；页头搜索行开着时的互斥沿用 M25，未单独拍图",
+    "实机 IME / 键盘手感未核"
+  ]
+}

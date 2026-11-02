@@ -1,0 +1,11 @@
+wait 4
+key ctrl+Tab
+wait 1
+key ctrl+Tab
+wait 1
+key ctrl+Tab
+wait 1
+key ctrl+Tab
+wait 1
+key ctrl+Tab
+wait 8

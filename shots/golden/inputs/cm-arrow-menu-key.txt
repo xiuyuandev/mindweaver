@@ -1,0 +1,10 @@
+wait 8
+# 子菜单已经由夹具展开，键盘导航起点就在子菜单里：三下到「双向 ↔」。
+key ArrowDown
+wait 1
+key ArrowDown
+wait 1
+key ArrowDown
+wait 1
+key Enter
+wait 6

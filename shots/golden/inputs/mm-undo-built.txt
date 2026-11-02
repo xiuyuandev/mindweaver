@@ -1,0 +1,20 @@
+# mm-undo-built · 撤销节奏的起点：「Tab、打字」连建三颗（甲 / 乙 / 丙）并提交
+# 三次 Tab 各建一颗、各自打完字；最后点空白处提交丙。末了把指针挪开，
+# 免得悬停工具条把下面的空位挡住（撤销后那片区域要能看出「空了」）。
+wait 3
+click 876 552
+wait 2
+key Tab
+wait 1
+text 甲
+key Tab
+wait 1
+text 乙
+key Tab
+wait 1
+text 丙
+wait 1
+click 1200 760
+wait 2
+move 1500 1000
+wait 3

@@ -1,0 +1,10 @@
+# 粘两行进列表项，再按一次 Ctrl+Z：应当一步回到粘贴前（与 card-paste-none 逐像素相同）。
+wait 3
+click 700 276
+wait 1
+key End
+wait 1
+paste 乙\n丙
+wait 2
+key ctrl+z
+wait 3

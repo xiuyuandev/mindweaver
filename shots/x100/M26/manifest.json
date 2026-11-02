@@ -1,0 +1,64 @@
+{
+  "id": "M26",
+  "title": "选中互斥（节点 / 关系线 / 注解）与 Delete 单道分派",
+  "date": "2026-10-31",
+  "round": 49,
+  "status": "已实现（机器门绿；人工门未开）",
+  "scope": [
+    "canvas：SelectionLane / foreign_lanes / delete_lane 纯规则，三选一可测",
+    "Canvas::clear_foreign_selection 统一清场并写 selection_clear 轨迹",
+    "补 navigate / marquee / lasso / select_ids / select_annotation / select_relationship[-label] 的漏口",
+    "Delete 一次只走一道（关系线 → 注解 → 节点），轨迹 delete_dispatch lane=…",
+    "两场新基线 mm-rel-select-arrow / mm-rel-select-delete 进 stage-b 门",
+    "docs/06 §5 与 docs/30 §5.4 补选中互斥合同"
+  ],
+  "files": [
+    "crates/mw-shell/src/canvas.rs",
+    "crates/mw-shell/src/canvas/canvas_methods_1.rs",
+    "crates/mw-shell/src/canvas/canvas_methods_2.rs",
+    "crates/mw-shell/src/canvas/canvas_methods_3.rs",
+    "crates/mw-shell/src/canvas/tests.rs",
+    "shots/golden/inputs/mm-rel-select-arrow.txt",
+    "shots/golden/inputs/mm-rel-select-delete.txt",
+    "scripts/x100-stage-b-gate.ps1",
+    "docs/06-界面布局与交互设计.md",
+    "docs/30-外壳体验与概念图设计规范.md"
+  ],
+  "scenes": [
+    {"name": "mm-rel-select-arrow", "sha256_12": "C7143666B0EE", "warmup": 22, "input": "shots/golden/inputs/mm-rel-select-arrow.txt"},
+    {"name": "mm-rel-select-delete", "sha256_12": "E9028C9C82F7", "warmup": 22, "input": "shots/golden/inputs/mm-rel-select-delete.txt"},
+    {"name": "其余 134 场", "note": "零净漂移（stage-b pass 1/pass 2 各 136 比较全过）"}
+  ],
+  "tests": {
+    "before": 1071,
+    "after": 1073,
+    "new": [
+      "canvas::tests::selection_lanes_keep_exactly_one_lane",
+      "canvas::tests::delete_press_reaches_exactly_one_lane"
+    ]
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1 + scripts/x100-stage-cm-gate.ps1",
+    "result": "PASS（stage-b 12:13:36–12:21:00 136/272、stage-cm 12:21:23–12:24:34 58/116，均两遍 --tol 0）",
+    "human_gate": "未开（X20 / G-CM-2 人工判词不代判）"
+  },
+  "deliverables": [
+    "report.md",
+    "before-arrow.png",
+    "before-delete.png",
+    "after-arrow.png",
+    "after-delete.png",
+    "trace-before.txt",
+    "trace-before-arrow.txt",
+    "trace-after-arrow.txt",
+    "trace-after-delete.txt",
+    "trace-after-rel-delete.txt",
+    "trace-after-annot-arrow.txt",
+    "trace-after-marquee.txt"
+  ],
+  "known_gaps": [
+    "注解道与框选道只锁轨迹 + 改前/改后截图，未各加一场金样（共享同一清场代码）",
+    "关系线多选仍不存在；本轮只保证单条关系线与节点/注解互斥",
+    "实机键鼠节拍与 150%/200% DPI 未核"
+  ]
+}

@@ -1,0 +1,17 @@
+﻿{
+    "round": "X10",
+    "status": "in_progress",
+    "referenceVersion": "26.5.1107.202609082009",
+    "date": "2026-10-22",
+  "build": { "commit": null, "binarySha256": "64C27A6BFE1B7EE70393FFDDDA62DAFC42D94EBD59F5F861D04628ED87D0C18A" },
+    "scenarios": [{
+        "id": "stage-a-gate",
+        "reference": ["docs/25-Xmind参考与差距矩阵.md"],
+        "actual": ["docs/x100/stage-a-report.md"],
+        "trace": ["shots/x100/X10/traces/stage-a-gate.log"],
+        "result": "awaiting_user",
+        "notes": "Technical report is ready; the first mandatory human gate has not been approved."
+    }],
+  "tests": ["scripts/x100-stage-a-gate.ps1", "681 serial workspace tests", "default golden double run"],
+    "knownGaps": ["Clean dynamic Xmind capture remains blocked by the user's currently running instance."]
+}

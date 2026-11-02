@@ -1,0 +1,22 @@
+# mm-undo-one · 建完三颗后按**一次** Ctrl+Z
+# 判据：丙整颗消失（不是「只剩一个空盒子」）。新建 + 写名字合成一条撤销，
+# 所以一次撤销收得干净；对照 mm-undo-built（三颗都在）。
+wait 3
+click 876 552
+wait 2
+key Tab
+wait 1
+text 甲
+key Tab
+wait 1
+text 乙
+key Tab
+wait 1
+text 丙
+wait 1
+click 1200 760
+wait 2
+move 1500 1000
+wait 1
+key ctrl+z
+wait 3

@@ -1,0 +1,9 @@
+wait 4
+hover 300 65 300
+scroll 0 -100
+wait 2
+press 300 65
+move 380 65
+move 520 65
+release 520 65
+wait 8

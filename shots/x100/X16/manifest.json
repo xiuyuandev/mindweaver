@@ -1,0 +1,119 @@
+{
+  "round": "X16",
+  "status": "verified",
+  "referenceVersion": "26.5.1107.202609082009",
+  "date": "2026-10-24",
+  "build": {
+    "commit": null,
+    "binary": "target/release/mw-shell.exe",
+    "binarySha256": "1f2dcaf0218b500123dccb9375aeee5597875eb432876f7a89a0da8da5470ecc",
+    "binarySize": 23236608
+  },
+  "scenarios": [
+    {
+      "id": "menu-model-and-keyboard",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/06-界面布局与交互设计.md"
+      ],
+      "actual": [
+        "shots/x100/X16/actual/rightclick-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X16/inputs/menu-rightclick.txt",
+        "shots/x100/X16/traces/menu-rightclick.trace",
+        "shots/x100/X16/traces/tests.txt"
+      ],
+      "result": "pass",
+      "notes": "A real Secondary press/release at (430,288) opens the 19-entry node menu (menu_open anchor=430,288 entries=19). Eleven Down presses walk 新建子主题 → 新建同级主题 → 剪切 → 复制 → 删除 → 编辑文字 → 新建卡片笔记 → 添加概要 → 添加边界 → 分离为自由主题 → 样式; the disabled 粘贴 row and all separators/sections are skipped. The tall menu flips above the anchor and clamps to the content rect's top 8px edge, covering the in-app menu bar as a native window-level popup. ArrowRight opens the 样式 submenu (menu_submenu_open key=right label=样式)."
+    },
+    {
+      "id": "submenu-close-and-outside-dismiss",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/archive/16-视觉重塑基准.md"
+      ],
+      "actual": [
+        "shots/x100/X16/actual/escape-ppp1.50.png",
+        "shots/x100/X16/actual/outside-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X16/inputs/menu-escape.txt",
+        "shots/x100/X16/traces/menu-escape.trace",
+        "shots/x100/X16/inputs/menu-outside.txt",
+        "shots/x100/X16/traces/menu-outside.trace"
+      ],
+      "result": "pass",
+      "notes": "Escape first closes only the deepest submenu (menu_submenu_close key=escape level=1) and a second Escape closes the whole menu (menu_close reason=escape). A primary click far outside the cards closes it with menu_close reason=outside without activating anything. The 样式 submenu is drawn at the parent row's top edge with a 2px overlap, right of the parent card."
+    },
+    {
+      "id": "menu-activates-through-command",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/27-X100数据与命令审计.md"
+      ],
+      "actual": [
+        "shots/x100/X16/actual/enter-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X16/inputs/menu-enter.txt",
+        "shots/x100/X16/traces/menu-enter.trace",
+        "shots/x100/X16/traces/tests.txt"
+      ],
+      "result": "pass",
+      "notes": "End highlights 聚焦, Enter emits menu_activate key=enter label=聚焦 and the canvas actually enters focus mode: breadcrumb 织思 > 纯 Rust 原生, subtree-only canvas at 128%, status keeps 13 topics with 纯 Rust 原生 selected. The menu itself remains intent-only; the action still travels through panels::context::Action and the existing command path."
+    },
+    {
+      "id": "title-popup-keyboard",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/06-界面布局与交互设计.md"
+      ],
+      "actual": [
+        "shots/x100/X16/actual/title-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X16/inputs/menu-title.txt",
+        "shots/x100/X16/traces/menu-title.trace"
+      ],
+      "result": "pass",
+      "notes": "The 视图 title menu is an egui Popup hosted by PopupNav. Two Down presses move the highlight from Some(0) to Some(1) over 9 rows (popup_menu key=down highlight=Some(0/1) count=9); the highlighted row uses the accent-soft fill only, with no extra focus ring, and the mouse hover grey remains a separate state."
+    },
+    {
+      "id": "context-menu-golden-baseline",
+      "reference": [
+        "docs/24-X100升级路线.md",
+        "docs/26-X100完成定义与验收规范.md",
+        "scripts/ci.ps1"
+      ],
+      "actual": [
+        "shots/x100/X16/actual/golden-menu-ppp1.50.png",
+        "shots/golden/menu/shell-ppp1.50.png"
+      ],
+      "trace": [
+        "shots/x100/X16/traces/golden-verify.log",
+        "shots/x100/X16/traces/ci-pass1.log",
+        "shots/x100/X16/traces/ci-pass2.log",
+        "shots/x100/X16/traces/hashes.txt",
+        "shots/x100/X16/inputs/menu-rightclick.txt",
+        "shots/x100/X16/traces/menu-rightclick.trace"
+      ],
+      "result": "pass",
+      "notes": "menu is the 15th golden scenario (ppp 1.5, MW_CONTEXT_DEMO=1, node menu with the 样式 submenu open). It needs --warmup 8 because the popup is still color-fading through frame 6; warmups 6 and 8 are pixel-identical to warmup 60, while warmup 4/5 differ sub-perceptually (max diff 8/3). All 15 scenarios passed --tol 0 twice (30/30)."
+    }
+  ],
+  "tests": [
+    "cargo fmt --all -- --check (clean)",
+    "cargo clippy -p mw-shell --all-targets (3 historical export_pdf warnings, 0 new)",
+    "cargo test --workspace -- --test-threads=1 (718 passed / 0 failed; traces/tests.txt)",
+    "mw-shell menu module: 11 unit tests (navigation skip, Enter activate/close, disabled rows, submenu open/close, edge flip, clamping, shortcut column, height)",
+    "scripts/ci.ps1 -SkipClippy, two consecutive passes, isolated APPDATA: 15 scenarios x 2 runs at --tol 0 (30/30 clean; traces/ci-pass1.log, traces/ci-pass2.log)"
+  ],
+  "knownGaps": [
+    "Outline header menus (collapse/density/more) share the same PopupNav, but only the title menu has a scripted keyboard capture; the outline ones are covered by unit tests and code review, not by a screenshot/trace.",
+    "The submenu hover-open path emits menu_submenu_open via=hover and was observed during development, but no scripted capture asserts it; keyboard Right is the captured path.",
+    "Menu colors under the ink/mist/sand themes are not separately captured; the menu golden uses the default snow theme.",
+    "Root edge flipping/clamping at all four screen edges is covered by pure geometry unit tests; the runtime capture proves only the upward flip near the bottom edge.",
+    "scripts/ci.ps1 still budgets MaxClippyWarnings = 37 for cargo clippy --workspace --all-targets, but the current tree emits 61 (mw-core 38, mw-shell 3, etc.), so the script aborts before golden. X16 used the AGENTS gate (cargo clippy -p mw-shell, 0 new) and ran golden with -SkipClippy; recalibrating the workspace budget needs a separate decision."
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "package": "M12",
+  "title": "大文档：重建成本与「平移不重排」（打磨轮 6）",
+  "status": "已实现（5k 逐键 60fps：9.3ms；20k 仍全量重排 47ms，P7 16ms 未达标）",
+  "date": "2026-10-29",
+  "track": "打磨轮（docs/x100/polish-ledger.md M12）",
+  "contract": {
+    "design": "docs/08 §2 P7/P8/P9 预算 + §4「增量布局」要点；账本 M12 行",
+    "code": [
+      "crates/mw-core/src/scene.rs::BoxKey / BoxKey::matches（测量缓存键改为结构体比较）",
+      "crates/mw-core/src/scene.rs::build_scene_cached（无高级元素时整段跳过；布局结果整块搬移）",
+      "crates/mw-core/src/theme.rs::resolve_all（按节点数预分配）",
+      "crates/mw-shell/src/canvas/canvas_methods_3.rs::rebuild（scene_build 轨迹）",
+      "crates/mw-shell/src/golden_input.rs（press/release 支持 primary/middle/secondary 前缀）",
+      "crates/mw-core/examples/perf_scene.rs（新增「改字重建(缓存)」，应用真实路径）"
+    ]
+  },
+  "deliverables": {
+    "report": "shots/x100/M12/report.md",
+    "perf": "shots/x100/M12/perf-scene.txt",
+    "traces": [
+      "shots/x100/M12/trace-5k-type.txt",
+      "shots/x100/M12/trace-20k-type.txt",
+      "shots/x100/M12/trace-20k-pan.txt",
+      "shots/x100/M12/trace-pan-demo.txt"
+    ],
+    "input": "shots/golden/inputs/mm-pan-camera.txt"
+  },
+  "measurements": {
+    "method": "cargo run -p mw-core --release --example perf_scene（12 次取中位；改字 40 次）+ 真实壳层 scene_build 轨迹（离屏 harness + MW_OPEN 5k/20k 语料）",
+    "before_after_ms": {
+      "5k_build_scene": [12.3, 6.8],
+      "5k_typing_rebuild": [13.7, 7.7],
+      "5k_typing_rebuild_cached": [null, 5.6],
+      "5k_undo_redo": [13.7, 7.5],
+      "20k_build_scene": [63.4, 40.8],
+      "20k_layout_only": [9.4, 8.2],
+      "20k_typing_rebuild": [66.9, 46.1],
+      "20k_typing_rebuild_cached": [null, 34.1],
+      "20k_undo": [64.8, 46.7],
+      "20k_redo": [65.1, 47.7]
+    },
+    "in_app": {
+      "5k_open_then_type": ["scene_build nodes=5000 edges=4999 ms=37.38", "scene_build nodes=5001 edges=5000 ms=9.33"],
+      "20k_open_then_type": ["scene_build nodes=20000 edges=19999 ms=157.11", "scene_build nodes=20001 edges=20000 ms=47.05"],
+      "20k_pan_zoom_rebuilds": 0
+    },
+    "profile_20k_ms": {
+      "resolve_all": 5.9,
+      "compute_layout": 20.8,
+      "index": 1.3,
+      "nodes_and_order": 8.3,
+      "edges_and_spines": 0.25,
+      "advanced_and_bounds": 0.3
+    }
+  },
+  "tests": {
+    "new": [
+      "scene::tests::the_box_cache_remeasures_only_when_a_size_input_changes",
+      "golden_input::tests::press_can_name_its_button_and_defaults_to_primary"
+    ],
+    "total": "920 passed / 0 failed / 1 ignored"
+  },
+  "gate": {
+    "stage_b_scenes": 91,
+    "stage_b_comparisons": 182,
+    "cm_scenes": 46,
+    "cm_comparisons": 92,
+    "result": "PASS（顺序跑；两道门并发会互踩 actual/diff 目录，实测各假报 8 场）",
+    "new_baselines": 0,
+    "drift": "既有 91 张 stage-b 与 46 张 cm-* 逐字节零漂移"
+  },
+  "behaviour_change": "无（只改内部常数与证据设施）",
+  "known_gaps": [
+    "20k 仍是全量重排：一次重建 47ms（P7 16ms 不达标），要真达标必须做增量布局",
+    "20k 撤销/重做 47ms 同样超 P9 的 30ms",
+    "真实鼠标节拍的 P5 本轮没量到（m5-perf.ps1 未能在 60s 内拿到主窗口句柄）",
+    "只量 1080p / ppp 1.0；卡片页与大纲的 20k 成本未量",
+    "语料是合成的（每层 6/8/8/5 轮换），真实文档分布可能不同"
+  ]
+}

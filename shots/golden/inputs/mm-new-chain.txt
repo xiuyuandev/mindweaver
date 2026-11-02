@@ -1,0 +1,13 @@
+# mm-new-chain · 「Tab、打字、Tab、打字」这条最常用的建树节奏
+# 编辑态里直接按 Tab 应当是「提交当前这颗 + 建下一颗并接着编辑」，
+# 不是在输入框里插一个制表符，也不是把焦点漏给壳层某个按钮。
+wait 3
+click 876 552
+wait 2
+key Tab
+wait 1
+text 甲
+key Tab
+wait 1
+text 乙
+wait 3

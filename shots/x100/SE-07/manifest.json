@@ -1,0 +1,51 @@
+{
+  "package": "SE-07",
+  "title": "内容组 v2（备注 3 行起/8 行封顶可展开 + 任务三态 + 标签纯文字 6px 色点 + 链接行内编辑 + 卡片三态与来源）",
+  "status": "已实现（机器门绿；实机微软拼音未核，不记已验证）",
+  "date": "2026-10-30",
+  "track": "P 轨 检查器 v2（docs/31 §5；依赖 SE-05 骨架、CER-20 保存语义）",
+  "contract": {
+    "design": "docs/30 §4.1（内容组默认展开、组内控件行高 28）、§4.2（文本域 3 行起、超过 8 行可展开；标签纯文字 12.5/18 + 6px 色点、回车提交、无 chip 墙；卡片绑定三态并显示标题 + 来源）、§4.5（禁止彩色 chip 墙）、§4.6（inspector-content 场景）",
+    "execute": "docs/31 §5 第 SE-07 行",
+    "audit": "开工前逐条对过代码：五组 default_open 全 false、备注框写死 desired_rows(9)、标签在「标记」页且是胶囊 chip、卡片缺来源行、没有 inspector-content 场景——见 report.md §1"
+  },
+  "code": [
+    "crates/mw-shell/src/panels/inspector.rs（note_rows / card_source / label_field_width / content_row 四个纯函数与常量 LABEL_MARGIN_X·LABEL_BTN_W·LABEL_PAD_X；inspector.note_expanded；geo::ROW_H = 28、geo::ROW_TEXT = 12.5）",
+    "crates/mw-shell/src/panels/inspector/inspector_methods_1.rs（note_body：五组默认展开 + 活摘要 + 展开按钮 + 3 行起；labels_section：色点 + 纯文字 + 28 行 + 回车/添加；mark_body 删掉旧标签块；card_section 加来源行；open_tab 支持 note/content）",
+    "crates/mw-shell/src/app_methods_1.rs（MW_INSPECTOR_TAB=style|note|mark；MW_CONTENT_DEMO=1 用 Command 灌备注/两个标签/进行中/链接/卡片）"
+  ],
+  "scenes": [
+    "inspector-content"
+  ],
+  "evidence": {
+    "baselines": "shots/golden/inspector-content（1920×1080 @ ppp 1.5，--tol 0 双跑零差异）；inspector / inspector-narrow / inspector-empty / inspector-shape / inspector-ink / inspector-mist / inspector-sand 0 px；cm-arrow-inspector 0 px",
+    "new_shot": "inspector-content = MW_INSPECTOR=1 MW_SELECT_DEMO=1 MW_INSPECTOR_TAB=note MW_CONTENT_DEMO=1：内容页五组全开，备注 3 行、两个标签是 9×9 设备像素的色点（6 css）、任务「进行中」、链接显示 host、卡片带标题 + 来源",
+    "measurements": "轨迹 inspector w=288.00（改前 316.65→326.65 且每帧 +2）；标签行高 28、两颗色点间距 36 css（改前行高 30 / 间距 38）",
+    "unit_tests": "note_rows_starts_at_three_and_caps_at_eight / card_source_says_where_the_card_comes_from / content_groups_are_open_by_default / labels_are_text_with_a_six_px_dot / the_label_row_fits_the_panel / content_rows_are_twenty_eight_high",
+    "gates": "stage-b PASS（两遍各 115 比较 = 230，2026-10-30 03:27，--tol 0，inspector-content 首次进门）；stage-cm PASS（两遍各 48 比较 = 96，2026-10-30 03:30，`cm-arrow-inspector` 零漂移）"
+  },
+  "tests": {
+    "new": [
+      "mw-shell::panels::inspector::tests::note_rows_starts_at_three_and_caps_at_eight",
+      "mw-shell::panels::inspector::tests::card_source_says_where_the_card_comes_from",
+      "mw-shell::panels::inspector::tests::content_groups_are_open_by_default",
+      "mw-shell::panels::inspector::tests::labels_are_text_with_a_six_px_dot",
+      "mw-shell::panels::inspector::tests::the_label_row_fits_the_panel",
+      "mw-shell::panels::inspector::tests::content_rows_are_twenty_eight_high"
+    ],
+    "total": "全库 948 → 954 passed / 0 failed / 1 ignored（新增 6 条）；fmt 干净，clippy 指纹新增 0"
+  },
+  "knobs": {
+    "MW_INSPECTOR_TAB": "启动即把检查器开在指定页：style（默认）/ note（别名 content）/ mark",
+    "MW_CONTENT_DEMO": "给演示文档里的「纯 Rust 原生」灌齐五项内容（备注 / 标签 / 任务 / 链接 / 卡片），全部走 Command"
+  },
+  "deferred": {
+    "备注展开实拍": "演示备注 3 行进不了 >8 行分支，只做了单测",
+    "组内其它行的 28 行高": "任务三态（24）与链接按钮行仍是旧几何，要跟 §4.1 一起对齐，留作下一轮",
+    "卡片候选列表重排": "§4.2 只要求三态 + 标题 + 来源，候选列表不在本包"
+  },
+  "open": {
+    "实机未核": "标签框/备注框里的微软拼音、真手拖 240↔360 时的标签行",
+    "面板宽度回归的教训": "上一处回归（内容顶大面板）机器门是绿的，只有轨迹与像素看得见；`label_field_width` 与 `content_row` 就是为了把这类回归变成会红的单测"
+  }
+}

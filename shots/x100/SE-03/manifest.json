@@ -1,0 +1,57 @@
+{
+  "package": "SE-03",
+  "title": "起始页键盘、响应式与概念图入口（Tab 序 + Ctrl+Shift+N + 主卡内侧焦点环）",
+  "status": "已实现（机器门绿；实机键盘与真实微软拼音未核，不记已验证）",
+  "date": "2026-10-30",
+  "track": "P 轨 外壳体验（docs/31 §4；依赖 SE-01、SE-02）",
+  "contract": {
+    "design": "docs/30 §3.2（断点）、§3.5（键盘与焦点）、§3.6（概念图入口）",
+    "execute": "docs/31 §4",
+    "audit": "开工前逐条对过代码：断点三档、1–6 直选模板、Ctrl+N/O/Esc、无焦点才吃 Enter、页面出现自动聚焦、Enter/Space 等价点击全部已在（SE-01）；真缺三件——Tab 序（清除按钮排在最近文件行之前）、Ctrl+Shift+N 未绑定、主卡焦点环用外侧环，见 shots/x100/SE-03/report.md §1"
+  },
+  "code": [
+    "crates/mw-shell/src/start.rs::recents_section（标题行按尺寸占位、行画完后 text_button_at 在原矩形注册 —— Tab 序落在最近文件行之后）",
+    "crates/mw-shell/src/ui_kit.rs::text_button_size / text_button_at（给定矩形画按钮 + interact，不占布局；text_button 改为二者组合）",
+    "crates/mw-shell/src/start.rs::quick_card（主作用卡焦点环画在卡内 2px，外侧不再叠加）",
+    "crates/mw-shell/src/shortcuts.rs::Action::NewConcept（id `newConcept`，默认 Ctrl+Shift+N）",
+    "crates/mw-shell/src/app_methods_1.rs（NewConcept 判别排在 New 之前；开始页 home_new_concept、文档 new_concept_tab）",
+    "crates/mw-shell/src/app_methods_3.rs / app_helpers.rs（标题栏「文件 → 新建概念图」菜单项 + k_new_concept 提示）",
+    "crates/mw-shell/src/app_methods_1.rs::App::new（金样不读用户 recent.json：harness 走空列表，要列表用 MW_START_DEMO 播种）"
+  ],
+  "scenes": [
+    "start", "start-narrow", "start-scroll", "start-tab-focus",
+    "start-empty", "start-skeleton", "start-concept",
+    "start-ink", "start-mist", "start-sand"
+  ],
+  "evidence": {
+    "tab_order": "shots/x100/SE-03/tab-order.txt（16 次 Tab 的 focus 轨迹：四卡 → 最近文件×3 → 清除最近文件 → 模板×6 → 绕回主卡）",
+    "shortcut_home": "shots/x100/SE-03/ctrl-shift-n.txt（`home new concept kind=conceptMap` + toast「已新建概念图」）",
+    "shortcut_doc": "shots/x100/SE-03/ctrl-shift-n-doc.txt（文档里按 → `home new concept source=shortcut`）",
+    "shortcut_regression": "shots/x100/SE-03/ctrl-n.txt（Ctrl+N 仍是「已新建思维导图」）",
+    "ring": "shots/x100/SE-03/ring-probe.txt（卡内 1–2px = 强调色 (47,111,94)，卡外四方向全是页底 (244,241,235)）",
+    "inputs": "shots/golden/inputs/start-tab-order.txt、start-ctrl-shift-n.txt"
+  },
+  "tests": {
+    "new": [
+      "mw-shell::start::tests::cards_stay_between_180_and_the_page_width",
+      "mw-shell::shortcuts::tests::the_shifted_chord_is_swallowed_by_the_plain_one_unless_judged_first"
+    ],
+    "total": "939（见 docs/STATUS.md §1）"
+  },
+  "gate": {
+    "stage_b": "scripts/x100-stage-b-gate.ps1 → 106 场 / 212 次比较（本轮不加场；8 张起始页基线因主卡内侧环重拍，随后双跑 --tol 0 零差异）",
+    "stage_cm": "scripts/x100-stage-cm-gate.ps1（48 场，不受本包影响）"
+  },
+  "behaviour_change": [
+    "Tab 序：快速开始四卡 → 最近文件行 → 清除列表 → 模板六卡（清除按钮的视觉位置仍在标题行右边）",
+    "Ctrl+Shift+N：开始页直接建概念图；文档里新开概念图标签页（不动当前这篇）",
+    "主作用卡拿到焦点时，强调色环画在卡内 2px，卡外不再有环",
+    "金样运行不再读本机 recent.json（空态/窄窗基线变成确定性的）"
+  ],
+  "known_gaps": [
+    "实机键盘核对（真按 Tab / Ctrl+Shift+N，窗口焦点在别处时是否一致）仍需人工，本轮只有离屏轨迹",
+    "Tab 序的最终「提示行」不可聚焦（它不是控件），轨迹到模板六卡后绕回主卡；若设计上要能 Tab 到提示行需另开包",
+    "Tab 序只有轨迹证据，没有自动断言：egui 不暴露注册顺序，`tab-order.txt` 靠人对着读；要变成机器判据得先给 harness 加「按行比对断言」的能力",
+    "Key::from_name 区分大小写（脚本要写 `key Tab` 而不是 `key tab`），解析器没有做大小写归一——留给将来的输入脚本改进"
+  ]
+}

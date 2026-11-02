@@ -1,0 +1,13 @@
+# library-10k-scroll · 10k 卡片列表滚到中段（CER-33）
+# 指针先落在列表栏（侧栏 232 + 列表 360 的中点），再连发四帧触控板滚动。
+# 每帧 -2400pt ≈ 40 行，四帧共 ≈160 行；截图停在滚定后的稳定帧。
+move 412 500
+wait 2
+scroll 0 -2400
+wait 2
+scroll 0 -2400
+wait 2
+scroll 0 -2400
+wait 2
+scroll 0 -2400
+wait 4

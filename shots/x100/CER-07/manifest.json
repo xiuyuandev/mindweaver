@@ -1,0 +1,63 @@
+{
+  "package": "CER-07",
+  "status": "已实现",
+  "date": "2026-10-25",
+  "design_contract": "docs/28 §5.4、§4.6、§5.2",
+  "execution_contract": "docs/29 §6（X62 范围并入并加深）",
+  "batch": "B2-A",
+  "gate": null,
+  "scenes": ["outline-edit", "outline-edit-ime", "outline-edit-softbreak", "outline-paste-lines"],
+  "themes": ["snow"],
+  "dpi": [1.5],
+  "scripts": [
+    "shots/golden/inputs/outline-edit-ime.txt",
+    "shots/golden/inputs/outline-edit-softbreak.txt",
+    "shots/golden/inputs/outline-paste-lines.txt"
+  ],
+  "evidence": ["shots/x100/CER-07/report.md", "shots/x100/CER-07/scripts/"],
+  "old_hashes": {
+    "shots/golden/outline-edit/shell-ppp1.50.png": "7653fa4e8f36da6f56411f2e58f91fb2a7fb5b46760e90859a9d4d465c6249fb",
+    "shots/golden/outline-edit/shell-ppp1.00.png": "900932fd98f3cb4031ec211c2ba16210ae7b83ae603e76e106924cff896ae0cb",
+    "shots/golden/outline-edit-ime/shell-ppp1.50.png": "ac989196121fae9c600783f19135915de076ad29f448ad7d6ef594f5978dfbb3",
+    "shots/golden/outline-edit-softbreak/shell-ppp1.50.png": "eab02712635228725ef4785149545bf47d677a24c65dc57c804151a077b0f7e7",
+    "shots/golden/outline-paste-lines/shell-ppp1.50.png": "9504f14f24c594cf338667598f0b46071ecc222d0e5b4f826df94ddc8f48788b"
+  },
+  "new_hashes": {
+    "shots/golden/outline-edit/shell-ppp1.50.png": "6226fff5da05b4d26b0e7364078fda96e451015c2d2355fe0f984d962cfc7e0d",
+    "shots/golden/outline-edit/shell-ppp1.00.png": "c29a559642dd49c72f7abf50768654e27cb38ccd2e09504e68970bb476da60f0",
+    "shots/golden/outline-edit-ime/shell-ppp1.50.png": "9a869ce548159d15df3705b6357491ee4bfc4f625b08b45d0df7f8d5873ba6eb",
+    "shots/golden/outline-edit-softbreak/shell-ppp1.50.png": "b5b130767defb3f34d9b3d3afb177aa26acdcd4361ad6bc53099d13f61007f24",
+    "shots/golden/outline-paste-lines/shell-ppp1.50.png": "7d3a5936b03060b1988bf31ec3d0d216709525140892a1d8250def2a423e7756",
+    "note": "2026-10-25 desired_rows(1) 修复后重拍；五个场景双跑 --tol 0 全 0 差异，见 report §10"
+  },
+  "tests": { "passed": 783, "failed": 0 },
+  "golden": { "runs": 2, "diffs": 0, "tol": 0, "note": "4 个编辑场景双跑 0；机器门矩阵双跑（target/x100/cer-07-final-golden.log）" },
+  "engineering": {
+    "fmt": "clean",
+    "clippy_mw_shell_new": 0,
+    "release_build": "pass"
+  },
+  "contract_audit": "§5.4 十三项全部落地：软换行（Shift+Enter 写草稿）、多行粘贴拆节点（窗口级拦截 + PasteLines Batch）、IME 组合门、caret 拆分、退格合并 Batch、本地草稿、一次撤销等",
+  "changes": {
+    "code": [
+      "crates/mw-shell/src/panels/outline.rs（insert_at_chars/split_paste 纯函数、Shift+Enter 软换行、光标推进、编辑行高 32+24*(n-1)、multiline overlay、paste_into_edit 窗口拦截、PasteLines 提交分支优先、+2 单测）",
+      "crates/mw-shell/src/app_methods_2.rs（window_clipboard 大纲编辑粘贴钩子、PasteLines apply 臂 = SetText + N×AddNode 一条 Batch）"
+    ],
+    "golden": [
+      "shots/golden/outline-edit/",
+      "shots/golden/outline-edit-ime/",
+      "shots/golden/outline-edit-softbreak/",
+      "shots/golden/outline-paste-lines/",
+      "shots/golden/inputs/outline-edit-ime.txt",
+      "shots/golden/inputs/outline-edit-softbreak.txt",
+      "shots/golden/inputs/outline-paste-lines.txt"
+    ]
+  },
+  "known_gaps": [
+    "（已修复 2026-10-25）ime 场景编辑行显示两行——根因是编辑 overlay 未锁 desired_rows，见 report §10",
+    "编辑态 ↑↓ 仍为提交并走行（X20 语义），§5.5 移动光标归 CER-08 裁决",
+    "微软拼音人工实测待用户配合补记（离屏用 ime 原语等效注入）",
+    "非编辑态多行文本显示仍单行省略（CER-11 动态行高）",
+    "ring 场景四主题待 wait 24 模板补拍"
+  ]
+}

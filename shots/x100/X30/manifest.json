@@ -1,0 +1,280 @@
+{
+  "package": "X30",
+  "slice": "X30",
+  "title": "画布视觉门：四主题 × 三 DPI × 关键内容组合（只做设计，不拍图）",
+  "status": "未开始",
+  "status_reason": "本包只交设计合同（范围/矩阵/判据/与 178 场的关系/门的写法）；28 场场景表、夹具、矩阵脚本、chrome 包围盒工具、gate.md 五件产物全未落地，按 AGENTS §3.6 只能写「未开始」",
+  "date": "2026-11-02",
+  "updated": "2026-11-02T20:35:00+08:00",
+  "track": "Stage C 收口视觉门（docs/24 §3「- X30 完成四主题、三 DPI 和关键内容组合的画布视觉门」；Stage C 于 G-B2-4 通过后解锁，X21/X21b 已落地）",
+  "contract": {
+    "route": "docs/24 §3 阶段 C 的 X30 行 + §4 执行协议（报告先行、四类证据、双跑零差异）",
+    "design": "docs/24 §3 阶段 C 各包（X21–X29）为被验对象；X20 外壳视觉门验收口径（docs/24「X20 外壳视觉门验收口径」）为本门的写法范本",
+    "status_source": "docs/STATUS.md §1（门结论与场次唯一真相源）",
+    "decision": "Lead 2026-11-02 20:2x 指定：只设计不拍图；§1 范围与非目标、§2 矩阵与降维、§3 判据、§4 与 178 场关系、§5 通过/不通过写法；状态词只用「未开始/进行中/延后」"
+  },
+  "decisions": {
+    "D1": "降维支点：主题 × DPI 是唯一必须满格布的两维（4×3=12，浅主题细线/点阵在 200% 最危险）；内容组合的失败模式是几何与语义、与主题无关，只在基准格 snow×150% 各拍 1 场",
+    "D2": "规模：28 场 / 56 次比较，而不是 4×3×10=120 场 / 240 次；明确不拍的格子（mist/sand 200% 窄窗、内容×其余 11 格、卡片页 12 格、编辑态 3 DPI、20k 满载）逐条写了谁兜底与何时必须补格",
+    "D3": "跨 DPI 比较必须 CSS 视口恒定：A 组取 css 800×600（物理 = css × ppp = 800×600 / 1200×900 / 1600×1200，均 ≤ 宿主 1920×1200）；MW_WINDOW_SIZE = round(css × ppp / 1.5)，允许 ±1 css px",
+    "D4": "X30 不并入 stage-b、不重拍既有 178 场基线：回归门判「逐字节不变」，视觉门判「人看合不合格」，混在一起会让失败归因说不清",
+    "D5": "机器项（M1 尺寸 / M2 双跑 / M3 铬件 bbox / M4 四边越界 / M5 对比度单测 / M6 不动既有基线）与人工项（22 格判词）分开写、分开判；机器全绿不许代替判词",
+    "D6": "离屏证明不了真 200% 屏观感（N6）：本门通过 ≠ 已验证；实机 DPI 与微软拼音仍记欠账，与全仓口径一致"
+  },
+  "scope": {
+    "must": [
+      "§1 门的范围与非目标（N1–N6）",
+      "§2 矩阵设计：A 12 场 + B 10 场 + C 4 场 + D 2 场 = 28 场，含 DPI 换算与降维论证",
+      "§3 机器 6 项 + 人工 5 项的逐场判据",
+      "§4 与现有 178 场的复用清单（11 组寄存证据）与 28 个新场景名",
+      "§5 通过/不通过的机器项 / 人工项写法；本门状态写「未开始」",
+      "shots/x100/X30/manifest.json"
+    ],
+    "out_of_scope": [
+      "实际拍图、写基线、写矩阵脚本与 chrome bbox 工具（本次只设计）",
+      "改 crates/、docs/STATUS.md、scripts/、shots/golden/、其它 shots/x100/*",
+      "交互与编辑行为（Stage D）、检查器控件视觉（X50 门）、大纲/卡片页/笔记库整页视觉（X20 已过）",
+      "重拍 stage-b 178 场基线",
+      "任何 .zmind / Node / StyleOverride 字段与格式变更",
+      "真实 200% 屏与实机 DPI 观感（离屏不可证）"
+    ]
+  },
+  "matrix": {
+    "dimensions": {
+      "theme": [
+        "snow",
+        "ink",
+        "mist",
+        "sand"
+      ],
+      "dpi": [
+        "100% (ppp 1.0)",
+        "150% (ppp 1.5)",
+        "200% (ppp 2.0)"
+      ],
+      "content": [
+        "空画布",
+        "单主题",
+        "深树",
+        "折叠",
+        "关系线",
+        "注解",
+        "编辑中",
+        "多选",
+        "概念图",
+        "卡片页"
+      ]
+    },
+    "groups": {
+      "A": {
+        "count": 12,
+        "design": "4 主题 × 3 DPI 全交叉；同一份「审判内容」（深树+关系线+注解+折叠+铬件）；css 视口恒定 800×600",
+        "physical": {
+          "p100": "800x600",
+          "p150": "1200x900",
+          "p200": "1600x1200"
+        },
+        "window_size": {
+          "p100": "533x400",
+          "p150": "800x600",
+          "p200": "1067x800"
+        }
+      },
+      "B": {
+        "count": 10,
+        "design": "十类内容各 1 场，基准格 snow × 150%，css 1620×1080"
+      },
+      "C": {
+        "count": 4,
+        "design": "最怕 DPI 的两类内容（深树 B3 / 关系线 B5）补 100% 与 200% 两端"
+      },
+      "D": {
+        "count": 2,
+        "design": "200% × css 640×460（物理 1280×920）× {snow, ink}，专看溢出与挤压"
+      }
+    },
+    "totals": {
+      "scenes": 28,
+      "comparisons": 56,
+      "passes": 2,
+      "tolerance": "0"
+    },
+    "not_shot": [
+      "mist/sand × 200% × 窄窗（用 ink 200% 窄窗 + sand 150% 兜，P2 可补 2 场）",
+      "10 类内容 × 其余 11 个主题/DPI 格（依赖「内容缺陷与主题无关」假设，判词见反例必须补格）",
+      "卡片页 × 4 主题 × 3 DPI（非画布范围，X20 已过外壳四主题）",
+      "编辑中 × 3 DPI（编辑态归 Stage D）",
+      "20k 满载 × 四主题（性能类，归 M12 系列证据）"
+    ]
+  },
+  "scenes": {
+    "naming": "x30-<组>-<内容或主题>-p<DPI>[-narrow]",
+    "new": {
+      "A": [
+        "x30-a-snow-p100",
+        "x30-a-snow-p150",
+        "x30-a-snow-p200",
+        "x30-a-ink-p100",
+        "x30-a-ink-p150",
+        "x30-a-ink-p200",
+        "x30-a-mist-p100",
+        "x30-a-mist-p150",
+        "x30-a-mist-p200",
+        "x30-a-sand-p100",
+        "x30-a-sand-p150",
+        "x30-a-sand-p200"
+      ],
+      "B": [
+        "x30-b-empty",
+        "x30-b-single",
+        "x30-b-deep",
+        "x30-b-collapsed",
+        "x30-b-rel",
+        "x30-b-annot",
+        "x30-b-edit",
+        "x30-b-multi",
+        "x30-b-cm",
+        "x30-b-card"
+      ],
+      "C": [
+        "x30-c-deep-p100",
+        "x30-c-deep-p200",
+        "x30-c-rel-p100",
+        "x30-c-rel-p200"
+      ],
+      "D": [
+        "x30-d-snow-p200-narrow",
+        "x30-d-ink-p200-narrow"
+      ]
+    },
+    "reuse_as_reference_only": {
+      "themes_150": [
+        "theme-ink",
+        "theme-mist",
+        "theme-sand"
+      ],
+      "dpi_channel_proof": [
+        "shots/golden/library/shell-ppp1.00.png",
+        "shots/golden/library/shell-ppp1.50.png",
+        "shots/golden/library/shell-ppp2.00.png",
+        "shots/golden/outline-wrap/shell-ppp2.00.png"
+      ],
+      "content": [
+        "mm-collapse",
+        "mm-rel-link-created",
+        "mm-summary-key",
+        "mm-boundary-key",
+        "mm-marquee",
+        "mm-lasso",
+        "mm-zoom-wheel",
+        "cm-default",
+        "cm-crosslink",
+        "card-default",
+        "inspector-ink",
+        "inspector-mist",
+        "inspector-sand"
+      ]
+    },
+    "baseline_dir": "shots/golden/<场景名>/",
+    "gate_script": "scripts/x100-stage-c-x30-gate.ps1（未创建）",
+    "matrix_script": "复用 scripts/golden-matrix.ps1 的每场独立 APPDATA/LOCALAPPDATA 写法（不另起一套）",
+    "input_scripts": "shots/golden/inputs/x30-*.txt（未创建；A 组审判内容用 MW_X30_DEMO=judge 夹具驱动，尽量少用输入脚本）",
+    "registered_in_stage_b": false
+  },
+  "current_facts": [
+    "harness 的 --ppp 三档通道已通：shots/golden/library/ 同目录有 shell-ppp1.00/1.50/2.00.png 三份基线",
+    "ppp 2.0 已实拍过：shots/golden/outline-wrap/shell-ppp2.00.png 为 1920×1200（宿主物理上限）",
+    "现有 178 场 stage-b 里主题场景只有 theme-ink/mist/sand（均 ppp 1.5，snow 由默认画布场景承载），DPI 维度几乎没铺：ppp 2.0 只 3 条登记——base-ppp2.0 / library-ppp2.0 / outline-wrap-2x",
+    "反例前提已核实：physical 像素不随 ppp 变（同一 MW_WINDOW_SIZE 下 ppp 只改 css），所以「css 恒定、物理随 ppp 放大」必须靠 MW_WINDOW_SIZE 换算，这是本门 §2.2 的核心设计",
+    "对比度硬门已存在：mw_core::contrast 七条 + theme_ui_contrast_meets_wcag_aa（SE-11 / X20 落地）",
+    "chrome 包围盒工具 x30-chrome-bbox.ps1 与四边越界检查脚本均不存在（M3/M4 必须新建）",
+    "stage-b 正式门 2026-11-02 20:15 MACHINE GATE PASS；stage-cm 正式门 20:19 FAIL（红在并行会话的 fmt/clippy），本门开跑前要求环境干净",
+    "反例已实拍：base-ppp2.0 的基线 shots/golden/shell-ppp2.00.png 是 1620×1080 物理（css 810×540），同内容 100% 下 css 1620×1080 ⇒ 跨 DPI 必须钉 css 视口，否则比的是窗口大小"
+  ],
+  "acceptance": {
+    "machine": [
+      "M1 尺寸精确：物理 = round(css × ppp) ±1，css = 物理/ppp ±1，28/28 用 Pillow 回读",
+      "M2 双跑零差异：28 场 × 2 遍 = 56 次 --tol 0 逐字节相同",
+      "M3 铬件屏幕恒定：缩放条/小地图/检查器 css 包围盒跨 3 DPI 差 ≤1px（需新建 x30-chrome-bbox.ps1）",
+      "M4 四边无越界：距四边 1px 环内像素全为背景色",
+      "M5 对比度：门内全量测试含 contrast 七条硬门与 theme_ui_contrast_meets_wcag_aa 全绿",
+      "M6 不动既有基线：stage-b 178 场仍零差异，X30 不重拍任何既有场景"
+    ],
+    "human_cells": 22,
+    "human_items": [
+      "层级可读性",
+      "对比度",
+      "笔触一致性",
+      "铬件屏幕恒定",
+      "内容正确性"
+    ],
+    "verdict_format": "X30 MATRIX PASS 56/56 + MACHINE ITEMS PASS (M1–M6) + HUMAN VISUAL GATE PASS 22/22 → X30 GATE PASS；任一 FAIL → 未通过，并写清哪一场、哪个判据、症状"
+  },
+  "evidence": {
+    "collected": false,
+    "checklist": {
+      "matrix_log": "target/x100/x30-matrix-<pass>.log（未生成）",
+      "baselines": "shots/golden/x30-*/（未生成，0/28）",
+      "chrome_bbox": "未生成",
+      "gate_md": "shots/x100/X30/gate.md（未生成）",
+      "human_verdicts": "未生成（22 格）"
+    }
+  },
+  "known_mismatches_report_vs_code": [],
+  "risks": [
+    {
+      "id": "R1",
+      "level": "高",
+      "what": "宿主物理上限 1920×1200 ⇒ 200% 档 css ≤960×600；更大的 200% 窗口在这台机器上拍不到",
+      "fix": "A 组取 css 800×600（200% 物理 1600×1200 留余量）；真屏观感记 N6 欠账"
+    },
+    {
+      "id": "R2",
+      "level": "高",
+      "what": "chromium bbox 工具没写，M3 只能靠肉眼 ⇒ 「铬件屏幕恒定」这条会变成拍脑袋",
+      "fix": "门开跑前先写 scripts/x30-chrome-bbox.ps1（按已知外观色裁 chrome 区域算 bbox），否则门不许开"
+    },
+    {
+      "id": "R3",
+      "level": "中",
+      "what": "降维支点「内容缺陷与主题无关」是假设",
+      "fix": "判词出现反例必须补格；补格后重跑全门，不局部补拍"
+    },
+    {
+      "id": "R4",
+      "level": "中",
+      "what": "并行会话仍在改 crates/（stage-cm 门 20:19 红在对方 fmt/clippy）",
+      "fix": "门开跑前确认二进制哈希与对方落笔；跑完引用哈希"
+    },
+    {
+      "id": "R5",
+      "level": "中",
+      "what": "点阵（半径 1.1、间距 28）在 ppp 2.0 下可能发灰/断点",
+      "fix": "A 组 snow（有点阵）与 mist/sand（无点阵）对照；必要时在 X21b 口径下补 ppp 2.0 点阵专项"
+    },
+    {
+      "id": "R6",
+      "level": "低",
+      "what": "28 场 ×2 的时长约 8–10 分钟（按 stage-b 178×2 ≈26 分钟折算），加上判词与工具，门本身是一天量级",
+      "fix": "先跑 A 组 12 场验证 DPI 换算，再铺 B/C/D"
+    }
+  ],
+  "not_done": [
+    "一场没拍：28 场场景表、夹具、基线 0/28",
+    "矩阵脚本与 chrome 包围盒/越界检查工具未建",
+    "gate.md 与 22 格判词表未建",
+    "审判内容夹具 MW_X30_DEMO=judge 未实现（需经 Command 写入，不改 .zmind）",
+    "真实 200% 屏观感与实机 DPI 欠账（与全仓同口径）",
+    "本包状态 未开始；门未开"
+  ],
+  "handoff": {
+    "next": [
+      "夹具 owner：MW_X30_DEMO=judge（深树+关系线+注解+折叠）+ 十类内容夹具（尽量复用既有 MW_*_DEMO）",
+      "场景 owner：先 A 组 12 场（验证 css 800×600 换算与三档物理尺寸），再 B/C/D",
+      "工具 owner：scripts/x30-chrome-bbox.ps1 + 四边越界检查",
+      "门脚本：scripts/x100-stage-c-x30-gate.ps1（复用 golden-matrix.ps1 的隔离 APPDATA 写法）",
+      "全过后写 shots/x100/X30/gate.md 判词；门 PASS 后包状态 未开始 → 已实现（已验证 另需实机）"
+    ],
+    "write_scope": "本包只写 shots/x100/X30/（report.md + manifest.json）；crates/、docs/STATUS.md、scripts/、shots/golden/、其它 shots/x100/* 由其他 owner 落地"
+  }
+}

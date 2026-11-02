@@ -1,0 +1,9 @@
+# outline-drag-illegal · 拖到自己的后代：禁止光标 + 红 1px（docs/28 §5.6）
+# 源行「纯 Rust 原生」y=148；目标「wgpu 四层合成器」y=244 是它的孙节点。
+# 同样不 release：截图停在非法落点的预览帧（红 1px 线 + NoDrop 光标）。
+wait 8
+move 400 148
+wait 1
+press 400 148
+move 400 200
+move 400 244

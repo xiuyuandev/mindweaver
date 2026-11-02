@@ -1,0 +1,9 @@
+wait 3
+press 463 605
+wait 2
+move 483 605
+wait 2
+move 1027 613
+wait 6
+# 等吸附的 60ms 判据落定再截图；只看帧数在高负载下会抓到两种态。
+sleep 160

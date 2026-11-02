@@ -1,0 +1,17 @@
+﻿{
+    "round": "X05",
+    "status": "verified",
+    "referenceVersion": "26.5.1107.202609082009",
+    "date": "2026-10-22",
+    "build": { "commit": null, "binarySha256": null },
+    "scenarios": [{
+        "id": "gap-matrix",
+        "reference": ["shots/reference/xmind-26.5.1107/manifest.json"],
+        "actual": ["docs/25-Xmind参考与差距矩阵.md"],
+        "trace": [],
+        "result": "pass",
+        "notes": "P0/P1 ordering and root-cause categories are explicit."
+    }],
+    "tests": ["cross-check against model, shell and UI source paths"],
+    "knownGaps": ["Some screenshot states are low confidence and marked accordingly."]
+}

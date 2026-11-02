@@ -1,0 +1,71 @@
+{
+  "id": "M25",
+  "title": "大纲行「更多」与行右键菜单",
+  "date": "2026-10-31",
+  "round": 48,
+  "status": "已实现（机器门绿；人工门未开）",
+  "scope": [
+    "mw-shell outline：固定 24px 动作道 + 悬停/选中出现的 16px ⋯；角标左移让位",
+    "行上右键与 ⋯ 共用一张菜单；单行 12 项 / 多行 5 项，画布专属项不收",
+    "多选作用域：右键已在多选里的行保留整组；菜单键盘先于画布与行键",
+    "概念图大纲不出 ⋯、不弹菜单（outline_row_menu_skipped reason=concept_map）",
+    "docs/06 §6 大纲行一格回填；三场新基线进 stage-b 门"
+  ],
+  "files": [
+    "crates/mw-shell/src/panels/outline.rs",
+    "crates/mw-shell/src/app_methods_1.rs",
+    "crates/mw-shell/src/app_methods_2.rs",
+    "crates/mw-shell/src/main.rs",
+    "shots/golden/inputs/outline-more.txt",
+    "shots/golden/inputs/outline-row-menu.txt",
+    "shots/golden/inputs/outline-row-menu-add.txt",
+    "scripts/x100-stage-b-gate.ps1",
+    "docs/06-界面布局与交互设计.md"
+  ],
+  "scenes": [
+    {"name": "outline-more", "sha256_12": "2D5B63C450D1", "warmup": 3, "input": "shots/golden/inputs/outline-more.txt"},
+    {"name": "outline-row-menu", "sha256_12": "85DCFE6ACF75", "warmup": 3, "input": "shots/golden/inputs/outline-row-menu.txt"},
+    {"name": "outline-row-menu-add", "sha256_12": "674953F39EB4", "warmup": 3, "input": "shots/golden/inputs/outline-row-menu-add.txt"},
+    {"name": "outline", "note": "有意重拍：备注点左移 24px，128 px / 0.007%"},
+    {"name": "outline-compact", "note": "有意重拍：同上 128 px / 0.007%"},
+    {"name": "outline-hover-select", "note": "有意重拍：272 px / 0.014%（悬停行 + 选中行）"},
+    {"name": "outline-search", "note": "有意重拍：128 px / 0.007%"},
+    {"name": "outline-search-labels", "note": "有意重拍：128 px / 0.007%"},
+    {"name": "outline-drag", "note": "有意重拍：128 px / 0.007%"},
+    {"name": "outline-drag-illegal", "note": "有意重拍：128 px / 0.007%"},
+    {"name": "outline-wrap", "note": "有意重拍：文字可用宽变窄，37,166 px / 1.613%"},
+    {"name": "outline-wrap-2x", "note": "有意重拍：47,089 px / 2.044%"},
+    {"name": "cm-outline-unlink", "note": "零净漂移（概念图大纲不出 ⋯，与 HEAD 逐字节相同）"},
+    {"name": "cm-outline-via", "note": "零净漂移（同上）"},
+    {"name": "cm-outline-via-clear", "note": "按现状重拍后零差异"}
+  ],
+  "tests": {
+    "before": 1069,
+    "after": 1071,
+    "new": [
+      "panels::outline::tests::row_more_rect_sits_in_the_action_lane",
+      "panels::outline::tests::row_menu_scope_keeps_a_multi_selection_only_for_its_members"
+    ]
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1 + scripts/x100-stage-cm-gate.ps1",
+    "result": "PASS（stage-b 11:46:59–11:54:07 134/268、stage-cm 11:54:12–11:57:16 58/116，均两遍 --tol 0）",
+    "human_gate": "未开（X20 / G-CM-2 人工判词不代判）"
+  },
+  "deliverables": [
+    "report.md",
+    "trace-single.txt",
+    "trace-multi.txt",
+    "trace-copy.txt",
+    "trace-esc.txt",
+    "trace-overlay.txt",
+    "more.png",
+    "row-menu.png",
+    "row-menu-add.png"
+  ],
+  "known_gaps": [
+    "设为根主题（P2）未做",
+    "概念图大纲没有行菜单，动作集（新建概念/断边/改短语）另开轮次",
+    "动作道固定 24px，窄列长标题更早换行（outline-wrap 1.61%/2.04% 已量化）"
+  ]
+}

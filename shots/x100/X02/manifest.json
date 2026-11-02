@@ -1,0 +1,17 @@
+﻿{
+    "round": "X02",
+    "status": "verified",
+    "referenceVersion": "26.5.1107.202609082009",
+    "date": "2026-10-22",
+    "build": { "commit": null, "binarySha256": null },
+    "scenarios": [{
+        "id": "isolation-gate",
+        "reference": [],
+        "actual": ["scripts/x100-xmind-capture.ps1", "shots/reference/xmind-26.5.1107/live/manifest.json"],
+        "trace": ["shots/x100/X02/traces/isolation-check.txt", "shots/x100/X02/traces/xmind-isolated.json"],
+        "result": "pass",
+        "notes": "The initial instance was safely refused. After all user processes closed, a temporary profile launched, captured, and returned the process count to zero."
+    }],
+  "tests": ["scripts/x100-xmind-capture.ps1 -Mode check", "launch refusal with existing processes", "isolated launch with zero pre-existing processes", "post-capture process count zero"],
+    "knownGaps": []
+}

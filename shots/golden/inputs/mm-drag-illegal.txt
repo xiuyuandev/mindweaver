@@ -1,0 +1,5 @@
+wait 3
+press 698 473
+move 748 473
+move 496 446
+wait 2

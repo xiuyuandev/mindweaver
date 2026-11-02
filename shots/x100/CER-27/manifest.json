@@ -1,0 +1,46 @@
+{
+  "id": "CER-27",
+  "title": "笔记库搜索 / 筛选 / 排序",
+  "date": "2026-11-02",
+  "batch": "B2-C",
+  "status": "已实现（机器证据齐；G-B2-3 人工门未开）",
+  "scope": [
+    "搜索框 32px（content_kit::SEARCH_H 有单测钉 32）+ 28px 排序行；Ctrl+F 聚焦",
+    "120ms 去抖（DEBOUNCE），结算读帧计数虚拟时钟，去抖期间自己续帧",
+    "范围 = 标题/正文/标签/来源节点标题；节点文字由壳层喂 id->文字表进 library_hits",
+    "匹配固定 MatchMode::Pinyin（全拼 + 首字母）",
+    "命中 12% 强调底（HIT_ALPHA），区间是字符下标半开；拼音命中不高亮",
+    "标签 AND + 列表顶纯文字 chip（逐个可删）+ 清除筛选",
+    "排序三档 UpdatedDesc/CreatedDesc/Title；搜索时相关度优先",
+    "两个计数：页头范围数、列表顶过滤后数；无结果 = 左对齐一句 + 清除筛选，不画插画"
+  ],
+  "files": [
+    "crates/mw-shell/src/note_library.rs",
+    "crates/mw-shell/src/note_library/list.rs",
+    "crates/mw-shell/src/note_store.rs",
+    "crates/mw-core/src/note.rs"
+  ],
+  "scenes": [
+    {"name": "library-no-results", "sha256_12": "A20C8075D8BD", "warmup": 3, "env": "MW_LIBRARY_DEMO=no-results MW_WINDOW_SIZE=1280x800", "note": "零命中：一句话 + 清除筛选"},
+    {"name": "library-tag-filter", "sha256_12": "8CD6A191A704", "warmup": 3, "env": "MW_LIBRARY_DEMO=tag-filter MW_WINDOW_SIZE=1280x800", "note": "标签 AND + chip + 命中 12% 底"}
+  ],
+  "tests": {
+    "new_or_changed": [
+      "note_library::tests::match_ranges_is_case_insensitive_and_char_indexed",
+      "note_library::tests::match_ranges_handles_cjk_without_splitting_chars",
+      "note_library::tests::match_ranges_empty_cases",
+      "note_library::tests::searching_puts_relevance_first",
+      "note_store::tests::library_search_covers_tags_and_source_node_titles"
+    ],
+    "supporting": [
+      "note_library::tests::sort_default_is_updated_desc（CER-25 拥有）",
+      "note::tests::sorts_are_total_and_stable（CER-22 拥有）",
+      "note_store::tests::full_text_search_finds_body_snippet_and_pinyin",
+      "note_store::tests::search_thousand_cards_is_bounded（CER-25 拥有）"
+    ]
+  },
+  "not_done": [
+    "不做模糊/错别字容错与正则（MatchMode 只有字面与拼音两档）",
+    "命中高亮只在列表行上画，预览正文不画（§7.6 只要求列表）"
+  ]
+}

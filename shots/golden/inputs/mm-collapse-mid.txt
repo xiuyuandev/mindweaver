@@ -1,0 +1,4 @@
+wait 3
+click 522 429
+wait 3
+move 1500 200

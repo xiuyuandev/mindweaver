@@ -1,0 +1,10 @@
+wait 10
+# 「用户痛点」右锚点（MW_PROBE_NODES 量出 642.1,420.3）拖到右上空白 → 新建概念并连线
+move 642.1 420.3
+press 642.1 420.3
+move 660 400
+move 720 340
+move 850 250
+move 1100 200
+release 1100 200
+wait 10

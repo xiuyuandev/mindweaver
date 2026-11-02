@@ -1,0 +1,21 @@
+# 标签弹层键盘路径（docs/28 §5.7）：Ctrl+Shift+F 开筛选 → ↓ 进胶囊 → → 到标签胶囊 →
+# Space 弹开弹层 → ↓↓ 移高光 → Enter 选中。全程不碰鼠标。
+wait 3
+key ctrl+shift+F
+wait 4
+key Down
+wait 2
+key Right
+wait 2
+key Space
+wait 2
+key Right
+wait 2
+key Space
+wait 3
+key Down
+wait 2
+key Down
+wait 2
+key Enter
+wait 3

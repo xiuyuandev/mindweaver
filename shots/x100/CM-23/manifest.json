@@ -1,0 +1,144 @@
+{
+  "package": "CM-23",
+  "title": "㉓ `.cxl` 互导证据包（代码已在，缺证据；本轮只测绘与跑测试）",
+  "status": "进行中",
+  "status_note": "代码已修 4 条缺陷并跑绿（38 passed / 0 failed），仍未用 CmapTools 真机验证；节点扩展字段读取侧缺口在 mw-format（越界，未修）。不记 已实现 / 已验证。",
+  "date": "2026-11-02",
+  "batch": "M 轨 CM-15 复审第 ㉓ 项（CM-15 提案 §3 的收口动作）",
+  "authorization": "用户 2026-11-02 授权原话「继续开发，而且呢，你帮助我验收，不需要我决定。」——授权验收代判；本包不涉及新增字段，故无需单独拍板",
+  "write_scope": [
+    "shots/x100/CM-23/"
+  ],
+  "design_contract": "docs/34 §2（互通视图 + 保真槽）/ §4（.cxl 结构与映射）/ §11（实现状态）",
+  "execution_contract": "docs/31（M 轨包纪律）、docs/33 §3（conceptMap 可选块）",
+  "related_decisions": [
+    "docs/30 §5.2 禁止新增 .zmind 字段（本包不需新字段）",
+    "docs/32 §13/§15 字段例外先例（groups / StyleOverride 三键）——保真槽承载它们",
+    "docs/05 §7 导入导出映射",
+    "docs/27 §4 格式兼容策略"
+  ],
+  "files": [
+    "shots/x100/CM-23/report.md",
+    "shots/x100/CM-23/manifest.json",
+    "shots/x100/CM-23/evidence-cargo-test-mw-io.txt",
+    "shots/x100/CM-23/evidence-cargo-test-mw-io-fix.txt"
+  ],
+  "code_changes": [
+    "crates/mw-io/src/cmap.rs：save_cxl 先算保真槽并取 createdAt；dcterms:created/modified 改 iso8601_utc；groups 不再传进互通块（显式空表+注释）；两条 connection-appearance 表达四档箭头；parse_cxl_interop 读 dc:title / connection id / connection-appearance / isBidirectional 并反推 ArrowHead；build_concept_doc 接受标题参数；删 iso_ms，加 iso8601_utc + #[cfg(test)] parse_iso8601；新增 7 条单测",
+    "crates/mw-io/tests/fidelity.rs：改过期头注释（XMind 已有导出器）；新增 concept_sample 与两条 .cxl 用例（保真槽往返 / 降级解析）"
+  ],
+  "code_changes_note": "本轮不改 crates/ 任何文件；只读测绘 + 跑既有单测。并行会话正在改 crates/。",
+  "implementation": {
+    "entry_save": "crates/mw-io/src/cmap.rs:30 `pub fn save_cxl(doc: &Document) -> Result<String, IoError> {`",
+    "entry_load": "crates/mw-io/src/cmap.rs:274 `pub fn load_cxl(xml: &str) -> Result<Document, IoError> {`",
+    "fidelity_slot_first": "cmap.rs:276-280（extract_fidelity 命中即返回，不走降级）",
+    "degraded_parse": "cmap.rs:305 `fn parse_cxl_interop(xml: &str) -> Result<Document, IoError> {`",
+    "degraded_build": "cmap.rs:441 `fn build_concept_doc(block: mw_format::ConceptMapBlock) -> Result<Document, IoError> {`",
+    "fidelity_json": "crates/mw-format/src/lib.rs:442 `pub fn doc_to_fidelity_json(`",
+    "routing": "crates/mw-io/src/dispatch.rs:40 `\"cxl\" | \"cmap\" => DocFormat::Cxl,`；:63-66 save；:88-91 load",
+    "default_ext": "crates/mw-io/src/dispatch.rs:49 `\".cxl\"`（概念图新文档默认扩展名，已在默认保存路径上）"
+  },
+  "existing_tests": [
+    "crates/mw-io/src/cmap.rs:507 cmap::tests::cxl_roundtrips_fidelity_lossless",
+    "crates/mw-io/src/cmap.rs:522 cmap::tests::cxl_interop_has_concepts_phrases_connections_and_focus",
+    "crates/mw-io/src/cmap.rs:537 cmap::tests::cxl_degraded_parse_without_fidelity",
+    "crates/mw-io/src/dispatch.rs:195 dispatch::tests::save_load_roundtrip_xmind_and_cxl"
+  ],
+  "evidence": [
+    {
+      "kind": "cargo_test",
+      "command": "TEMP/TMP=target/tmp cargo test -p mw-io -- --test-threads=1",
+      "workdir": "仓库根",
+      "time": "2026-11-02T20:2x+08:00",
+      "result": "27 passed / 0 failed（lib 单测 23 + tests/fidelity.rs 集成 4 + doc-test 0）",
+      "exit_code": 0,
+      "raw_log": "shots/x100/CM-23/evidence-cargo-test-mw-io.txt"
+    },
+    {
+      "kind": "static_mapping",
+      "what": "逐字段对账：25 行（保真/可表达/降级丢失）",
+      "where": "report.md §3.1",
+      "method": "只读阅读 cmap.rs 全文 + mw-format/src/concept_map.rs + lib.rs:415-453"
+    },
+    {
+      "kind": "assertion_design",
+      "what": "往返断言：字段级 norm 比较 + 降级反向断言 + 10 条建议单测名",
+      "where": "report.md §4",
+      "method": "设计，未落码（crates/ 本轮禁改）"
+    },
+    {
+      "kind": "cargo_check_and_test",
+      "command": "cargo check -p mw-io --all-targets && cargo test -p mw-io -- --test-threads=1",
+      "result": "check exit 0；test 38 passed / 0 failed（lib 32 + fidelity 6）",
+      "raw_log": "shots/x100/CM-23/evidence-cargo-test-mw-io-fix.txt"
+    }
+  ],
+  "fidelity_summary": {
+    "basis": "report.md §3.1 的 25 行逐字段对账",
+    "fidelity_slot_preserves": 22,
+    "expressible_in_interop_view": 11,
+    "degraded_readable_after_slot_stripped": 6,
+    "lost_when_fidelity_slot_stripped": 17,
+    "degraded_id_renamed": [
+      "#18 命题 id p1 → lp-p1"
+    ],
+    "hard_limits_even_with_fidelity_slot": [
+      "未知顶层键 FileDoc.extra（mw-format/src/lib.rs:436 置空）",
+      "图片/附件字节（assets/ 是 ZIP 条目，保真槽是单条 XML 属性）",
+      "dcterms:created/modified（写进 XML 但从不读回，且格式非法）"
+    ]
+  },
+  "gate": {
+    "in_gate_table": false,
+    "stage_b": "未进",
+    "stage_cm": "未进",
+    "recommendation": "保真走 mw-io 集成测试（非像素）；像素门只加入口场景 cm-save-cxl（可选再来 cm-open-cxl）",
+    "why_not_pixel_gate": "stage-* 是截图矩阵，无法证明文件层保真；硬塞只会得到「点开菜单弹 toast」的假证据"
+  },
+  "known_gaps": [
+    "本机没有 CmapTools 真机：互通视图（cmap.xsd 元素名/属性名/取值域）未经验证，互导只做到格式层",
+    "没有真 .cxl 样本：shots/golden/ 与 scripts/*.ps1 都不含 cxl；现有正确性由三条单测反推（自产自销）",
+    "tests/fidelity.rs 没有 .cxl 一行（覆盖 OPML/FreeMind/Markdown/XMind），且其头注释「XMind 目前只有导入器」已过期",
+    "降级路径丢标题：dc:title 在 :54 写出，但降级解析不读，回读恒为 \"概念图\"（:451）",
+    "时间戳格式非法：cmap.rs:230 写成 1970-01-01T00:00:{epoch_secs}Z，且 iso_ms 传参未用",
+    "空短语被写成字面 related to（:93），降级读回变成 Some(\"related to\")，与「命题必须有短语」口径不一致",
+    "反向命题 head==Backward 与 Forward 同样写成 if-to-concept（:175），互通视图不可表达",
+    "未知顶层键与节点未知键不进保真槽（mw-format/src/lib.rs:436）",
+    "单测覆盖薄：4 条只钉「能开、概念在、短语在」，标题/时间戳/未知键三条缺陷无测试守着",
+    "本轮未跑 cargo build --release 与 cargo golden（避免与并行会话抢构建锁），因此没有像素基线，也不该有"
+  ],
+  "not_done": [
+    "不改 crates/（含不修上面 3 条缺陷、不加 §4.3 的 10 条单测）",
+    "不造/不伪造 CmapTools 真样本",
+    "不把 .cxl 写进 stage-* 门表（建议归 lead/门包那一棒决定）",
+    "不动 docs/STATUS.md / docs/34（本轮写作用域只有 shots/x100/CM-23/）"
+  ],
+  "next_steps": [
+    "拿到一份 CmapTools 真实导出的 .cxl 后：跑降级解析，把「能读什么、丢什么」补成 §3 的第二张表",
+    "在 crates/mw-io/tests/ 增一个 cxl_fidelity 集成用例（§4.2 判据一 + 判据二），把 27 → 更多",
+    "修 §6 的 #5/#6/#9（时间戳、标题、未知键）后，加 §4.3 的 #8/#9/#10 三条测试",
+    "决定门表准入：cm-save-cxl（入口）是否进 stage-cm；保真一律走非像素测试"
+  ],
+  "fixed_this_round": {
+    "① dc:title 读回": "已修",
+    "② 时间戳非法": "已修",
+    "③ 反向箭头不可表达": "已修",
+    "④ groups 死代码": "已修"
+  },
+  "not_fixed": {
+    "⑤ 节点扩展字段读不回": "越界：修点在 mw-format/src/lib.rs 的 doc_from_file_doc（本轮禁改），已用两条测试钉成事实"
+  },
+  "new_tests": [
+    "cmap::tests::cxl_degraded_parse_keeps_title_from_dc_title",
+    "cmap::tests::cxl_degraded_parse_falls_back_to_default_title",
+    "cmap::tests::cxl_timestamps_are_iso8601_utc_and_ordered",
+    "cmap::tests::iso8601_utc_roundtrips_known_instants",
+    "cmap::tests::cxl_arrowhead_slots_encode_direction",
+    "cmap::tests::cxl_interop_parse_reads_arrowhead_direction_back",
+    "cmap::tests::cxl_fidelity_roundtrip_preserves_groups_pinned_and_line_styles",
+    "cmap::tests::cxl_fidelity_writes_node_extras_but_does_not_read_them_back",
+    "cmap::tests::cxl_degraded_parse_drops_the_documented_fields_explicitly",
+    "tests/fidelity.rs::ten_concept_samples_survive_cxl_fidelity_roundtrip",
+    "tests/fidelity.rs::ten_concept_samples_survive_cxl_degraded_parse"
+  ]
+}

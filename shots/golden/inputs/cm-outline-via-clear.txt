@@ -1,0 +1,11 @@
+# C16（打磨轮 40）：大纲里 Shift+F2 打开既有短语 → 全选删除 → Enter。
+# 与画布同一口径：不发命令、保留原短语、提示「概念图的连接短语不能为空」。
+wait 3
+key shift+F2
+wait 3
+key ctrl+a
+wait 1
+key Delete
+wait 1
+key Enter
+wait 8

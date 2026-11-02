@@ -1,0 +1,17 @@
+﻿{
+    "round": "X07",
+    "status": "verified",
+    "referenceVersion": "26.5.1107.202609082009",
+    "date": "2026-10-22",
+  "build": { "commit": null, "binarySha256": "64C27A6BFE1B7EE70393FFDDDA62DAFC42D94EBD59F5F861D04628ED87D0C18A" },
+    "scenarios": [{
+        "id": "hover-hold-scroll-trace",
+        "reference": [],
+        "actual": ["shots/x100/X07/actual/shell-ppp1.50.png"],
+        "trace": ["shots/x100/X07/traces/hover-scroll.txt", "shots/x100/X07/traces/hover-scroll-rerun.txt"],
+        "result": "pass",
+        "notes": "Hover held 700ms, wheel event delivered, start/done markers present, golden rerun 0 delta."
+    }],
+    "tests": ["cargo test -p mw-shell golden_input::tests", "golden double run at ppp 1.50 tolerance 0"],
+    "knownGaps": ["Menu and IME were already supported but are not all part of this smoke scenario."]
+}

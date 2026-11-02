@@ -1,0 +1,79 @@
+{
+  "package": "M19",
+  "title": "搜索命中备注与链接（索引字段 + ±24 摘录 + 结果行角标/定位）",
+  "status": "已实现（机器门绿；人工门未开，不记已验证）",
+  "date": "2026-10-31",
+  "track": "打磨轮（docs/x100/polish-ledger.md 第 41 轮；docs/02 §4 P0 检索口径）",
+  "contract": {
+    "design": "docs/02 §4（检索索引标题 + 备注 + 链接文本）、docs/07 §7（拼音检索字段与 240 字上限）、docs/06「查找」段（结果行角标与定位）",
+    "code": [
+      "crates/mw-core/src/search.rs::SearchHit.field / SearchExcerpt / note_cache / link_cache / excerpt_around / FIELD_PINYIN_CAP",
+      "crates/mw-core/src/search.rs::field_hit / hits（标题 1000·700·500、备注 650·520·400、链接 600·480·380；POS_PENALTY 6）",
+      "crates/mw-shell/src/main.rs（lookup：映射字段/摘录/路径；MW_TRACE search_hits note= link=）",
+      "crates/mw-shell/src/panels/search.rs::HitRow（field/excerpt、备注/链接角标、摘录第二行）",
+      "crates/mw-shell/src/app_methods_1.rs（MW_SEARCH_DEMO 播种、MW_NOTES=none 证据隔离）",
+      "scripts/x100-stage-b-gate.ps1（+2 场）"
+    ],
+    "note": "不改 Frame / .zmind / Node 字段；只扩 SearchIndex 的输入字段与结果行绘制"
+  },
+  "deliverables": {
+    "report": "shots/x100/M19/report.md",
+    "manifest": "shots/x100/M19/manifest.json",
+    "trace": "shots/x100/M19/trace.txt",
+    "diff": "shots/x100/M19/diff.txt"
+  },
+  "scenes": [
+    {
+      "name": "search-note",
+      "dir": "shots/golden/search-note",
+      "sha256_12": "1487137406A2",
+      "input": "shots/golden/inputs/search-note.txt",
+      "evidence": "MW_SEARCH_DEMO 给「纯 Rust 原生」喂备注；Ctrl+F 输入 html 只命中备注；与空状态差 29 422 px（x515..1106 y80..221），只在搜索卡片内"
+    },
+    {
+      "name": "search-link",
+      "dir": "shots/golden/search-link",
+      "sha256_12": "F220A31D72A9",
+      "input": "shots/golden/inputs/search-link.txt",
+      "evidence": "同一文档输入 https 只命中链接；差 27 349 px、同一包围盒；轨迹 search_hits q=https rows=1 note=0 link=1"
+    }
+  ],
+  "tests": {
+    "new": [
+      "search::tests::note_field_hit_maps_range_to_note",
+      "search::tests::link_field_hit",
+      "search::tests::note_field_pinyin_and_initials",
+      "search::tests::title_wins_over_note_on_same_node",
+      "search::tests::title_hit_ranks_above_note_hit",
+      "search::tests::long_note_text_still_matches_beyond_pinyin_cap",
+      "search::tests::note_cache_invalidates_with_field_text",
+      "search::tests::excerpt_at_start_has_no_leading_ellipsis",
+      "search::tests::excerpt_middle_folds_range_and_adds_ellipses",
+      "search::tests::excerpt_flattens_newlines_and_keeps_range_on_hit",
+      "search::tests::blank_note_never_hits"
+    ],
+    "existing": [
+      "search::tests::heteronym_alternate_reading_matches",
+      "search::tests::range_maps_back_to_char_offsets"
+    ],
+    "total": "1041 passed / 0 failed / 1 ignored（23 个套件；mw-core 264 + contrast 7；mw-shell --bins 593）"
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1 + scripts/x100-stage-cm-gate.ps1",
+    "stage_b_scenes": 123,
+    "stage_b_comparisons": 246,
+    "stage_cm_scenes": 56,
+    "stage_cm_comparisons": 112,
+    "result": "PASS（stage-b 03:17:23–03:26:07、stage-cm 03:26:19–03:29:39，均两遍 --tol 0；fmt 干净、clippy 基线 36 条新增 0）",
+    "human_gate": "未开（X20 / G-CM-2 人工判词不代判）"
+  },
+  "behaviour_change": "搜索命中范围从标题扩到备注与链接：同节点多字段命中只出分数最高一条；结果行按字段显示备注/链接角标并给 ±24 字摘录（换行压成空格、拼音命中折回原文区间）；标题命中仍优先。新增 MW_SEARCH_DEMO / MW_NOTES=none 两个金样旋钮",
+  "known_gaps": [
+    "Ctrl+H 替换仍只改标题（备注/链接替换归 docs/02 P2）",
+    "关系线短语、标签、卡片正文不进节点检索（卡片/标签由壳层另外两路覆盖；关系线要单独立项）",
+    "摘录固定单行，长备注只看命中处 ±24 字",
+    "超过 240 字的备注/链接不做拼音匹配（原文仍可命中），见 docs/07 §7",
+    "实机 IME 与键盘手感未核（与 M4 同一缺口）",
+    "20k 文档 × 全备注的原文扫描延迟没有单独计时"
+  ]
+}

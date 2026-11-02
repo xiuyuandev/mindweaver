@@ -1,0 +1,38 @@
+{
+  "id": "M24",
+  "title": "边界/概要的键盘路径（Ctrl+B / Ctrl+]）",
+  "date": "2026-10-31",
+  "round": 47,
+  "status": "已实现（机器门绿；人工门未开）",
+  "scope": [
+    "mw-shell canvas：Ctrl+B = 添加边界、Ctrl+] = 添加概要，仅思维导图",
+    "失败不静默：no-selection / no-parent 两种提示 + annotation_add_failed 轨迹",
+    "菜单快捷键列补 Ctrl+] / Ctrl+B；docs/02 §10 脚注⑤ 与 docs/06 §5/§6 回填"
+  ],
+  "files": [
+    "crates/mw-shell/src/canvas.rs",
+    "crates/mw-shell/src/canvas/canvas_methods_1.rs",
+    "crates/mw-shell/src/canvas/canvas_methods_3.rs",
+    "crates/mw-shell/src/canvas/tests.rs",
+    "crates/mw-shell/src/app_methods_2.rs",
+    "scripts/x100-stage-b-gate.ps1"
+  ],
+  "scenes": [
+    {"name": "mm-boundary-key", "sha256_12": "8AD212179A5B", "warmup": 22, "input": "shots/golden/inputs/mm-boundary-key.txt"},
+    {"name": "mm-summary-key", "sha256_12": "B5EA2970F477", "warmup": 26, "input": "shots/golden/inputs/mm-summary-key.txt"},
+    {"name": "menu", "sha256_12": "7BE1E35A581B", "note": "有意重拍：两行加 Ctrl+]/Ctrl+B，差 581 px / 0.0332%"},
+    {"name": "menu-narrow", "sha256_12": "7136632DE246", "note": "有意重拍：差 579 px / 0.0874%"}
+  ],
+  "tests": {"before": 1067, "after": 1069, "new": ["annotation_shortcuts_map_only_exact_ctrl_b_and_bracket", "annotation_shortcut_errors_distinguish_no_selection_from_root"]},
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1 + scripts/x100-stage-cm-gate.ps1",
+    "result": "PASS（stage-b 10:32:15–10:39:19 131/262、stage-cm 10:41:01–10:44:09 58/116，均两遍 --tol 0）",
+    "human_gate": "未开（X20 / G-CM-2 人工判词不代判）"
+  },
+  "deliverables": ["report.md", "trace.txt", "before-selection.png", "before-multi.png", "boundary.png", "summary.png"],
+  "known_gaps": [
+    "实机微软拼音/键盘未核对（Ctrl+] 在部分 IME 里可能是全半角切换）",
+    "单颗子主题也能建概要（与菜单一致），未额外提示",
+    "不自动进入概要文字编辑（沿用 F2 / 双击）"
+  ]
+}

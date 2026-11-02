@@ -1,0 +1,7 @@
+wait 8
+key Delete
+wait 2
+key Tab
+wait 2
+key Home
+wait 6

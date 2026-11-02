@@ -1,0 +1,17 @@
+﻿{
+    "round": "X06",
+    "status": "verified",
+    "referenceVersion": "26.5.1107.202609082009",
+    "date": "2026-10-22",
+    "build": { "commit": null, "binarySha256": null },
+    "scenarios": [{
+        "id": "completion-definition",
+        "reference": [],
+        "actual": ["docs/26-X100完成定义与验收规范.md"],
+        "trace": [],
+        "result": "pass",
+        "notes": "Behavior, visual, regression and engineering evidence are mandatory."
+    }],
+    "tests": ["manifest schema checked by scripts/x100-evidence.ps1"],
+    "knownGaps": []
+}

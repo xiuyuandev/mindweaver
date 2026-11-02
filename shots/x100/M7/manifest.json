@@ -1,0 +1,78 @@
+{
+  "package": "M7",
+  "title": "框选：拖动中实时高亮 + 阈值与换算钉住",
+  "status": "已实现（两张基线 + 三条 marquee 轨迹 + 三档缩放换算单测）；实机手感与 20k 拖动帧率 未验证",
+  "date": "2026-10-29",
+  "track": "打磨轮（docs/x100/polish-ledger.md M7）",
+  "contract": {
+    "design": "docs/06 §4「单击空白取消选择；拖拽 >4px 变框选」；账本 §1 M7 行",
+    "code": [
+      "crates/mw-shell/src/canvas/canvas_methods_2.rs（拖动中计算 marquee_pick 并入 Frame.selected + marquee preview 轨迹）",
+      "crates/mw-shell/src/canvas/canvas_methods_2.rs::select_target（选中环透明度把预览算进去）",
+      "crates/mw-shell/src/canvas.rs::Canvas::marquee_preview（新字段）",
+      "crates/mw-shell/src/golden_input.rs::parse_mods（新动词 mods，修饰键在按下前就位）",
+      "crates/mw-shell/src/canvas/tests.rs::marquee_pick_maps_the_screen_box_through_the_camera（新单测）"
+    ]
+  },
+  "deliverables": {
+    "report": "shots/x100/M7/report.md",
+    "manifest": "shots/x100/M7/manifest.json"
+  },
+  "scenes": [
+    {
+      "name": "mm-marquee",
+      "dir": "shots/golden/mm-marquee",
+      "sha256_12": "680C32606CB5",
+      "input": "shots/golden/inputs/mm-marquee.txt",
+      "evidence": "从空白 (480,330) 拖到 (720,560) 不松手：虚线框 + 框内四颗的选中环；轨迹 preview picked=0/2/4"
+    },
+    {
+      "name": "mm-marquee-add",
+      "dir": "shots/golden/mm-marquee-add",
+      "sha256_12": "DE5DAEC59B96",
+      "input": "shots/golden/inputs/mm-marquee-add.txt",
+      "evidence": "框外先点「导出」，按住 Ctrl 框左侧四颗：1 → 3 → 5，松手 selected=5"
+    }
+  ],
+  "trace": {
+    "files": [
+      "shots/x100/M7/trace-marquee.txt",
+      "shots/x100/M7/trace-marquee-add.txt",
+      "shots/x100/M7/trace-marquee-release.txt",
+      "shots/x100/M7/trace-2px.txt",
+      "shots/x100/M7/trace-5px.txt"
+    ],
+    "preview": "`marquee preview picked=<框到几颗> selected=<并入后共几颗>`，集合变化时才写",
+    "threshold": "2px 拖动无任何 marquee 事件（按单击空白处理）；5px 拖动写 `marquee picked=0 selected=0`",
+    "reading": "preview 行与松手时的 `marquee picked/selected` 必须一致——预览画的就是松手会得到的结果"
+  },
+  "ab_test": {
+    "what": "同一段 mm-marquee 脚本，把预览代码临时关掉重拍，再与开启时逐像素比",
+    "with_preview_vs_without": "3975 px（0.227%），最大差 205，包围盒 x[422..765] y[426..571]",
+    "note": "第一版 A/B 是零差异——预览算出来了但 select_alpha 目标仍是 0，环没画；补上 select_target 才有差"
+  },
+  "tests": {
+    "new": [
+      "golden_input::tests::mods_sets_and_clears_the_modifier_state",
+      "canvas::tests::marquee_pick_maps_the_screen_box_through_the_camera"
+    ],
+    "total": "924 passed / 0 failed / 1 ignored"
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1 (+ scripts/x100-stage-cm-gate.ps1)",
+    "stage_b_scenes": 100,
+    "stage_b_comparisons": 200,
+    "cm_scenes": 46,
+    "cm_comparisons": 92,
+    "result": "PASS",
+    "note": "既有 98 张 stage-b 与 46 张 cm-* 基线逐字节未动"
+  },
+  "behaviour_change": "框选拖动过程中，命中节点实时显示选中环（以前只有松手才结算）",
+  "bug_found_and_fixed": "预览代码第一版只改了 Frame.selected，select_alpha 的目标值仍只看 self.sel，透明度停在 0——A/B 逐字节零差异才暴露；把预览并入 select_target 才真的画出来",
+  "known_gaps": [
+    "阈值 4px 是 docs/06 §4 的规格值，但「5px 抖动就清掉整个多选」的手感没有实机数据",
+    "框选拖动中每帧一次 intersecting，20k 文档下的拖动帧率没实测",
+    "Alt 减选只有解析与 apply_marquee 单测，没有专门金样",
+    "套索（DragKind::Lasso）的视觉与手感没动"
+  ]
+}

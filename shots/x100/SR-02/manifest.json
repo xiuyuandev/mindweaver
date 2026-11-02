@@ -1,0 +1,62 @@
+{
+  "package": "SR-02",
+  "title": "壳层生命周期：多标签守卫 / 关窗 / 恢复点",
+  "status": "已实现（机器门绿：mw-shell --bins 588 passed / 0 failed / 1 ignored；人工门未开）",
+  "date": "2026-10-30",
+  "track": "可靠性工作包（文件守卫 / 保存 / 关窗 / 恢复点）",
+  "_note": "2026-10-31 打磨轮 36 按 report.md 回填；不新增结论。本包不动外观，scenes 为空。",
+  "contract": {
+    "design": "七个已审计生命周期缺陷（报告 §1 表：窗口级守卫 vs 每标签、关窗只看活动标签、on_exit 不收尾、启动不查恢复点、after_saved 漏调用点、自动保存失败静默、提交即记账）",
+    "code": [
+      "crates/mw-shell/src/main.rs::TabGuard（path/lock/print/read_only + arm/refresh_print/release）",
+      "crates/mw-shell/src/app_methods_1.rs::arm_active_guard / guard / guard_mut / active_read_only / active_print",
+      "crates/mw-shell/src/app_methods_2.rs::request_reload + PendingAction::Reload + allow_replace（一次性放行票）",
+      "crates/mw-shell/src/main.rs::dirty_tab_names / save_background_dirty_tabs",
+      "crates/mw-shell/src/app_methods_3.rs::guard_close / tab_dirty_snapshot / close_prompt（先存后台再存活动，失败不关窗）",
+      "crates/mw-shell/src/app_methods_3.rs::flush_recovery_points_on_exit / flush_card_draft_on_exit",
+      "crates/mw-shell/src/main.rs::restore_tab_session（有更新恢复点时 Session::open_recovered）",
+      "crates/mw-shell/src/main.rs::save_finish_is_new + app_methods_2.rs::after_saved（幂等闸门）",
+      "crates/mw-shell/src/autosave.rs::Failed{reason} + main.rs::autosave_backoff / autosave_may_retry / AUTOSAVE_GIVE_UP",
+      "crates/mw-shell/src/main.rs::autosave_wants + autosave.rs::is_pending（提交记账与确认记账分离）"
+    ]
+  },
+  "deliverables": {
+    "report": "shots/x100/SR-02/report.md",
+    "manifest": "shots/x100/SR-02/manifest.json"
+  },
+  "scenes": [],
+  "scenes_note": "不改外观、不新增提示机制（复用 Toast 与状态栏），无 golden 场景。验收全部是生命周期单测。",
+  "tests": {
+    "new": [
+      "tab_guards_do_not_cross_wire",
+      "tab_guard_takes_over_when_other_holder_leaves",
+      "tab_guard_releases_lock_when_path_changes",
+      "dirty_tab_names_covers_background_tabs",
+      "save_background_dirty_tabs_writes_each_path",
+      "restore_tab_session_prefers_newer_recovery_point",
+      "restore_tab_session_uses_plain_file_without_recovery_point",
+      "every_save_success_path_calls_after_saved",
+      "after_saved_is_idempotent_for_same_revision",
+      "autosave_backoff_grows_and_caps",
+      "autosave_may_retry_resets_on_new_revision",
+      "autosave_wants_skips_confirmed_and_in_flight",
+      "needs_recovery_submit_only_for_dirty_unconfirmed",
+      "draft_differs_ignores_tag_order_but_catches_content",
+      "autosave::tests::is_pending_tracks_queued_and_in_flight_writes"
+    ],
+    "total": "mw-shell --bins 588 passed / 0 failed / 1 ignored（sr02_tests 14 条 + autosave 1 条）"
+  },
+  "gate": {
+    "script": "scripts/test.ps1 / scripts/ci.ps1",
+    "result": "当轮 cargo build / --bins 588 / clippy 触及文件零新增；两道阶段门由后续集成统一跑，见 docs/STATUS.md §1",
+    "human_gate": "未开"
+  },
+  "behaviour_change": "守卫/指纹/只读跟着标签走；关窗检查所有标签并在「保存并关闭」时逐个写回；退出前补恢复点与卡片草稿；启动优先用更新恢复点；after_saved 四处入口幂等；自动保存失败可见并按 15→300s 退避，连败 5 次停到下次编辑；只有 Wrote 才记确认基线",
+  "known_gaps": [
+    "未做真实多进程 .lock 争抢实测（单测用同进程两次 try_acquire 覆盖 create_new 语义）",
+    "allow_replace 是一次性票：新增换文档入口若忘了走 run()，用户确认后会再被问一次（不丢数据，多问）",
+    "卡片草稿脏判定与视图层 is_dirty() 不完全等价（极端情形可能多写一次，不会少写）",
+    "未命名脏标签关窗时只写恢复点并明示，不在关窗流程弹文件对话框（刻意取舍）",
+    "未命名标签恢复点保留策略沿用既有 prune，未改"
+  ]
+}

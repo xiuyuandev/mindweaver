@@ -1,0 +1,8 @@
+# M20：搜索命中折叠子树后跳转（MW_COLLAPSE_DEMO=中文排版）
+wait 8
+key ctrl+f
+wait 4
+text 禁则换行
+wait 8
+key Enter
+wait 8

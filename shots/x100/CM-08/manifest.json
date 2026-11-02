@@ -1,0 +1,113 @@
+{
+  "package": "CM-08",
+  "status": "已实现",
+  "date": "2026-10-26",
+  "design_contract": "docs/30 §5（概念图全章，逐条判词见 report §6）",
+  "execution_contract": "docs/31 §6（CM-08）、§3（完成定义）、§8（golden 协议）",
+  "batch": "M 轨 M2（CM-06..08）",
+  "gate": "G-CM-2",
+  "gate_state": "机器门 PASS（scripts/x100-stage-cm-gate.ps1）；人工判词 **不能算通过**：§5 有 5 条没做到",
+  "scenes": [
+    "cm-default",
+    "cm-narrow",
+    "cm-arrange",
+    "cm-crosslink",
+    "cm-card-link",
+    "cm-card-link-back",
+    "cm-outline",
+    "cm-node-edit",
+    "cm-link-create",
+    "cm-label-ime"
+  ],
+  "themes": ["snow"],
+  "dpi": [1.0, 1.5],
+  "scripts": [
+    "scripts/x100-stage-cm-gate.ps1",
+    "shots/golden/inputs/cm-node-edit.txt",
+    "shots/golden/inputs/cm-label-ime.txt",
+    "shots/golden/inputs/cm-crosslink.txt"
+  ],
+  "evidence": [
+    "shots/x100/CM-08/report.md",
+    "shots/x100/CM-08/manifest.json",
+    "docs/x100/stage-cm-report.md",
+    "target/x100/stage-cm-gate.log",
+    "target/x100/stage-cm-clippy.log",
+    "target/x100/stage-cm-tests.log",
+    "shots/x100/CM-07/report.md"
+  ],
+  "old_hashes": {
+    "shots/golden/cm-default/shell-ppp1.00.png": "5b0d9dc4da7c680e24173b29ebbaa6afba482b156d4e8b3862d47958a8874cb0",
+    "shots/golden/cm-narrow/shell-ppp1.50.png": "fc7f31f1a4c49138e2d429a919adfa1c067d3db4f4015b0b9e33b0d4646d872c",
+    "shots/golden/cm-arrange/shell-ppp1.00.png": "56bc40170f3de479e820324669b63c67c8f9b1193b40f1ae606ed9272ac2ab92",
+    "shots/golden/cm-crosslink/shell-ppp1.00.png": "f2e948d1b9ac0eca26a113e18e8aa0214c617652ed8df799a18f0ead0e5b7966",
+    "shots/golden/cm-card-link/shell-ppp1.00.png": "b7d11182b516c57734e85c77d67f1d820b6abe8b30e179200482e624908627a4",
+    "shots/golden/cm-card-link-back/shell-ppp1.00.png": "1ee059f441784f90fafc291b7c9112bb482364f6e354186144f20ff1896b6e91",
+    "shots/golden/cm-outline/shell-ppp1.00.png": "16ced6ab807687ec71e5251a98a89f7ede299717f18fa1a207a3da2cef0365c1"
+  },
+  "new_hashes": {
+    "shots/golden/cm-node-edit/shell-ppp1.00.png": "2c390c94d6dbd179a1dec4157b36f6d73d90bf5f0677d9904da217bd54bc270d",
+    "shots/golden/cm-link-create/shell-ppp1.00.png": "98b6729cf088c19984f6c75a8bfe1af53ffb4ed811503c886ef73560f89beaa0",
+    "shots/golden/cm-label-ime/shell-ppp1.00.png": "40cd7202a2646b3e09276b0bc5e2a5e3d6070a2a656db978e28251e3d54e83b8"
+  },
+  "unchanged_hashes": {
+    "note": "旧 7 张概念图基线逐字节未变（本包未改渲染/交互，只加三个验收钩子）",
+    "verified": 7
+  },
+  "tests": { "passed": 813, "failed": 0 },
+  "golden": {
+    "runs": 2,
+    "scenes": 10,
+    "comparisons": 20,
+    "diffs": 0,
+    "tol": 0,
+    "log": "target/x100/stage-cm-gate.log",
+    "note": "10 场景 ×2 遍 `--tol 0` 全 0 差异；warmup 按场景给（编辑态 18–20，静态 6）"
+  },
+  "engineering": {
+    "fmt": "clean",
+    "clippy_mw_shell_new": 0,
+    "clippy_workspace_historical": "27 条，全部落在本包未改动的文件（mw-core / mw-render / mw-io / export_pdf.rs / panels/outline.rs:3084）",
+    "release_build": "pass",
+    "roundtrip": "cargo test -p mw-format concept_map_roundtrips_positions_and_relationships → PASS",
+    "stage_gate": "scripts/x100-stage-cm-gate.ps1 → MACHINE GATE PASS（05:20:48→05:21:27）"
+  },
+  "changes": {
+    "code": [
+      "crates/mw-shell/src/canvas.rs（新增 ConceptHook 枚举）",
+      "crates/mw-shell/src/canvas/canvas_methods_3.rs（start_concept_edit / create_concept_link / edit_concept_phrase；start_rel_edit 加 rel-edit-open trace）",
+      "crates/mw-shell/src/main.rs（Shell.concept_hook / concept_hook_after；画布 show() 之后按帧延迟执行）",
+      "crates/mw-shell/src/app_methods_1.rs（MW_CONCEPT_EDIT / MW_CONCEPT_LINK / MW_CONCEPT_REL_EDIT 登记）"
+    ],
+    "docs": [
+      "shots/x100/CM-08/report.md + manifest.json（新增）",
+      "docs/x100/stage-cm-report.md（新增：G-CM-2 阶段报告）",
+      "docs/30 §5 判词缺口写进 CM-08 报告与阶段报告",
+      "HANDOFF.md §当前现场、.workbuddy-loop-status.md 心跳"
+    ],
+    "scripts": ["scripts/x100-stage-cm-gate.ps1（新增：10 场景 ×2 + fmt/clippy/tests/roundtrip/release）"],
+    "wiring": "三个钩子只转发到生产入口（start_edit / commit_link / start_rel_edit），不复制逻辑；只在对应 MW_* 存在时执行一次"
+  },
+  "judgement": {
+    "done": 37,
+    "partial": 6,
+    "missing": 5,
+    "blocks_gate": [
+      "大纲里建/删连线（功能缺口，需新包）",
+      "概念省略 tooltip",
+      "卡片关联 5px 圆点 + hover 提示",
+      "跨分支连线取来源分支色（≤6 循环）",
+      "交叉处 ≤8px 微弧"
+    ]
+  },
+  "known_gaps": [
+    "大纲不能建/删连线：唯一功能缺口；缺「大纲行尾就地输短语」的设计",
+    "概念文本超两行省略但无 tooltip",
+    "画布不画卡片关联圆点（联动只能在检查器/卡片页/笔记库看到）",
+    "跨分支连线统一 dim，没有按来源分支取色",
+    "交叉处无微弧（两条直线直接穿过）",
+    "圆角实测 10（令牌 MD）而 docs/30 写 8；箭头 9×8.4 而文档写 6×4；关系线 1.6 而文档写 1.5",
+    "悬停/选中只有强调环，没有 4%/8% 底纹",
+    "标签断口靠底色盖住，不是几何断开 8px"
+  ]
+}

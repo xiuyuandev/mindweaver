@@ -1,0 +1,33 @@
+# 打磨轮 62（M7b）· 矩形框选 3 颗 → Alt 套索只减掉其中 1 颗
+#
+# 夹具与 mm-marquee 相同（默认样例文档），ppp 1.0 / warmup 30，逻辑窗口 1620×1080。
+# 相机落定后（画布 1620×1008、zoom ≈1.327，见 trace 里的 `fit` 与 `scene_node`）：
+#   winit + windows-rs  (211,362,219,50) 中心 (320,387)
+#   wgpu 四层合成器      (211,444,196,50) 中心 (309,469)
+#   uniform grid 命中    (211,527,203,50) 中心 (312,552)
+#   概要「渲染底座」的主题盒 (77,408,96,41)——归属 ＊ 原生，会抢走落在它上面的按下。
+#
+# 第一段：从 (450,340) 拖到 (180,590) 的矩形正好压住上面三颗（包围盒相交），
+#   Alt 不按 → 替换选择，轨迹 marquee picked=3 selected=3。
+# 第二段：Alt 从 (450,430)（winit 下缘与 wgpu 上缘右侧的空白）起笔的套索只圈住
+#   wgpu 的中心 (309,469)：winit 中心 y=387 在 430 以上、uniform grid 中心
+#   y=552 在 500 以下，都不在圈内。Alt 减选 → 组里只剩 2 颗。
+#   预期轨迹：marquee picked=1 selected=2 path=lasso
+#
+# 末帧画面：winit 与 uniform grid 带选中环，wgpu 没有——这是「减掉了哪一颗」的图像证据。
+wait 5
+press 450 340
+move 350 450
+move 250 540
+move 180 590
+release 180 590
+wait 2
+mods alt
+press 450 430
+move 180 430
+move 180 500
+move 450 500
+release 450 500
+mods none
+wait 2
+move 1500 200

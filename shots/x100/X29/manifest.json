@@ -1,0 +1,73 @@
+{
+  "package": "X29",
+  "title": "空画布 / 空文档 / 加载 / 错误 / 只读 / 冲突状态（现状审计）",
+  "status": "进行中（只做文档与现状审计；代码零改动，golden 未拍；G-1 只读口径 / G-6 空文档所指待拍板）",
+  "date": "2026-11-02",
+  "track": "X100 Stage C（docs/24 §阶段 C 第 104 行）",
+  "contract": {
+    "design": "docs/24 §阶段 C 第 104 行（X29 定义）；docs/28 §6.7（保存/冲突/只读：卡片页口径）与 §7.7（空/加载/错误：内容表面口径）；docs/30 §3.4（起始页空态/骨架/最近文件缺失）与 §4.3（命令失败 28px 错误条）；docs/02 第 36/38 行（新建/保存失败必须明确报错且保留原文件）；docs/27（格式风险与版本不兼容）",
+    "execute": "docs/31 §5（本批无 X29 行，按 docs/24 阶段 C 解释执行）",
+    "upstream": "shots/x100/SE-09/report.md（28px 错误条 + MW_INSPECTOR_FAIL）、shots/x100/SE-04/report.md（start-missing 只保留行不删）、shots/x100/X27/report.md（§2.7 禁用态）"
+  },
+  "deliverable": "shots/x100/X29/report.md（§1 范围/非目标、§2 状态矩阵 6 状态、§3 差距 10 条、§4 验收草案 4 组、§5 预计基线 已有 14 + 新增 6、§6 未做/风险）",
+  "matrix": {
+    "空画布": "部分：新文档 = 一颗「中心主题」根、画布零引导；检查器/起始页空态有；无 canvas-empty 基线",
+    "空文档": "有：0 节点不可达（恒有 root），内容表面空态齐（library-empty / card-empty / 还没有标签 / 还没有历史快照 / 没有可恢复的自动保存）；但「空文档」在合同里没有所指",
+    "加载": "部分：正在打开（不可 Esc、无按钮、静态 38% 进度条、无取消）+ 起始页/笔记库骨架有；导入有「取消导入」；导出无进度 UI",
+    "错误": "有：六条文案出口（打开失败弹窗 / 手动保存 / 自动保存恢复点 / 卡片笔记 / 导出 / 检查器 28px 错误条）+ FormatError 六类原因，基线齐；但另存为失败缺「保存失败：」前缀、文案暴露 os error 5",
+    "只读": "部分：卡片页是真只读（顶栏「只读」+ 正文不可编辑 + 自动保存跳过）；文档标签只锁保存、不锁编辑、无持久标识、不自动接管",
+    "冲突": "部分：文档外部修改弹窗（重新加载/覆盖保存/取消，默认取消）+ 卡片页 32px 行内条 + 同文件双开切到已开标签；但只在保存时检测，文档级零基线"
+  },
+  "measurements": {
+    "save_failure_paths": "4 条写盘入口（pump_save / save_to 另存为 / 自动保存恢复点 / 卡片笔记 upsert）、5 个文案出口（+ 一次性的「恢复失败」）",
+    "read_only_enforcement": "active_read_only() 全仓只有 2 个消费者（保存前拦 + 打开时 toast）；画布/大纲/检查器零禁用 → 编辑不被拦",
+    "read_only_sources": "同目录 <文件>.lock 协作锁（create_new，陈旧 >12h 可接管）；卡片页另由壳层探写权限判定",
+    "conflict_detection": "保存前比「长度 + 修改时间」指纹（file_guard::changed_since）；打开/切页只重取指纹、不主动提示",
+    "loading_copy": "「正在打开…」/「正在读取文件，请稍候」/「正在导入」+ label·N.Ns + 「取消导入」",
+    "existing_state_baselines": "opening / open-error / start-empty / start-skeleton / start-missing / library-empty / library-loading / card-empty / card-saving / card-conflict / card-readonly / inspector-empty / inspector-error / tabs（14 场，均已在 stage-b 登记）"
+  },
+  "gaps": [
+    "G-1 只读不拦编辑（高；用户不能自己走出来）——文档标签只拦保存，画布/大纲/检查器全可编辑 → 未开始（待拍板：禁写 vs 只保护磁盘）",
+    "G-2 只读无持久标识、锁消失不自动接管 → 未开始",
+    "G-3 冲突只在保存时检测，外部改动不保存就无提示 → 未开始",
+    "G-4 正在打开不可取消、无真实进度（同族「正在导入」反而可取消）→ 未开始",
+    "G-5 空画布零引导（新手引导只出现一次且在弹窗里）→ 未开始",
+    "G-6 「空文档」在合同里没有所指（0 节点不可达）→ 未开始（待拍板）",
+    "G-7 只读/冲突零文档级基线（现有 readonly/conflict 都是卡片页）→ 未开始",
+    "G-8 保存失败措辞不一致（手动带前缀、另存为裸错误、自动保存带补救指引）→ 未开始",
+    "G-9 错误文案把 os error 5 直接摊给用户 → 未开始",
+    "G-10 导出失败无重试入口、不说目标文件 → 未开始"
+  ],
+  "scenes": [],
+  "scenes_planned": [
+    "canvas-empty",
+    "tab-readonly",
+    "save-failed",
+    "autosave-failed",
+    "doc-conflict",
+    "library-corrupted"
+  ],
+  "scenes_reused": [
+    "opening",
+    "open-error",
+    "start-empty",
+    "start-skeleton",
+    "start-missing",
+    "library-empty",
+    "library-loading",
+    "card-empty",
+    "card-saving",
+    "card-conflict",
+    "card-readonly",
+    "inspector-empty",
+    "inspector-error",
+    "tabs"
+  ],
+  "evidence": {
+    "baselines": "本轮未拍任何基线；§5 的「已有 14 场」是现成登记项，「新增 6 场」等 G-1/G-3/G-5/G-7 拍板后落盘",
+    "code_changes": "无（crates/ 有并行会话，本轮严格只读）",
+    "tests": "未跑（本轮不执行构建与测试）",
+    "gates": "未跑；门状态以 docs/STATUS.md §1 为准，本包不宣称任何门结论"
+  },
+  "blocking": "G-1 的产品方向（只读是否真禁写）与 G-6（「空文档」指什么）需拍板；G-5 空画布文案需一句口径"
+}

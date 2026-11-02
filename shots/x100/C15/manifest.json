@@ -1,0 +1,66 @@
+{
+  "package": "C15",
+  "title": "平行命题的短语避让与独立点选",
+  "status": "已实现（机器门绿；实机鼠标手感未核，人工门未开，不记已验证）",
+  "date": "2026-10-31",
+  "track": "打磨轮（docs/x100/polish-ledger.md 第 39 轮；HANDOFF §7.5⑤；docs/30 §5.4）",
+  "contract": {
+    "design": "docs/30 §5.4（同一对概念之间允许多条命题）；C14 分车道实现（打磨轮 34，CONCEPT_LANE_GAP / bowed_straight）",
+    "code": [
+      "crates/mw-core/src/scene.rs::concept_lanes（跨 doc_order 按无向对收齐车道，owner_ids 只取一次）",
+      "crates/mw-core/src/scene.rs::CONCEPT_LABEL_STAGGER（多条车道时短语沿规范切线错开 24）",
+      "crates/mw-core/src/scene.rs::bow_crossings（跳过已弯曲的车道 Quad，避免按弦线重弯抹掉偏移）",
+      "crates/mw-render/src/hit.rs::parallel_propositions_are_individually_hittable（两条车道中点各命中自己）",
+      "crates/mw-shell/src/canvas/canvas_methods_2.rs（scene_rel 轨迹：start/end/mid/label/w）",
+      "crates/mw-shell/src/canvas/canvas_methods_3.rs::add_concept_parallel_link（MW_CONCEPT_PARALLEL=1）",
+      "scripts/x100-stage-cm-gate.ps1（+2 场）"
+    ],
+    "note": "不改数据模型 / .zmind / Frame ABI / CONCEPT_LANE_GAP 拱形；单条命题几何逐字节不变"
+  },
+  "deliverables": {
+    "report": "shots/x100/C15/report.md",
+    "manifest": "shots/x100/C15/manifest.json"
+  },
+  "scenes": [
+    {
+      "name": "cm-parallel-select-a",
+      "dir": "shots/golden/cm-parallel-select-a",
+      "sha256_12": "30ECA0171375",
+      "input": "shots/golden/inputs/cm-parallel-select-a.txt",
+      "evidence": "点外侧车道短语 (541,570) → 轨迹 select relationship …6906ffc8b875（idx=3）；与 B 差 2528 px，bbox x500..549 y409..765 只在车道竖带"
+    },
+    {
+      "name": "cm-parallel-select-b",
+      "dir": "shots/golden/cm-parallel-select-b",
+      "sha256_12": "D36F6FBAA531",
+      "input": "shots/golden/inputs/cm-parallel-select-b.txt",
+      "evidence": "点内侧车道短语 (509,609) → 轨迹 select relationship …690870df5df7bc（idx=4）；同一对 from/to，两个不同的关系 id"
+    }
+  ],
+  "tests": {
+    "new": [
+      "scene::tests::opposite_propositions_between_the_same_pair_also_take_lanes（修复前 label_at 距离 0.00）",
+      "scene::tests::parallel_proposition_labels_do_not_overlap_on_a_vertical_edge（修复前横向重叠 12 世界单位）",
+      "scene::tests::crossing_bow_leaves_a_lane_curve_alone（bow_crossings 不重弯车道曲线）",
+      "hit::tests::parallel_propositions_are_individually_hittable（两条车道中点各命中自己）"
+    ],
+    "total": "1029 passed / 0 failed / 1 ignored（23 个套件）；mw-core 253、mw-render 27、mw-shell --bins 592 / 1 ignored"
+  },
+  "gate": {
+    "script": "scripts/x100-stage-b-gate.ps1 + scripts/x100-stage-cm-gate.ps1",
+    "stage_b_scenes": 121,
+    "stage_b_comparisons": 242,
+    "stage_cm_scenes": 53,
+    "stage_cm_comparisons": 106,
+    "result": "PASS（2026-10-31：stage-cm 02:12:17–02:17:21、stage-b 02:18:44–02:25:06，均两遍全过；既有 51 张 cm 基线零漂移）",
+    "human_gate": "未开"
+  },
+  "behaviour_change": "同一对概念之间的多条平行命题现在按无向对跨源节点分车道；短语沿切线错开，竖边上不再叠字；每条车道可独立点选。单条命题不变。",
+  "data_model": "零新字段；不升 FORMAT_VERSION、无迁移",
+  "known_gaps": [
+    "实机鼠标点车道的体感未核；离屏只证明命中判定正确",
+    "三条以上车道仍用常量步长 24，边极短时短语可能越出线段端点",
+    "靠近端点时两条车道汇合，点选仍会落到后一条；独立点选只在分离区成立",
+    "车道顺序取决于 doc_order（源节点在文中的先后），不是固定的上/下语义"
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "package": "CER-02",
+  "status": "已实现",
+  "date": "2026-10-25",
+  "design_contract": "docs/28 §4（§4.1–§4.6）",
+  "execution_contract": "docs/29 §6",
+  "batch": "B2-A",
+  "gate": null,
+  "scenes": [
+    "content-kit-snow",
+    "content-kit-ink",
+    "content-kit-mist",
+    "content-kit-sand",
+    "content-kit-hover"
+  ],
+  "themes": ["snow", "ink", "mist", "sand"],
+  "dpi": [1.0, 1.5, 2.0],
+  "scripts": [
+    "shots/golden/inputs/content-kit-hover.txt"
+  ],
+  "evidence": [
+    "shots/x100/CER-02/report.md",
+    "shots/golden/content-kit-snow/",
+    "shots/golden/content-kit-ink/",
+    "shots/golden/content-kit-mist/",
+    "shots/golden/content-kit-sand/",
+    "shots/golden/content-kit-hover/"
+  ],
+  "old_hashes": {},
+  "new_hashes": "13 张基线见各 content-kit-* 目录 shell-ppp*.png（--update 生成后双跑 --tol 0 锁定）",
+  "tests": { "passed": 777, "failed": 0 },
+  "golden": { "runs": 2, "diffs": 0, "tol": 0, "note": "新增 13 基线双跑 --tol 0 全 0；重建 release 后第三次复核仍 0；旧 31 组矩阵双跑 PASS（target/x100/cer-02-golden.log）" },
+  "engineering": {
+    "fmt": "clean",
+    "clippy_mw_shell_new": 0,
+    "clippy_mw_shell_historical": "export_pdf.rs 3",
+    "release_build": "pass"
+  },
+  "changes": {
+    "code": [
+      "crates/mw-shell/src/content_kit.rs（新增：九组件 + 陈列页 + 7 测试）",
+      "crates/mw-shell/src/main.rs（mod + 字段 + 路由分支）",
+      "crates/mw-shell/src/app_methods_1.rs（字段初始化 + MW_CONTENT_KIT 钩子）"
+    ],
+    "golden": [
+      "shots/golden/content-kit-{snow,ink,mist,sand}/ ×3 ppp",
+      "shots/golden/content-kit-hover/ @1.5",
+      "shots/golden/inputs/content-kit-hover.txt"
+    ],
+    "wiring": "MW_CONTENT_KIT=1 环境变量门控；正常启动路径零改动"
+  },
+  "known_gaps": [
+    "字重偏差①（600→700 面）/②（500→400 面），G-B2-1 复核",
+    "egui galley 行盒高度 ≠ 规格行高，CER-04+ 页面需显式间距补足",
+    "状态切换即时落位，动效随页面包",
+    "hover 锚点仅对 1200×860 基线窗口有效",
+    "滚动条自绘未做（CER-04）"
+  ]
+}
