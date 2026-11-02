@@ -163,6 +163,10 @@ pub fn to_nodes(block: &ConceptMapBlock) -> HashMap<String, Node> {
 ///
 /// 「逐字节」指的是**结构**相同：`HashMap` 的遍历顺序不定，所以比的是
 /// 「按 id 排序后的序列化」，不是 JSON 字符串。
+///
+/// `modified_at` 不参与比较：`ConceptEntry` 根本没有这个字段，`to_nodes` 走
+/// `Node::new` 会填 `now_ms()`，把它算进去就变成「同一毫秒内才通过」的墙钟骰子
+/// （2026-11-03 实测会随机红）。它是**编辑时间**，不是概念形状，本就不该由块承载。
 // `docs/33` §3 的自检钩子；目前只有单测调用（模块不对外，故非测试构建视为死代码）。
 #[cfg_attr(not(test), allow(dead_code))]
 pub fn round_trip(nodes: &HashMap<String, Node>) -> bool {
@@ -173,7 +177,9 @@ pub fn round_trip(nodes: &HashMap<String, Node>) -> bool {
         ids.sort();
         let mut s = String::new();
         for id in ids {
-            s.push_str(&serde_json::to_string(&m[id]).unwrap_or_default());
+            let mut n = m[id].clone();
+            n.modified_at = 0;
+            s.push_str(&serde_json::to_string(&n).unwrap_or_default());
             s.push('\n');
         }
         s

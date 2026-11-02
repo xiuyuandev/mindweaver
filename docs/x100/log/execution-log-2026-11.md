@@ -664,3 +664,18 @@ XMind 看不到图；导入侧也不读 `image.src`，导进来的图是悬空�
 **549 passed / 0 failed / 0 ignored**（`mw-core` 384+7、`mw-format` 39+2、`mw-io` 37+6、
 `mw-markdown` 15、`mw-ui` 59）。`mw-io` 自身 clippy 0 新增（剩余警告全在 `mw-core`
 基线内：`type_complexity` / `needless_range_loop`）。
+
+**三、两条既有账的订正 + 一个真·不稳定测试**：
+
+1. **`mw-format` 的 `round_trip_is_byte_exact` 是墙钟骰子（已修）**。`concept_map::round_trip`
+   拿 `serde_json::to_string(&m[id])` 整颗节点比对，而 `to_nodes` 走 `Node::new` 会把
+   `modified_at` 填成 `now_ms()`——两次调用落在不同毫秒就红。实测 5 次连跑里会随机失败
+   （本轮第一次全量跑就撞上）。`ConceptEntry` 根本没有 `modified_at` 字段，它也不该由「概念形状」
+   承载，故比较前把两侧的 `modified_at` 归零。连跑 5 次 39/39 稳定。
+2. **打磨账本 C18/C19「钉住状态不持久化」是旧账（已订正）**。`ConceptEntry.pinned` 早就存在：
+   `from_nodes` 抄 `n.pinned`、`to_nodes` 写回 `n.pinned`。在 `mw-format` 的
+   `concept_map_roundtrips_positions_and_relationships` 里补了一条 `SetConceptPinned` → 存 → 读回
+   `Some(true)` 的断言，永久钉住这条。
+3. **`mw-io/tests/fidelity.rs` 的 `.cxl` 降级矩阵补齐外观断言**（CM-23 §6 第 10 条「单测覆盖薄」）：
+   `ten_concept_samples_survive_cxl_degraded_parse` 现在逐节点核对 `font_size` / `fill` / `stroke`
+   读回，并显式断言 `shape` 仍丢（设计边界）。

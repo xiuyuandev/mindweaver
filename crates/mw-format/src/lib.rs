@@ -1264,6 +1264,12 @@ mod tests {
             label: Some("解决".into()),
         })
         .unwrap();
+        // 钉住（C18）：落在 `ConceptEntry.pinned`，必须随 `.zmind` 持久化。
+        doc.apply(&mw_core::Command::SetConceptPinned {
+            id: float.clone(),
+            pinned: true,
+        })
+        .unwrap();
 
         let path = temp_path("概念图.zmind");
         save(&doc, &path).unwrap();
@@ -1282,6 +1288,11 @@ mod tests {
             .expect("关系线要保留");
         assert_eq!(rel.label.as_deref(), Some("解决"), "链接短语要保留");
         assert_eq!(rel.color, None, "未指定颜色时保持 None，不偷偷补默认色");
+        assert_eq!(
+            f.pinned,
+            Some(true),
+            "钉住状态必须随 `.zmind` 往返（C18/C19 的「内存交互态」是旧账）"
+        );
         assert!(back.validate().is_ok(), "概念图结构要合法");
 
         let _ = std::fs::remove_dir_all(path.parent().unwrap());
