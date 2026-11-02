@@ -190,8 +190,7 @@ fn concept_sample(i: usize) -> Document {
                 ..Default::default()
             });
         }
-        // 下面这几个字段**目前**读不回来（见 `cxl_concept_map_roundtrip…` 里的说明，
-        // CM-23 §7.5 记了是 `mw-format` 的越界缺陷）。写进样例是为了让它一直可见。
+        // 节点扩展字段不在 `conceptMap` 块里，靠兼容镜像 `nodes` 往返（CM-23 §7.5）。
         node.note = Some(format!("备注 {i}-{k}"));
         node.labels = vec![format!("标签{}", k % 2)];
         nodes.insert(id.clone(), node);
@@ -288,25 +287,13 @@ fn ten_concept_samples_survive_cxl_fidelity_roundtrip() {
         assert_eq!(back.root_id, src.root_id, "样例 {i} 的根");
         assert_eq!(back.groups, src.groups, "样例 {i} 的分组");
         assert_eq!(back.cards.len(), src.cards.len(), "样例 {i} 的卡片数");
-        // 节点与命题逐字段比：唯一的差别是「节点扩展字段」——保真槽里写着它们，
-        // 但读取侧走 `concept_map` 块重建节点会丢（`mw-format/src/lib.rs`
-        // `doc_from_file_doc` 的 `Some(block) => to_nodes(block)` 分支；CM-23 §7.5）。
-        // 那一步不在 `mw-io` 的写作用域里，所以这里按「已知缺陷」比：其余全等。
+        // 节点与命题逐字段比。概念图的 `conceptMap` 块只描述概念形状，节点扩展字段
+        // （备注/链接/标签/卡片…）靠兼容镜像 `nodes` 按 id 并回来（CM-23 §7.5 已修）。
         let mut expected = src.nodes.clone();
         let mut got = back.nodes.clone();
         // `modified_at` 是保存/重建时打的时间戳（差 1ms 就会让比较假红），不是内容字段。
         for node in expected.values_mut().chain(got.values_mut()) {
             node.modified_at = 0;
-            node.note = None;
-            node.link = None;
-            node.icon = None;
-            node.labels.clear();
-            node.collapsed = false;
-            node.card_id = None;
-            node.task = None;
-            node.image = None;
-            node.boundaries.clear();
-            node.summaries.clear();
         }
         assert_eq!(got, expected, "样例 {i} 的节点/命题字段");
     }

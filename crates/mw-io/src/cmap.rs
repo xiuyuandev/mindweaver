@@ -915,27 +915,29 @@ mod tests {
         assert_eq!(rel.note.as_deref(), Some("命题注释"));
     }
 
-    /// CM-23 §7.5 的账：**保真槽里写着**节点的备注/标签/卡片，但读取侧走
-    /// `mw-format` 的 `doc_from_file_doc`，概念图分支用 `concept_map::to_nodes` 重建节点，
-    /// 而 `ConceptEntry` 只有 id/text/x/y/pinned/style —— 这几个字段就丢在读的一侧。
-    ///
-    /// 这条不是 `mw-io` 的 bug，修点在 `mw-format`（本轮禁改区），所以这里把它钉成
-    /// 「写得出、读不回」的事实；那边修好后本测试应改成断言保留。
+    /// CM-23 §7.5 的账（**已修**）：保真槽里写着节点的备注/标签/卡片，
+    /// 而概念图分支原先用 `concept_map::to_nodes` 重建节点，`ConceptEntry` 只有
+    /// id/text/x/y/pinned/style，这几个字段就丢在读的一侧。
+    /// 修法在 `mw-format::doc_from_file_doc`：按 id 把兼容镜像 `nodes` 的扩展字段并回来。
     #[test]
-    fn cxl_fidelity_writes_node_extras_but_does_not_read_them_back() {
+    fn cxl_fidelity_reads_node_extras_back() {
         let doc = rich_concept_doc();
         let xml = save_cxl(&doc).unwrap();
         assert!(xml.contains("概念备注"), "保真槽里应当写着备注：{xml}");
         assert!(xml.contains("标签A"), "保真槽里应当写着标签：{xml}");
         let back = load_cxl(&xml).unwrap();
-        assert_eq!(back.nodes["c-a"].note, None, "已知缺陷：读取侧丢备注");
-        assert!(
-            back.nodes["c-a"].labels.is_empty(),
-            "已知缺陷：读取侧丢标签"
+        assert_eq!(
+            back.nodes["c-a"].note.as_deref(),
+            Some("概念备注"),
+            "备注必须随保真槽往返"
         );
         assert_eq!(
-            back.nodes["c-a"].card_id, None,
-            "已知缺陷：读取侧丢 card_id"
+            back.nodes["c-a"].labels, doc.nodes["c-a"].labels,
+            "标签必须随保真槽往返"
+        );
+        assert_eq!(
+            back.nodes["c-a"].card_id, doc.nodes["c-a"].card_id,
+            "card_id 必须随保真槽往返"
         );
     }
 

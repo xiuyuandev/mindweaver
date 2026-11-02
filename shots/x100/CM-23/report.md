@@ -135,7 +135,7 @@ cargo test -p mw-io -- --test-threads=1
 | 18 | 命题 `id` | 保真槽；互通视图里是 `lp-<id>` | 有 | — | **变**（`p1` → `lp-p1`） | `:95` `format!("lp-{}", p.id)`；降级 `:413` `id: pid.clone()` |
 | 19 | 命题 `color` / `dashed` / `width` / `note` | 无 | 有 | 无 | 丢 | `:170-183` 只写 `arrowhead` |
 | 20 | `groups`（概念分组） | **已修（本轮）**：明确不写（CXL 无分组元素），`save_cxl` 显式传空表 + 注释，死参数已删 | 有（保真槽 `content.groups`，本轮加单测钉住） | 无 | 丢 → 空 | 写 `concept_map_block(..., Vec::new())`；读 `doc_from_file_doc` 的 `file.groups.clone()`（§7 第 4 条） |
-| 21 | 节点 `note` / `link` / `icon` / `labels` / `task` / `card_id` / `collapsed` / `image` | 无（`ConceptEntry` 没有这些键） | **写得出、读不回**（本轮新发现，§7.5） | 无 | 丢 | 写 `mw-format/src/lib.rs:419` `nodes: doc.nodes.clone()`；读 `:465-468` `Some(block) => concept_map::to_nodes(block)` 丢这些键 |
+| 21 | 节点 `note` / `link` / `icon` / `labels` / `task` / `card_id` / `collapsed` / `image` | 无（`ConceptEntry` 没有这些键） | **已修（2026-11-02）**：读侧按 id 从兼容镜像 `nodes` 并回扩展字段（§7.5） | 无 | 丢 | 写 `mw-format/src/lib.rs` `nodes: doc.nodes.clone()`；读 `nodes_from_file_doc`（`concept_map::to_nodes` + 镜像合并） |
 | 22 | 卡片 `cards`（笔记正文 + 元数据） | 无 | 有 | 无 | 丢 | `mw-format/src/lib.rs:424` `cards: doc.cards.clone(),` |
 | 23 | 未知顶层键（`FileDoc.extra`）与节点未知键 | 无 | **丢** | 无 | 丢 | `mw-format/src/lib.rs:436` `extra: serde_json::Map::new(),` |
 | 24 | 图片 / 附件字节（`.zmind` 的 `assets/`） | 无 | **丢** | 无 | 丢 | 保真槽是**单条 XML 属性值**，装不下 ZIP 条目 |
@@ -145,8 +145,8 @@ cargo test -p mw-io -- --test-threads=1
 
 逐行点数（共 25 行）：
 
-- **A（织思 → 织思，保真槽在）**：**21 / 25 行保留**。四个例外：#21 节点扩展字段（写得出、读不回，
-  §7.5）、#23 未知顶层键、#24 附件字节、#25 时间戳（写进去了但从不读回）。
+- **A（织思 → 织思，保真槽在）**：**22 / 25 行保留**。三个例外：#23 未知顶层键、#24 附件字节、
+  #25 时间戳（写进去了但从不读回）。#21 节点扩展字段已于 2026-11-02 修好（§7.5）。
 - **B（CmapTools 看得见）**：**11 / 25 行**写进了标准元素——#1 标题、#5 聚焦问题、#7 概念 id、#8 文本、
   #9 坐标（取整）、#11 字号、#12 填充/边框色、#14 命题结构、#15 短语、#16 箭头（**只三档**）、
   #25 时间戳（**格式非法**）。
@@ -326,11 +326,12 @@ save_cxl(doc) 两次，除 <dcterms:modified> 那一行外必须逐字节相同
    并写明 `.cxl` 两条用例各自比什么。
 2. 新增概念图样例 `concept_sample(i)`（3–6 概念、四档箭头、钉住/样式/分组按 `i` 变化）与两条用例：
    - `ten_concept_samples_survive_cxl_fidelity_roundtrip`：保真槽在时逐节点/逐命题比全字段，
-     **唯一豁免**是「节点扩展字段」——见 §7.5，那是 `mw-format` 的读取侧缺陷，不在本包写作用域里；
+     **唯一豁免**是「节点扩展字段」——见 §7.5，那是 `mw-format` 的读取侧缺陷，
+     **2026-11-02 已修**（`nodes_from_file_doc` 按 id 并回镜像扩展字段），该豁免已删除；
    - `ten_concept_samples_survive_cxl_degraded_parse`：抹掉保真槽后只比互通视图真能表达的
      （标题 / 聚焦问题 / 概念数与文本 / 坐标 / 命题终点·短语·箭头四档）。
 
-### 7.5 本轮修码时新发现的一条越界缺陷（未修，需 lead 决定）
+### 7.5 本轮修码时新发现的一条越界缺陷（**2026-11-02 已修**）
 
 **现象**：`.cxl` / `.xmind` 的保真槽里**写着**节点的备注 / 链接 / 图标 / 标签 / 折叠 / `card_id` /
 任务 / 图片 / 边界 / 概要（`build_file_doc` 里 `nodes: doc.nodes.clone()`），但**读不回来**。
@@ -349,14 +350,22 @@ let nodes = match &file.concept_map {
 `.zmind` 不走这个函数（`doc_from_file_doc` 的唯一调用点是 `doc_from_fidelity_json`），
 所以受害面是**开放格式（`.cxl` / `.xmind`）的概念图**，不影响 `.zmind`。
 
-**为什么没修**：修点在 `mw-format/src/lib.rs`，不在本轮写作用域（lead 只给了
+**为什么当时没修**：修点在 `mw-format/src/lib.rs`，不在当轮写作用域（lead 只给了
 `cmap.rs` / `tests/fidelity.rs` / `dispatch.rs` 的一小段）。建议改法（任选其一）：
 ① `file.nodes` 非空时优先用 `file.nodes.clone()`，`concept_map` 块只作 `.zmind` 兼容镜像；
 ② 或 `to_nodes` 之后把 `file.nodes` 里同 id 节点的扩展字段合并回来。
 改完把 `cxl_fidelity_writes_node_extras_but_does_not_read_them_back` 与
 `ten_concept_samples_survive_cxl_fidelity_roundtrip` 里的「豁免」一起删掉，改成断言保留。
 
-**今天的账**：这一条让 §3 第 #21 行从「保真槽有」改成「写得出、读不回」。
+**2026-11-02 落地**：按 ② 实现——新增 `mw_format::nodes_from_file_doc`，
+`concept_map::to_nodes` 之后按 id 把兼容镜像 `nodes` 的扩展字段并回来（概念形状仍以块为准，
+镜像里多出的树节点不塞进概念图）。三条断言同时改为「必须保留」：
+`cmap::tests::cxl_fidelity_reads_node_extras_back`、`tests/fidelity.rs` 的
+`ten_concept_samples_survive_cxl_fidelity_roundtrip`，以及新增的
+`mw-format` 单测 `concept_block_is_the_authority_and_the_mirror_only_supplies_extras`。
+另补一条 `.xmind` 保真槽往返单测 `save_then_load_keeps_every_field_through_the_fidelity_slot`。
+
+**今天的账**：§3 第 #21 行从「写得出、读不回」改回「保真槽有」（`.zmind` 从来不受影响）。
 
 ### 7.6 结果（逐条：已修 / 未修）
 
@@ -366,7 +375,7 @@ let nodes = match &file.concept_map {
 | 1 | `dc:title` 读回 | **已修** | `parse_cxl_interop` 捕获标题 → `build_concept_doc(block, title)`；无/空/全空白才退回「概念图」 |
 | 3 | 反向箭头不可表达 | **已修** | 箭头写到它所在的边：`-a`/`-b` 两条 `connection-appearance`；降级解析按「哪条边有箭头」反推四档，`Forward` 与 `Backward` 的 XML 不再同形 |
 | 4 | `groups` 死代码 | **已修** | `save_cxl` 显式传空表 + 注释「分组只走保真槽」，死参数用法删除；保真由新单测钉住 |
-| 5 | 节点扩展字段读不回（§7.5） | **未修** | 修点在 `mw-format/src/lib.rs`（本轮禁改区）；已用两条测试把「写得出、读不回」钉成事实 |
+| 5 | 节点扩展字段读不回（§7.5） | **已修（2026-11-02）** | `mw-format` 新增 `nodes_from_file_doc`：块为准 + 按 id 并回兼容镜像的扩展字段；三条测试改为断言保留，另补 `.xmind` 保真槽往返一条 |
 
 **实跑**（原始输出：[`evidence-cargo-test-mw-io-fix.txt`](evidence-cargo-test-mw-io-fix.txt)）：
 
@@ -384,8 +393,9 @@ cargo test -p mw-io -- --test-threads=1   → 38 passed / 0 failed
    没有一条经过 CmapTools 打开验证。
 2. **互通视图仍不表达**：`groups`、`pinned`、线色/虚线/线宽/命题注释、备注/标签/卡片、样式其余键、
    主题（`snow` 硬编码在降级路径）。这些只活在保真槽里。
-3. **保真槽的读取侧仍有缺口**（§7.5）：节点扩展字段写得出、读不回，修点在 `mw-format`，
-   本轮没动。所以「保真」这两个字目前只对 §3 表里标了「有」的行成立。
+3. ~~**保真槽的读取侧仍有缺口**（§7.5）：节点扩展字段写得出、读不回，修点在 `mw-format`，
+   本轮没动。~~ **已修（2026-11-02）**：`mw_format::nodes_from_file_doc` 按 id 并回镜像扩展字段，
+   节点扩展字段现在随保真槽往返。
 
 ---
 

@@ -452,6 +452,40 @@ pub fn doc_to_fidelity_json(
     Ok(serde_json::to_vec(&fid)?)
 }
 
+/// `FileDoc` → 节点表。
+///
+/// `conceptMap` 块存在时它是权威（`docs/33` §3）：概念/命题以块为准；
+/// 但块只描述「概念的形状」（`id/text/x/y/pinned/style`），**备注 / 链接 / 图标 / 标签 /
+/// 折叠 / `card_id` / 任务 / 图片 / 边界 / 概要**这些节点扩展字段不在块里。
+/// 同一份文件同时写着兼容镜像 `nodes`（`build_file_doc` 一直这么写），
+/// 所以块里有的概念按 id 把镜像节点的扩展字段并回来——否则 `.cxl` / `.xmind`
+/// 保真槽「写得出、读不回」（CM-23 §7.5）。
+///
+/// 块缺某颗概念时只认块（镜像里多出来的树节点不往概念图里塞）。
+fn nodes_from_file_doc(file: &FileDoc) -> HashMap<String, Node> {
+    let Some(block) = &file.concept_map else {
+        return file.nodes.clone();
+    };
+    let mut nodes = concept_map::to_nodes(block);
+    for (id, node) in nodes.iter_mut() {
+        let Some(mirror) = file.nodes.get(id) else {
+            continue;
+        };
+        // 镜像带全字段，但「概念长什么样」仍以块为准。
+        let mut merged = mirror.clone();
+        merged.id = node.id.clone();
+        merged.parent_id = node.parent_id.clone();
+        merged.children = node.children.clone();
+        merged.text = node.text.clone();
+        merged.pos = node.pos.clone();
+        merged.pinned = node.pinned;
+        merged.style = node.style.clone();
+        merged.relationships = std::mem::take(&mut node.relationships);
+        *node = merged;
+    }
+    nodes
+}
+
 /// `FileDoc` → `Document`（与 `.zmind` 加载的 `FileDoc → Document` 同构）。
 /// `conceptMap` 块存在时它是权威（`docs/33` §3）。
 fn doc_from_file_doc(file: &FileDoc, title: &str, doc_id: &str) -> Result<Document, FormatError> {
@@ -462,10 +496,7 @@ fn doc_from_file_doc(file: &FileDoc, title: &str, doc_id: &str) -> Result<Docume
         theme_overrides: file.theme_overrides.clone(),
         layout: file.layout.clone(),
     };
-    let nodes = match &file.concept_map {
-        Some(block) => concept_map::to_nodes(block),
-        None => file.nodes.clone(),
-    };
+    let nodes = nodes_from_file_doc(file);
     Document::from_parts_full(
         Some(doc_id.to_string()),
         meta,
@@ -882,12 +913,9 @@ fn load_from_bytes_with_source(
         theme_overrides: file.theme_overrides.clone(),
         layout: file.layout.clone(),
     };
-    // `conceptMap` 块存在时它是权威（`docs/33` §3）：`nodes` 被忽略。
-    // 缺块回落到旧形状，老文件一个字节都不用改。
-    let nodes = match &file.concept_map {
-        Some(block) => concept_map::to_nodes(block),
-        None => file.nodes.clone(),
-    };
+    // `conceptMap` 块存在时它是权威（`docs/33` §3）：概念/命题以块为准；
+    // 节点扩展字段按 id 从兼容镜像 `nodes` 并回来，缺块时整体回落到 `nodes`。
+    let nodes = nodes_from_file_doc(&file);
     let mut doc = Document::from_parts_full(
         Some(manifest.doc_id.clone()),
         meta,
@@ -1257,6 +1285,43 @@ mod tests {
         assert!(back.validate().is_ok(), "概念图结构要合法");
 
         let _ = std::fs::remove_dir_all(path.parent().unwrap());
+    }
+
+    /// 概念图的 `conceptMap` 块是权威，但它只描述概念形状；节点扩展字段
+    /// （备注/标签/`card_id`…）从兼容镜像 `nodes` 按 id 并回来（CM-23 §7.5）。
+    /// 反向约束：镜像里多出来的树节点不该被塞进概念图。
+    #[test]
+    fn concept_block_is_the_authority_and_the_mirror_only_supplies_extras() {
+        let mut nodes = HashMap::new();
+        let mut a = Node::new("a".into(), None, "概念甲");
+        a.note = Some("备注甲".into());
+        a.labels = vec!["标签A".into()];
+        a.card_id = Some("card-1".into());
+        nodes.insert("a".into(), a);
+        let mut b = Node::new("b".into(), None, "概念乙");
+        b.note = Some("备注乙".into());
+        nodes.insert("b".into(), b);
+        // 镜像里多出的树节点（`parent_id: Some`）不在块里，不该出现。
+        nodes.insert(
+            "stray".into(),
+            Node::new("stray".into(), Some("a".into()), "游离"),
+        );
+        let block = concept_map::from_nodes(&nodes, None, Vec::new());
+        let file = FileDoc {
+            nodes,
+            concept_map: Some(block),
+            ..Default::default()
+        };
+        let merged = nodes_from_file_doc(&file);
+        assert_eq!(merged.len(), 2, "只认块里的概念");
+        assert_eq!(merged["a"].note.as_deref(), Some("备注甲"));
+        assert_eq!(merged["a"].labels, vec!["标签A".to_string()]);
+        assert_eq!(merged["a"].card_id.as_deref(), Some("card-1"));
+        assert_eq!(merged["b"].note.as_deref(), Some("备注乙"));
+        assert!(
+            !merged.contains_key("stray"),
+            "镜像多出的树节点不该进概念图"
+        );
     }
 
     #[test]

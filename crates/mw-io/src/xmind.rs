@@ -22,6 +22,8 @@ struct TopicDraft {
     parent: Option<String>,
     text: String,
     note: Option<String>,
+    /// 超链接（XMind 的 `topic.href` / 旧版 `<link xlink:href>`）。
+    link: Option<String>,
     collapsed: bool,
     icon: Option<String>,
     labels: Vec<String>,
@@ -50,6 +52,7 @@ fn build_document(drafts: Vec<TopicDraft>, rels: Vec<RelDraft>) -> Result<Docume
     for d in &drafts {
         let mut n = Node::new(d.id.clone(), d.parent.clone(), d.text.clone());
         n.note = d.note.clone();
+        n.link = d.link.clone();
         n.collapsed = d.collapsed;
         n.icon = d.icon.clone();
         let mut seen_labels: Vec<String> = Vec::new();
@@ -166,12 +169,18 @@ fn walk_topic_json(t: &Value, parent: Option<String>, out: &mut Vec<TopicDraft>)
         })
         .unwrap_or_default();
     let src_id = t.get("id").and_then(|x| x.as_str()).map(|s| s.to_string());
+    let link = t
+        .get("href")
+        .and_then(|x| x.as_str())
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty());
     out.push(TopicDraft {
         id: id.clone(),
         src_id,
         parent: parent.clone(),
         text,
         note,
+        link,
         collapsed,
         icon,
         labels,
@@ -310,6 +319,7 @@ fn parse_legacy(xml: &str) -> Result<(Vec<TopicDraft>, Vec<RelDraft>), IoError> 
                             parent,
                             text: String::new(),
                             note: None,
+                            link: None,
                             collapsed,
                             icon: None,
                             labels: Vec::new(),
@@ -378,6 +388,7 @@ fn parse_legacy(xml: &str) -> Result<(Vec<TopicDraft>, Vec<RelDraft>), IoError> 
                         parent,
                         text: String::new(),
                         note: None,
+                        link: None,
                         collapsed: false,
                         icon: None,
                         labels: Vec::new(),
@@ -393,6 +404,24 @@ fn parse_legacy(xml: &str) -> Result<(Vec<TopicDraft>, Vec<RelDraft>), IoError> 
                                         d.icon = map_marker(v.as_ref());
                                     }
                                 }
+                            }
+                        }
+                    }
+                } else if name.as_slice() == b"link" || name.as_slice() == b"xlink:href" {
+                    // XMind 8 的链接：`<link xlink:href="…"/>`（自闭合）。
+                    let href = e
+                        .attributes()
+                        .flatten()
+                        .find(|a| {
+                            a.key.as_ref() == b"xlink:href" || a.key.as_ref().ends_with(b":href")
+                        })
+                        .and_then(|a| a.unescape_value().ok())
+                        .map(|v| v.trim().to_string())
+                        .filter(|s| !s.is_empty());
+                    if let (Some(href), Some(cur)) = (href, stack.last().cloned()) {
+                        if let Some(d) = draft_mut(&mut drafts, &cur) {
+                            if d.link.is_none() {
+                                d.link = Some(href);
                             }
                         }
                     }
@@ -510,7 +539,9 @@ pub fn import_xmind_with_report(bytes: &[u8]) -> Result<(Document, ImportReport)
             "XMind 文件缺少 content.json / content.xml".into(),
         ));
     };
-    let doc = build_document(drafts, rels)?;
+    let mut doc = build_document(drafts, rels)?;
+    // 图片/附件字节进资源表；节点上的 `topic.image.src` 引用尚未映射（见下面的 warn）。
+    attach_resources(&mut doc, bytes);
 
     let mut counts = crate::ImportCounts::default();
     for n in doc.nodes.values() {
@@ -529,7 +560,7 @@ pub fn import_xmind_with_report(bytes: &[u8]) -> Result<(Document, ImportReport)
     };
     if resources > 0 {
         report.warn(format!(
-            "XMind 内含 {resources} 个图片/附件资源；当前版本尚未迁移到 .zmind 资源包（P53 图片管线接入后补）"
+            "XMind 内含 {resources} 个图片/附件资源；字节已收进资源包，但主题上的图片引用尚未映射（P53 图片管线接入后补）"
         ));
     }
     Ok((doc, report))
@@ -695,13 +726,14 @@ pub fn save_xmind(doc: &Document) -> Result<Vec<u8>, IoError> {
         "creator": { "name": "MindWeaver", "version": "0.1.0" },
         "timestamp": mw_core::now_ms(),
     });
-    let manifest = json!({
-        "file-entries": {
-            "content.json": {},
-            "metadata.json": {},
-            "mindweaver.json": {},
-        }
-    });
+    let mut entries = serde_json::Map::new();
+    for name in ["content.json", "metadata.json", "mindweaver.json"] {
+        entries.insert(name.to_string(), json!({}));
+    }
+    for (hash, _) in doc.assets.iter() {
+        entries.insert(format!("resources/{hash}"), json!({}));
+    }
+    let manifest = json!({ "file-entries": Value::Object(entries) });
 
     let mut buf = Cursor::new(Vec::new());
     {
@@ -728,6 +760,14 @@ pub fn save_xmind(doc: &Document) -> Result<Vec<u8>, IoError> {
             .map_err(|e| IoError::Invalid(e.to_string()))?;
         zw.write_all(&fidelity)
             .map_err(|e| IoError::Invalid(e.to_string()))?;
+        // 图片/附件字节：节点里存的是 `asset:<hash>` 引用，字节必须一起进 ZIP，
+        // 否则另存成 `.xmind` 再打开只剩悬空引用（`docs/34` §3.1 的 `resources/` 条目）。
+        for (hash, bytes) in doc.assets.iter() {
+            zw.start_file(format!("resources/{hash}"), opt)
+                .map_err(|e| IoError::Invalid(e.to_string()))?;
+            zw.write_all(bytes)
+                .map_err(|e| IoError::Invalid(e.to_string()))?;
+        }
         zw.finish().map_err(|e| IoError::Invalid(e.to_string()))?;
     }
     Ok(buf.into_inner())
@@ -736,6 +776,43 @@ pub fn save_xmind(doc: &Document) -> Result<Vec<u8>, IoError> {
 /// 从 `.xmind` 读回。**保真槽优先**（`mindweaver.json`，无损）；
 /// 缺失（被外部工具改存）→ 降级走 `import_xmind` 解析互通视图。
 pub fn load_xmind(bytes: &[u8]) -> Result<Document, IoError> {
+    let mut doc = load_xmind_doc(bytes)?;
+    attach_resources(&mut doc, bytes);
+    Ok(doc)
+}
+
+/// 读 `resources/<hash>` 进资源表。缺条目、超限、读失败都跳过（渲染层本来就降级成占位）。
+fn attach_resources(doc: &mut Document, bytes: &[u8]) {
+    let Ok(mut archive) = zip::ZipArchive::new(Cursor::new(bytes)) else {
+        return;
+    };
+    let mut total: u64 = 0;
+    for i in 0..archive.len() {
+        let Ok(mut f) = archive.by_index(i) else {
+            continue;
+        };
+        let Ok(name) = f.name() else {
+            continue;
+        };
+        let name = name.to_string();
+        let Some(hash) = name.strip_prefix("resources/") else {
+            continue;
+        };
+        if hash.is_empty() || f.size() > MAX_TOTAL_UNCOMPRESSED {
+            continue;
+        }
+        total += f.size();
+        if total > MAX_TOTAL_UNCOMPRESSED {
+            return;
+        }
+        let mut buf = Vec::new();
+        if f.read_to_end(&mut buf).is_ok() {
+            doc.assets.put(hash.to_string(), buf);
+        }
+    }
+}
+
+fn load_xmind_doc(bytes: &[u8]) -> Result<Document, IoError> {
     if let Ok(mut archive) = zip::ZipArchive::new(Cursor::new(bytes)) {
         if let Ok(mut f) = archive.by_name("mindweaver.json") {
             let mut buf = Vec::new();
@@ -781,6 +858,41 @@ mod tests {
         let mut out = Vec::new();
         walk(doc, &doc.root_id, 0, &mut out);
         out
+    }
+
+    /// 链接回读：互通视图写 `topic.href`，降级解析必须读回来（否则用户导进 XMind
+    /// 再另存回来，链接全没了）。旧版 `content.xml` 的 `<link xlink:href>` 同理。
+    #[test]
+    fn topic_links_are_read_back_from_both_xmind_generations() {
+        let zen = r#"[{
+          "id": "sheet1", "class": "sheet", "title": "画布",
+          "rootTopic": {
+            "id": "t0", "class": "topic", "title": "根",
+            "children": { "attached": [
+              { "id": "t1", "class": "topic", "title": "子",
+                "href": "https://example.com/a" }
+            ]}
+          }
+        }]"#;
+        let doc = import_xmind(&zip_bytes(&[("content.json", zen)])).unwrap();
+        let child = doc.nodes.values().find(|n| n.text == "子").unwrap();
+        assert_eq!(child.link.as_deref(), Some("https://example.com/a"));
+
+        let legacy = r#"<?xml version="1.0" encoding="UTF-8"?>
+<xmap-content xmlns="urn:xmind:xmap:xmlns:content:2.0"
+              xmlns:xlink="http://www.w3.org/1999/xlink">
+  <sheet id="s1">
+    <topic id="t0"><title>旧根</title>
+      <children><topics type="attached">
+        <topic id="t1"><title>旧子</title>
+          <link xlink:href="https://example.com/b"/></topic>
+      </topics></children>
+    </topic>
+  </sheet>
+</xmap-content>"#;
+        let doc = import_xmind(&zip_bytes(&[("content.xml", legacy)])).unwrap();
+        let child = doc.nodes.values().find(|n| n.text == "旧子").unwrap();
+        assert_eq!(child.link.as_deref(), Some("https://example.com/b"));
     }
 
     #[test]
@@ -963,11 +1075,84 @@ mod tests {
         assert!(matches!(import_xmind(&bytes), Err(IoError::Invalid(_))));
     }
 
+    /// `save_xmind` → `load_xmind` 走保真槽，必须无损（比互通视图多出的字段：
+    /// 链接、样式、边界、概要、卡片、分组…）。互通视图那条路由
+    /// `import_xmind` / `export_xmind` 的单测覆盖，这里不重复。
+    #[test]
+    fn save_then_load_keeps_every_field_through_the_fidelity_slot() {
+        let mut doc = Document::new("保真往返");
+        let root = doc.root_id.clone();
+        let before: std::collections::HashSet<String> = doc.doc_order().into_iter().collect();
+        doc.apply(&mw_core::Command::AddNode {
+            parent: root.clone(),
+            index: None,
+            text: "子节点".into(),
+            style: None,
+        })
+        .unwrap();
+        let child = doc
+            .doc_order()
+            .into_iter()
+            .find(|id| !before.contains(id))
+            .unwrap();
+        let n = doc.nodes.get_mut(&child).unwrap();
+        n.note = Some("备注".into());
+        n.link = Some("https://example.com".into());
+        n.labels = vec!["标签A".into()];
+        n.collapsed = true;
+        n.icon = Some("idea".into());
+
+        let bytes = save_xmind(&doc).unwrap();
+        let back = load_xmind(&bytes).unwrap();
+        assert!(back.validate().is_ok(), "读回的结构要合法");
+        assert_eq!(back.meta.title, doc.meta.title);
+        assert_eq!(back.meta.theme, doc.meta.theme);
+        let b = &back.nodes[&child];
+        assert_eq!(b.text, "子节点");
+        assert_eq!(b.note.as_deref(), Some("备注"));
+        assert_eq!(b.link.as_deref(), Some("https://example.com"));
+        assert_eq!(b.labels, vec!["标签A".to_string()]);
+        assert!(b.collapsed);
+        assert_eq!(b.icon.as_deref(), Some("idea"));
+    }
+
     #[test]
     fn reject_non_zip() {
         assert!(matches!(
             import_xmind(b"not a zip"),
             Err(IoError::Invalid(_))
         ));
+    }
+
+    /// 图片/附件字节必须随 `.xmind` 往返（`docs/34` §3.1 的 `resources/`）。
+    /// 以前 `save_xmind` 只写 JSON，节点里的 `asset:<hash>` 另存再打开就是悬空引用。
+    #[test]
+    fn embedded_resources_round_trip_through_save_and_load() {
+        let mut doc = Document::new("图片往返");
+        let key = doc.assets.insert(vec![0x89, b'P', b'N', b'G', 1, 2, 3]);
+        let root = doc.root_id.clone();
+        doc.nodes.get_mut(&root).unwrap().image = Some(format!("asset:{key}"));
+
+        let bytes = save_xmind(&doc).unwrap();
+        let back = load_xmind(&bytes).unwrap();
+        assert_eq!(
+            back.assets.get(&key),
+            Some(&[0x89u8, b'P', b'N', b'G', 1, 2, 3][..]),
+            "资源字节必须读回来"
+        );
+        assert_eq!(
+            back.nodes[&root].image.as_deref(),
+            Some(format!("asset:{key}").as_str()),
+            "节点的资源引用保持不变"
+        );
+        // 清单里要列出资源条目（XMind 读 manifest 决定取哪些文件）。
+        let mut archive = zip::ZipArchive::new(std::io::Cursor::new(&bytes)).unwrap();
+        let mut man = String::new();
+        std::io::Read::read_to_string(&mut archive.by_name("manifest.json").unwrap(), &mut man)
+            .unwrap();
+        assert!(
+            man.contains(&format!("resources/{key}")),
+            "manifest 要登记资源：{man}"
+        );
     }
 }
