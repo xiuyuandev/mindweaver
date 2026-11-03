@@ -69,5 +69,26 @@
     "tests": "未跑（本轮不执行构建与测试）",
     "gates": "未跑；门状态以 docs/STATUS.md §1 为准，本包不宣称任何门结论"
   },
-  "blocking": "G-1 的产品方向（只读是否真禁写）与 G-6（「空文档」指什么）需拍板；G-5 空画布文案需一句口径"
+  "blocking": "G-1 的产品方向（只读是否真禁写）与 G-6（「空文档」指什么）需拍板；G-5 空画布文案需一句口径",
+  "status_reason": "2026-11-03 动 G-1：只读真禁写——Document 加内存字段 read_only，apply/apply_coalesced/undo/redo 四条入口统一拒绝，Shell 每帧从 TabGuard 灌入；mw-core lib 389/0，shell 交叉类型检查 PASS；新基线待 Windows。",
+  "updated_2026_11_03": {
+    "implemented": [
+      "G-1 只读真禁写（Document 命令闸 + Shell 每帧同步）",
+      "G-7/G-8 主线文案：human_save_error 统一手动保存/状态提示/自动保存三处，原始错误留在 trace",
+      "G-5 空白画布一行引导语（Session::is_pristine_new + Canvas::paint_empty_hint）"
+    ],
+    "verification": [
+      "cargo test -p mw-core → 389/0 + contrast 7/0",
+      "cargo check -p mw-shell --target x86_64-pc-windows-gnu --tests PASS",
+      "human_save_error 7 档单测 + shell gnu 交叉 check"
+    ],
+    "pixel": "不新增可见像素；顶栏只读标识沿用原设计",
+    "not_done": [
+      "G-2 打开时冲突检测",
+      "G-7 文案统一",
+      "tab-readonly/canvas-empty 新基线",
+      "卡片页/笔记库失败文案仍未统一",
+      "canvas-empty 基线未拍（需 Windows + wgpu）"
+    ]
+  }
 }

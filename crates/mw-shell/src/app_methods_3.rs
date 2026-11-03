@@ -384,27 +384,30 @@ impl Shell {
             }
         }
         self.card_overwrite = false;
-        if self.save_card_from_reader(&id, &save.title, &save.body, &save.tags) {
-            self.sync_notes();
-            if let Some(reader) = self.note_reader.as_mut() {
-                reader.mark_saved();
-            }
-            if let Some(path) = self.note_card_path(&id) {
-                self.card_disk_print = file_guard::fingerprint(&path);
-            }
-            crate::trace::event(&format!("card_save_ok id={id} close={}", save.close));
-            if save.close {
-                self.note_reader = None;
-                if std::mem::take(&mut self.reader_from_library) {
-                    self.open_library();
+        match self.save_card_from_reader(&id, &save.title, &save.body, &save.tags) {
+            Ok(()) => {
+                self.sync_notes();
+                if let Some(reader) = self.note_reader.as_mut() {
+                    reader.mark_saved();
+                }
+                if let Some(path) = self.note_card_path(&id) {
+                    self.card_disk_print = file_guard::fingerprint(&path);
+                }
+                crate::trace::event(&format!("card_save_ok id={id} close={}", save.close));
+                if save.close {
+                    self.note_reader = None;
+                    if std::mem::take(&mut self.reader_from_library) {
+                        self.open_library();
+                    }
                 }
             }
-        } else {
-            if let Some(reader) = self.note_reader.as_mut() {
-                reader.mark_save_failed("写入失败");
+            Err(message) => {
+                if let Some(reader) = self.note_reader.as_mut() {
+                    reader.mark_save_failed(&message);
+                }
+                crate::trace::event(&format!("card_save_fail id={id} reason={message}"));
+                self.set_toast(format!("卡片保存失败：{message}。草稿还在"), true);
             }
-            crate::trace::event(&format!("card_save_fail id={id}"));
-            self.set_toast("卡片保存失败，草稿还在", true);
         }
     }
 
@@ -415,7 +418,7 @@ impl Shell {
         title: &str,
         body: &str,
         tags: &[String],
-    ) -> bool {
+    ) -> Result<(), String> {
         let doc_card = self
             .canvas
             .as_ref()
@@ -442,23 +445,32 @@ impl Shell {
                 });
             }
             if commands.is_empty() {
-                return true;
+                return Ok(());
             }
             let cmd = if commands.len() == 1 {
                 commands.pop().expect("至少一条")
             } else {
                 mw_core::Command::Batch { commands }
             };
-            return self.canvas.as_mut().is_some_and(|c| c.apply_command(cmd));
+            return if self.canvas.as_mut().is_some_and(|c| c.apply_command(cmd)) {
+                Ok(())
+            } else {
+                Err("文档只读或保存命令被拒绝".to_string())
+            };
         }
         let Some(mut card) = self.notes.as_ref().and_then(|n| n.get(id)) else {
-            return false;
+            return Err("卡片不存在".to_string());
         };
         card.title = title.to_string();
         card.body = body.to_string();
         card.tags = mw_core::NoteCard::normalize_tags(tags);
         card.updated_at = mw_core::now_ms();
-        self.notes.as_mut().is_some_and(|n| n.upsert(&card).is_ok())
+        let Some(notes) = self.notes.as_mut() else {
+            return Err("本地卡片库不可用".to_string());
+        };
+        notes
+            .upsert(&card)
+            .map_err(|e| crate::app_helpers::human_save_error(&e))
     }
 
     /// 给当前主选主题一键生成卡片并直接进编辑。
@@ -888,7 +900,13 @@ impl Shell {
                 }
                 match mw_format::export_cards_dir(&cards, std::path::Path::new(&path)) {
                     Ok(n) => self.set_toast(format!("已导出 {n} 张卡片到 {path}"), false),
-                    Err(e) => self.set_toast(format!("导出失败：{e}"), true),
+                    Err(e) => self.set_toast(
+                        format!(
+                            "导出失败：{}；可重新 Ctrl+E 重试",
+                            crate::app_helpers::human_save_error(&e.to_string())
+                        ),
+                        true,
+                    ),
                 }
             }
             LibraryDialogKind::Import => {
@@ -913,7 +931,13 @@ impl Shell {
                             skipped > 0,
                         );
                     }
-                    Err(e) => self.set_toast(format!("导入失败：{e}"), true),
+                    Err(e) => self.set_toast(
+                        format!(
+                            "导入失败：{}",
+                            crate::app_helpers::human_save_error(&e.to_string())
+                        ),
+                        true,
+                    ),
                 }
             }
         }
@@ -1089,7 +1113,8 @@ impl Shell {
                     ));
                     if first {
                         fail_toast = Some(format!(
-                            "自动保存失败：{reason}。恢复点暂时写不进磁盘，请手动 Ctrl+S 保存"
+                            "自动保存失败：{}。恢复点暂时写不进磁盘，请手动 Ctrl+S 保存",
+                            crate::app_helpers::human_save_error(&reason)
                         ));
                     }
                     any_failed = true;
@@ -1345,7 +1370,7 @@ impl Shell {
             return;
         }
         let ok = self.save_card_from_reader(&id, &title, &body, &tags);
-        crate::trace::event(&format!("exit_card_flush ok={}", u8::from(ok)));
+        crate::trace::event(&format!("exit_card_flush ok={}", u8::from(ok.is_ok())));
     }
 
     /// 「当前文档有未保存改动」——换文档之前问一句。

@@ -818,6 +818,8 @@ struct Shell {
     stats_open: bool,
     /// 专注模式下上一次的焦点状态：失焦撤置顶，回来再置顶。
     focus_prev_focused: bool,
+    /// 普通窗口焦点：回到前台时检查活动文件是否被外部改过（V1-06）。
+    file_focus_prev: bool,
     /// 窗口几何 + 面板开合的持久化。harness 下是 disabled（不读不写），
     /// 否则 golden 基线会被本机上次的窗口布局带偏。
     window_state: WindowState,
@@ -1565,6 +1567,11 @@ impl eframe::App for Shell {
             self.perf.mark("first_ui");
         }
         let ctx = ui.ctx().clone();
+        // X29 G-1：只读是「这份文档」的属性，每帧灌进文档，命令入口统一拦。
+        let read_only = self.active_read_only();
+        if let Some(canvas) = self.canvas.as_mut() {
+            canvas.set_read_only(read_only);
+        }
         // 快照的 `--ppp` 要在本帧布局之前生效：输入脚本运行时截图状态机不推进，
         // 等 `tick` 才设会让脚本按键按旧缩放取景（见 `Harness::prepare`）。
         if let Some(harness) = self.harness.as_ref() {
@@ -1783,6 +1790,11 @@ impl eframe::App for Shell {
         if self.focus_mode.is_some() {
             self.focus_prev_focused = focused;
         }
+        // 回到前台时检查一次活动文件：不用等到按 Ctrl+S 才发现被别人改了。
+        if focused && !self.file_focus_prev {
+            self.warn_if_external_change();
+        }
+        self.file_focus_prev = focused;
         let win = ui.max_rect();
 
         // 演示 = 幕布：标题栏、标签条、状态栏、两块面板全部收起，只留画布与控制条。

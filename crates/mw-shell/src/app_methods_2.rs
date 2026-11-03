@@ -2836,6 +2836,17 @@ impl Shell {
         let relationships = canvas.relationship_selections().to_vec();
         // 分组开合住在窗口状态里（关掉面板再打开也要还在），这里只借一份快照。
         let groups = self.window_state.inspector_groups().to_vec();
+        // 与 `selected` 同序的节点盒，给圆角 stepper 算「盒高能容纳的上限」（V1-02 G-4）。
+        let scene = canvas.scene();
+        let boxes: Vec<Option<Rect>> = selected
+            .iter()
+            .map(|id| {
+                scene.find(id).map(|idx| {
+                    let r = scene.rect(idx);
+                    Rect::from_min_size(egui::pos2(r.x, r.y), egui::vec2(r.w, r.h))
+                })
+            })
+            .collect();
         let inspector = &mut self.inspector;
         let focus = &mut self.focus_mem;
         let mut action = None;
@@ -2875,6 +2886,7 @@ impl Shell {
                     relationship: relationship.as_ref(),
                     relationships: &relationships,
                     groups: &groups,
+                    boxes: &boxes,
                 },
             );
             ui.painter().vline(
@@ -2999,10 +3011,28 @@ impl Shell {
                 self.after_saved();
             }
             Err(e) => {
-                crate::trace::event(&format!("save_fail rev={rev}"));
-                self.set_toast(format!("保存失败：{e}"), true);
-                self.save_phase = SavePhase::Failed { rev, message: e };
+                crate::trace::event(&format!("save_fail rev={rev} raw={e}"));
+                let message = crate::app_helpers::human_save_error(&e);
+                self.set_toast(format!("保存失败：{message}"), true);
+                self.save_phase = SavePhase::Failed { rev, message };
             }
+        }
+    }
+
+    /// 回到前台时比对一次磁盘指纹：发现外部修改就先提示，保存时仍会走冲突弹窗。
+    pub(crate) fn warn_if_external_change(&mut self) {
+        if self.save_phase == SavePhase::Saving || self.active_read_only() {
+            return;
+        }
+        let Some(path) = self.canvas.as_ref().and_then(|c| c.session().path.clone()) else {
+            return;
+        };
+        let Some(known) = self.active_print() else {
+            return;
+        };
+        if file_guard::fingerprint(&path) != Some(known) {
+            crate::trace::event(&format!("external_change path={}", file_label(&path)));
+            self.set_toast("文件已在外部修改；保存时会提示冲突，可重新加载", true);
         }
     }
 
@@ -3041,7 +3071,10 @@ impl Shell {
                     Err(e) => {
                         crate::trace::event(&format!("save_fail rev={rev} save_as=1"));
                         self.set_toast(e.clone(), true);
-                        self.save_phase = SavePhase::Failed { rev, message: e };
+                        self.save_phase = SavePhase::Failed {
+                            rev,
+                            message: crate::app_helpers::human_save_error(&e),
+                        };
                     }
                 }
             }

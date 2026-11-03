@@ -1,0 +1,45 @@
+{
+  "package": "M12h",
+  "title": "20k 只改字时跳过内容指纹遍历（打磨轮续）",
+  "status": "已实现",
+  "date": "2026-11-03",
+  "track": "打磨轮 · 账本 §3 第 17 条最后一段",
+  "contract": {
+    "budget": "docs/07 §5 / docs/08：20k 打字 P7 ≤ 16ms（Windows 基准机）",
+    "invariant": "所有文档变更走 Command；内容指纹不含文字，两代账语义不变"
+  },
+  "code": [
+    "crates/mw-core/src/document.rs（content_rev：SetText/SetCollapsed 不改，其余与 undo/redo +1）",
+    "crates/mw-core/src/scene.rs（SceneMemo.content_rev/settings_fp，命中时复用 style_fp 跳过 content_fingerprint）"
+  ],
+  "scenes": [],
+  "evidence": {
+    "perf_before": "perf-before.txt（M12f 后）",
+    "perf_after": "perf-after.txt",
+    "perf_stages": "perf-after-stages.txt",
+    "environment": "Linux x86_64 / Rust 1.99.1 / release thin-LTO；与 Windows 基准机不可横向比较"
+  },
+  "results": {
+    "20k_cached_median": "20.3ms → 16.0ms",
+    "20k_cached_p95": "24.5ms → 17.4ms",
+    "scene_resolve": "4.6ms → 0.00ms",
+    "scene_total": "20.2ms → 15.2ms",
+    "undo_cached_median": "19.8ms → 19.8ms（撤销仍重算指纹）",
+    "redo_cached_median": "19.9ms → 19.6ms"
+  },
+  "tests": {
+    "new": ["document::tests::text_edits_do_not_bump_the_content_revision"],
+    "portable": "559 / 0（mw-core 394+7、mw-format 39+2、mw-io 37+6、mw-markdown 15、mw-ui 59）",
+    "cross_check": "cargo check -p mw-shell --target x86_64-pc-windows-gnu --tests PASS"
+  },
+  "gates": {
+    "windows_perf": "待复跑（本机 Linux 不能替代）",
+    "stage_b": "未跑",
+    "stage_cm": "未跑"
+  },
+  "open": [
+    "undo/redo 仍重算指纹（P9 30ms 内，暂不影响）",
+    "collect 4.8ms / measure 4.1ms / order 1.9ms 仍是下一批候选",
+    "绕过 Command 的直接改文档不更新 content_rev"
+  ]
+}

@@ -26,6 +26,7 @@ impl NodeMeasure for Fast {
             lines: std::sync::Arc::from(vec![text.to_string()]),
             font_size: 14.0,
             line_height: 20.0,
+            pad: mw_core::design::card_padding(14.0),
             bold: false,
             label_h: 0.0,
             image_h: 0.0,

@@ -47,11 +47,10 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-foreach ($f in @('README.md', 'LICENSE', 'LICENSE-MIT', 'LICENSE-APACHE', 'CHANGELOG.md', 'CONTRIBUTING.md')) {
+foreach ($f in @('README.md', 'LICENSE', 'LICENSE-MIT', 'LICENSE-APACHE')) {
     if (Test-Path $f) { Copy-Item $f $stage }
 }
-Get-ChildItem 'docs' -Filter '15-*.md' | Select-Object -First 1 | ForEach-Object { Copy-Item $_.FullName (Join-Path $stage 'docs') }
-Get-ChildItem 'docs' -Filter '00-*.md' | Select-Object -First 1 | ForEach-Object { Copy-Item $_.FullName (Join-Path $stage 'docs') }
+
 
 $zip = Join-Path $root "dist\$name.zip"
 if (Test-Path $zip) { Remove-Item $zip -Force }

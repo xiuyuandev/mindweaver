@@ -35,19 +35,75 @@ pub mod text {
     pub const BODY: f32 = 13.0;
     /// 强调正文：面板标题、按钮
     pub const LABEL: f32 = 15.0;
-    /// 画布二级及更深
+    /// 画布二级
     pub const CANVAS_SUB: f32 = 16.0;
     /// 画布最深层（三级及以下）
     ///
-    /// 它必须比三级**略小**又不能小于 14，否则中英混排会挤。以前这个值直接裸写在
+    /// 它必须比二级**略小**又不能小于 14，否则中英混排会挤。以前这个值直接裸写在
     /// `theme::LEVEL_TYPE` 里，字号阶梯就有一档没有令牌、也改不动。
     pub const CANVAS_LEAF: f32 = 15.0;
     /// 画布一级
     pub const CANVAS_MAIN: f32 = 20.0;
     /// 画布中心
     pub const CANVAS_CENTER: f32 = 28.0;
+    /// 概念图普通概念（`docs/30` §5.3 的 14/20）。
+    ///
+    /// 概念图不走思维导图的四档层级：它只有「主概念 / 其余」两档。以前这两个值
+    /// 是 `theme.rs` 里 `apply_concept_defaults` 的局部常量，属于 X25 G-25-07
+    /// 「概念默认值散在第二处」——现在与画布字阶放在同一张表里，改档只改这里。
+    pub const CONCEPT: f32 = 14.0;
+    /// 概念图主概念（15/22）。
+    pub const CONCEPT_PRIMARY: f32 = 15.0;
     /// 大标题：开始页
     pub const TITLE: f32 = 24.0;
+
+    /// 画布层级字阶的**合同表**（X22 G01 × X25 G-25-07）：
+    /// 字号 / 字重 / 行高倍数 / 内距，按中心 → 一级 → 二级 → 三级排序。
+    ///
+    /// 表里的行高倍数与内距**不另存数值**，而是由 [`line_height`] 与
+    /// [`super::card_padding`] 现算——这样「合同表」与布局公式永远同一份，
+    /// 不会出现「表上写 1.44、代码里是 1.45」这类对不上的账。
+    #[derive(Clone, Copy, Debug, PartialEq)]
+    pub struct CanvasLevel {
+        pub size: f32,
+        pub weight: u16,
+        /// 行高**倍数**（渲染时乘字号；DirectWrite 的实际行盒另由字体度量决定）。
+        pub line_height: f32,
+        /// `(水平, 垂直)` 内距，单位 DIP。
+        pub pad: (f32, f32),
+    }
+
+    impl CanvasLevel {
+        const fn new(size: f32, weight: u16) -> Self {
+            Self {
+                size,
+                weight,
+                line_height: line_height(size),
+                pad: super::card_padding(size),
+            }
+        }
+
+        /// 单行文字的合同行高（DIP）。只作验收对账用，不替代 DirectWrite 的实测行盒。
+        pub const fn absolute_line_height(self) -> f32 {
+            self.size * self.line_height
+        }
+
+        /// 单行卡片的合同盒高（DIP）：行高按整数像素取整，再加上下内距。
+        ///
+        /// 这与 `scene::text_height` 同一条公式，但这里用的是**合同行高**；
+        /// 真正的 DirectWrite 行盒由字体度量给出，验收时以实测为准（X25 R-3）。
+        pub fn single_line_box_height(self) -> f32 {
+            self.absolute_line_height().round() + 2.0 * self.pad.1
+        }
+    }
+
+    /// 四级画布层级：中心 28/600、一级 20/400、二级 16/400、三级 15/400。
+    pub const CANVAS_LEVELS: [CanvasLevel; 4] = [
+        CanvasLevel::new(CANVAS_CENTER, WEIGHT_SEMIBOLD),
+        CanvasLevel::new(CANVAS_MAIN, WEIGHT_REGULAR),
+        CanvasLevel::new(CANVAS_SUB, WEIGHT_REGULAR),
+        CanvasLevel::new(CANVAS_LEAF, WEIGHT_REGULAR),
+    ];
 
     /// 行高倍数：字越小越松，阅读才不挤。
     pub const fn line_height(size: f32) -> f32 {
@@ -1000,6 +1056,68 @@ mod tests {
                 "行高 {lh} 越界（字号 {s}）"
             );
         }
+    }
+
+    /// X22 G01 × X25 G-25-07：画布层级合同表必须与布局公式、令牌逐项一致。
+    ///
+    /// 这张表是「字阶 × 字重 × 行高 × 内距」的唯一出口；任何一项漂了都该在这里红，
+    /// 而不是等到 178 场基线对不上才发现。
+    #[test]
+    fn canvas_level_table_agrees_with_the_formulas() {
+        let sizes = [
+            text::CANVAS_CENTER,
+            text::CANVAS_MAIN,
+            text::CANVAS_SUB,
+            text::CANVAS_LEAF,
+        ];
+        for (i, size) in sizes.into_iter().enumerate() {
+            let level = text::CANVAS_LEVELS[i];
+            assert_eq!(level.size, size, "第 {i} 层字号偏离 CANVAS_* 令牌");
+            assert_eq!(
+                level.line_height,
+                text::line_height(size),
+                "第 {i} 层行高倍数不是 line_height() 的现值"
+            );
+            assert_eq!(
+                level.pad,
+                card_padding(size),
+                "第 {i} 层内距不是 card_padding() 的现值"
+            );
+        }
+        // 中心加粗（600）、一级及以下常规（400）——与 docs/28 §4.1 的三档字重口径一致。
+        assert_eq!(
+            text::CANVAS_LEVELS[0].weight,
+            text::WEIGHT_SEMIBOLD,
+            "中心主题必须是半粗"
+        );
+        assert!(
+            text::CANVAS_LEVELS[1..]
+                .iter()
+                .all(|l| l.weight == text::WEIGHT_REGULAR),
+            "一级及以下必须是常规体"
+        );
+        // 合同行高（单行）：28×1.4 / 20×1.44 / 16×1.44 / 15×1.46。
+        let expected = [39.2, 28.8, 23.04, 21.9];
+        for (level, want) in text::CANVAS_LEVELS.iter().zip(expected) {
+            let got = level.absolute_line_height();
+            assert!((got - want).abs() < 0.01, "单行合同行高 {got} 应为 {want}");
+        }
+        // 单行合同盒高：round(行高) + 2×垂直内距 ⇒ 63 / 49 / 39 / 38。
+        // 这条把 X25 R-3（X22 §7.1 写 36 vs 源码复算 38）钉在合同侧；
+        // DirectWrite 实测行盒若不同，以实测为准并单独记账。
+        let expected_box = [63.0, 49.0, 39.0, 38.0];
+        for (level, want) in text::CANVAS_LEVELS.iter().zip(expected_box) {
+            assert_eq!(
+                level.single_line_box_height(),
+                want,
+                "单行合同盒高应为 {want}"
+            );
+        }
+        // 概念图两档：主概念比普通概念大 1，且都小于画布中心。
+        assert_eq!(text::CONCEPT, 14.0);
+        assert_eq!(text::CONCEPT_PRIMARY, 15.0);
+        assert!(text::CONCEPT_PRIMARY > text::CONCEPT);
+        assert!(text::CONCEPT_PRIMARY < text::CANVAS_CENTER);
     }
 
     #[test]

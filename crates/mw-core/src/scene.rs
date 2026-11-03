@@ -17,9 +17,7 @@ use crate::layout::{
 };
 use crate::model::{ArrowHead, LayoutSettings, Node};
 use crate::text::{TextMeasurer, NO_WRAP};
-use crate::theme::{
-    resolve_all, ResolvedStyle, Rgba, Shape, Theme, WEIGHT_BOLD_ALIAS, WEIGHT_REGULAR,
-};
+use crate::theme::{resolve_all, ResolvedStyle, Rgba, Shape, Theme, WEIGHT_REGULAR};
 use crate::Document;
 
 /// 边界外扩（TS scene.ts 的 `pad = 14`）。
@@ -228,9 +226,11 @@ pub struct SceneRelationship {
 /// 一帧渲染所需的全部内容。
 #[derive(Clone, Debug)]
 pub struct Scene {
-    pub ids: Vec<String>,
-    pub index: HashMap<String, u32>,
-    pub nodes: Vec<SceneNode>,
+    pub ids: std::sync::Arc<Vec<String>>,
+    pub index: std::sync::Arc<HashMap<String, u32>>,
+    /// 节点表。`Arc`：场景与「下一轮的账」共享同一份，重建时不再克隆两万个 `SceneNode`
+    /// （M12f）；只有过渡帧真的改节点时才 `Arc::make_mut` 复制一次。
+    pub nodes: std::sync::Arc<Vec<SceneNode>>,
     /// 绘制顺序：深度浅的先画，使父盒与其连线压在子节点之下
     pub draw_order: Vec<u32>,
     pub edges: Vec<SceneEdge>,
@@ -309,26 +309,28 @@ pub fn blend_scenes(from: &Scene, to: &Scene, t: f32) -> Scene {
         return to.clone();
     }
     let mut scene = to.clone();
+    // 过渡帧真的要改节点：只在这里复制一次，重建路径不需要。
+    let nodes = std::sync::Arc::make_mut(&mut scene.nodes);
 
     // ---- 共同节点：位置与文字起点插值；新节点先定「从父盒出发」的起点 ----
     for i in 0..to.nodes.len() {
         if let Some(&j) = from.index.get(to.ids[i].as_str()) {
             let a = from.nodes[j as usize].geom.rect;
             let b = to.nodes[i].geom.rect;
-            scene.nodes[i].geom.rect = lerp_rect(a, b, t);
-            scene.nodes[i].text_x = lerp(from.nodes[j as usize].text_x, to.nodes[i].text_x, t);
-            scene.nodes[i].alpha = lerp(from.nodes[j as usize].alpha, to.nodes[i].alpha, t);
+            nodes[i].geom.rect = lerp_rect(a, b, t);
+            nodes[i].text_x = lerp(from.nodes[j as usize].text_x, to.nodes[i].text_x, t);
+            nodes[i].alpha = lerp(from.nodes[j as usize].alpha, to.nodes[i].alpha, t);
             continue;
         }
         let target = to.nodes[i].geom.rect;
-        scene.nodes[i].alpha = t;
+        nodes[i].alpha = t;
         let start = to.nodes[i]
             .parent
             .and_then(|p| to.ids.get(p as usize))
             .and_then(|pid| from.index.get(pid.as_str()).copied())
             .map(|j| centered_at(from.nodes[j as usize].geom.rect.center(), target))
             .unwrap_or(target);
-        scene.nodes[i].geom.rect = lerp_rect(start, target, t);
+        nodes[i].geom.rect = lerp_rect(start, target, t);
     }
 
     // ---- 消失节点：追加在目标节点之后，父/自由主题根按 id 重映射 ----
@@ -355,21 +357,21 @@ pub fn blend_scenes(from: &Scene, to: &Scene, t: f32) -> Scene {
         node.float_root = None;
         appended.push((j, node, parent_id, float_id));
     }
-    let base = scene.nodes.len() as u32;
+    let base = nodes.len() as u32;
     let mut remap = Vec::with_capacity(appended.len());
     for (k, (j, node, parent_id, float_id)) in appended.into_iter().enumerate() {
         let idx = base + k as u32;
-        scene.ids.push(from.ids[j].clone());
-        scene.index.insert(from.ids[j].clone(), idx);
+        std::sync::Arc::make_mut(&mut scene.ids).push(from.ids[j].clone());
+        std::sync::Arc::make_mut(&mut scene.index).insert(from.ids[j].clone(), idx);
         scene.draw_order.push(idx);
-        scene.nodes.push(node);
+        nodes.push(node);
         remap.push((idx, parent_id, float_id));
     }
     for (idx, parent_id, float_id) in remap {
         let parent = parent_id.and_then(|id| scene.index.get(id.as_str()).copied());
         let float_root = float_id.and_then(|id| scene.index.get(id.as_str()).copied());
-        scene.nodes[idx as usize].parent = parent;
-        scene.nodes[idx as usize].float_root = float_root;
+        nodes[idx as usize].parent = parent;
+        nodes[idx as usize].float_root = float_root;
     }
 
     // ---- 连线：共有端点插值；只有一端存在的淡入/淡出 ----
@@ -657,7 +659,8 @@ fn lerp_path(a: &Path, b: &Path, t: f32) -> Option<Path> {
 
 /// 文字区高度：行数 × 行高 + 上下内距，下限 32。
 ///
-/// 内距随字号分档（见 `design::card_padding`）：中心卡舒展、深层卡紧凑。
+/// 内距默认随字号分档（见 `design::card_padding`），主题层级可用 `LevelStyle.pad` 覆盖；
+/// 中心卡舒展、深层卡紧凑。
 fn text_height(lines: usize, line_h: f32, pad_y: f32) -> f32 {
     (lines as f32 * line_h + 2.0 * pad_y).max(32.0)
 }
@@ -930,6 +933,8 @@ struct BoxKey {
     labels: Vec<String>,
     image: Option<String>,
     max_width: f32,
+    /// 生效内距（主题层级覆盖或按字号分档）。内距改盒宽/盒高，必须进键。
+    pad: (f32, f32),
     concept: bool,
     /// 形状进键是因为**概念盒的几何跟着形状变**（椭圆要外扩，`docs/30` §5.3）：
     /// 不进键的话，用户从椭圆切回圆角矩形时缓存会把外扩后的盒子留下——
@@ -952,6 +957,7 @@ impl BoxKey {
             && self.bold == st.bold
             && self.weight == st.weight
             && self.max_width == max_width
+            && self.pad == st.card_pad()
             && self.text == text
             && self.shape == st.shape
             && self.icon.as_deref() == node.icon.as_deref()
@@ -972,12 +978,16 @@ struct CachedBox {
 struct SceneMemo {
     theme: Theme,
     root: String,
+    /// 样式/结构内容修订号（不含文字）。文字编辑时直接命中，不必再遍历 20k 节点算指纹。
+    content_rev: u64,
+    /// 只影响盒宽的两项设置（kind / max_width）的轻量指纹。
+    settings_fp: u64,
     style_fp: u64,
     styles: std::sync::Arc<HashMap<String, ResolvedStyle>>,
     layout: LayoutMemo,
     /// 上一轮组装好的场景节点。盒子没变的那颗直接克隆（`SceneNode` 除了行数据是 Arc，
     /// 其余都是 POD），比重查一遍文档、样式表、父索引再拼一遍便宜一个数量级。
-    nodes: Vec<SceneNode>,
+    nodes: std::sync::Arc<Vec<SceneNode>>,
 }
 
 #[derive(Default)]
@@ -1143,6 +1153,7 @@ impl NodeSizer<'_> {
             lines: std::sync::Arc::from(lines),
             font_size: st.font_size,
             line_height: m.line_height,
+            pad: st.card_pad(),
             bold: st.bold,
             label_h: 0.0,
             image_h: 0.0,
@@ -1161,6 +1172,7 @@ impl NodeSizer<'_> {
                     labels: node.labels.clone(),
                     image: node.image.clone(),
                     max_width: self.max_width,
+                    pad: st.card_pad(),
                     concept: true,
                     shape: st.shape,
                 },
@@ -1187,7 +1199,8 @@ impl NodeMeasure for NodeSizer<'_> {
         let m = self
             .measure
             .measure(text, st.font_size, st.weight, self.max_width);
-        let (pad_x, pad_y) = crate::design::card_padding(st.font_size);
+        let input_pad = st.card_pad();
+        let (pad_x, pad_y) = input_pad;
         let th = text_height(m.lines.len(), m.line_height, pad_y);
         let (label_h, labels_w) = match self.pills(node) {
             // 胶囊高度 + 上下各 4px 呼吸（落在 4px 网格上，和 design::space::XS 对齐）
@@ -1209,12 +1222,27 @@ impl NodeMeasure for NodeSizer<'_> {
         } else {
             0.0
         };
+        let base_h = image_h + th + label_h;
+        // 思维导图节点的椭圆盒：文字盒尺寸不变，盒子按比例外扩（X23 G-3）。
+        // 内距同步加上外扩的一半，文字/标签在盒内仍然居中。
+        let (w, h, pad) = if st.shape.is_ellipse() {
+            let extra_w = (ELLIPSE_EXTRA_X * w).min(ELLIPSE_EXTRA_MAX_X);
+            let extra_h = (ELLIPSE_EXTRA_Y * base_h).min(ELLIPSE_EXTRA_MAX_Y);
+            (
+                w + extra_w,
+                base_h + extra_h,
+                (pad_x + extra_w * 0.5, pad_y + extra_h * 0.5),
+            )
+        } else {
+            (w, base_h, input_pad)
+        };
         let spec = BoxSpec {
             w,
-            h: image_h + th + label_h,
+            h,
             lines: std::sync::Arc::from(m.lines),
             font_size: st.font_size,
             line_height: m.line_height,
+            pad,
             bold: st.bold,
             label_h,
             image_h,
@@ -1232,6 +1260,7 @@ impl NodeMeasure for NodeSizer<'_> {
                     labels: node.labels.clone(),
                     image: node.image.clone(),
                     max_width: self.max_width,
+                    pad: input_pad,
                     concept: false,
                     shape: st.shape,
                 },
@@ -1240,6 +1269,25 @@ impl NodeMeasure for NodeSizer<'_> {
         );
         spec
     }
+}
+
+/// 只覆盖影响盒宽的设置项：布局种类与最大节点宽。两者变了一定要重算样式指纹。
+fn settings_fingerprint(settings: &LayoutSettings) -> u64 {
+    const FNV_OFFSET: u64 = 0xcbf2_9ce4_8422_2325;
+    const FNV_PRIME: u64 = 0x0000_0100_0000_01b3;
+    fn mix(mut h: u64, bytes: &[u8]) -> u64 {
+        for &b in bytes {
+            h ^= u64::from(b);
+            h = h.wrapping_mul(FNV_PRIME);
+        }
+        h
+    }
+    let mut h = FNV_OFFSET;
+    h = mix(h, settings.kind.as_bytes());
+    mix(
+        h,
+        &settings.max_node_width.max(80.0).to_bits().to_le_bytes(),
+    )
 }
 
 /// 场景装配的**输入指纹**（打磨轮 11）。
@@ -1400,17 +1448,32 @@ pub fn build_scene_cached(
     // 概念图的默认样式还取决于概念图结构（关系线/卡片），指纹没覆盖到那一层，
     // 所以概念图一律重算——保守，但概念图的节点数远小于 20k 思维导图。
     let kind = LayoutKind::from_kind(&settings.kind);
-    let style_fp = content_fingerprint(doc, settings);
-    // 两代账：内容指纹相同（主题、布局根、样式输入）的**都**留作候选，布局跑完再挑
-    // 「复用得更全」的那一代——撤销/重做会把内容退回上一代，而内容指纹里不含文字，
-    // 光比对指纹分不出哪一代才是「改之前」，得看复用了多少颗节点的盒子（打磨轮 15）。
-    let same = |m: &SceneMemo| m.theme == *theme && m.root == layout_root && m.style_fp == style_fp;
+    let settings_fp = settings_fingerprint(settings);
     let mut taken: Vec<SceneMemo> = Vec::new();
     let mut fresh = [cache.take_memo(), cache.take_prev_memo()];
     if cache.take_prefer() {
         fresh.swap(0, 1);
     }
     taken.extend(fresh.into_iter().flatten());
+    // 快速路径（M12h）：`content_rev` 没变说明样式/结构/设置都没变，上一轮的样式指纹
+    // 可以整份沿用——只改字时省掉一次 20k 节点的 `content_fingerprint` 遍历。
+    // 设置也单独算一个轻量指纹，防止测试/调用方绕过命令直接改 `LayoutSettings`。
+    let fast_fp = taken
+        .iter()
+        .find(|m| {
+            m.theme == *theme
+                && m.root == layout_root
+                && m.content_rev == doc.content_rev
+                && m.settings_fp == settings_fp
+        })
+        .map(|m| m.style_fp);
+    let style_fp = fast_fp.unwrap_or_else(|| content_fingerprint(doc, settings));
+    // 两代账：内容指纹相同（主题、布局根、样式输入）的**都**留作候选，布局跑完再挑
+    // 「复用得更全」的那一代——撤销/重做会把内容退回上一代，而内容指纹里不含文字，
+    // 光比对指纹分不出哪一代才是「改之前」，得看复用了多少颗节点的盒子（打磨轮 15）。
+    // 注意：这里**不能**再比 `content_rev`——撤销/重做会让它 +1，但内容（除文字外）
+    // 正好退回上一代，必须让上一代的账继续当候选（M12e 的两代账语义）。
+    let same = |m: &SceneMemo| m.theme == *theme && m.root == layout_root && m.style_fp == style_fp;
     // 候选是「指纹对得上」的那几代；对不上的也不能扔——结构一变指纹就变，
     // 可它记着的正是「改之前」那份内容，撤销要退回去的账就在里面（打磨轮 15 第二步）。
     let candidates: Vec<usize> = (0..taken.len()).filter(|&i| same(&taken[i])).collect();
@@ -1436,11 +1499,10 @@ pub fn build_scene_cached(
         branch_color: theme.ui.accent,
         radius: None,
         align: None,
-        weight: if base.bold {
-            WEIGHT_BOLD_ALIAS
-        } else {
-            WEIGHT_REGULAR
-        },
+        pad: base.pad,
+        // 回退样式也读层级 `weight`：500 档在只认布尔的地方会落成 400，
+        // 但测量/绘制拿到的是真实字重（X25 G-25-08）。
+        weight: base.weight,
     };
     let sizer = NodeSizer {
         styles: styles.as_ref(),
@@ -1551,14 +1613,14 @@ pub fn build_scene_cached(
             for p in fl.spines.iter() {
                 spines.push(shift_path(p, dx, dy));
             }
-            ids.extend(fl.ids.iter().cloned());
+            std::sync::Arc::make_mut(&mut ids).extend(fl.ids.iter().cloned());
             if pos.is_none() {
                 cursor_y += fl.bounds.h + FLOATER_GAP_Y;
             }
         }
     }
     mark!("layout");
-    let index: HashMap<String, u32> = if ids.len() == main_len {
+    let index: std::sync::Arc<HashMap<String, u32>> = if ids.len() == main_len {
         mark!("index");
         main_index
     } else {
@@ -1568,7 +1630,7 @@ pub fn build_scene_cached(
             .map(|(i, id)| (id.clone(), i as u32))
             .collect();
         mark!("index");
-        index
+        std::sync::Arc::new(index)
     };
 
     // ---- 节点 ----
@@ -1602,7 +1664,7 @@ pub fn build_scene_cached(
             color: d.color,
             width: icon_width(st.font_size),
         });
-        let (pad_x, pad_y) = crate::design::card_padding(st.font_size);
+        let (pad_x, pad_y) = geom.pad;
         let mut labels = Vec::new();
         if let Some((pills, _, pill_h)) = sizer.pills(n) {
             let th = text_height(geom.lines.len(), geom.line_height, pad_y);
@@ -1991,13 +2053,13 @@ pub fn build_scene_cached(
     mark!("advanced");
     // 同 `compute_layout`：最后一个里程碑之后不再读 `mark_at`。
     let _ = &mark_at;
-    // 先把这份节点表存一份给下一轮（克隆 20k 个 `SceneNode` 约 1ms，
-    // 比重新装配一遍的 8ms 便宜得多）。
-    let memo_nodes = nodes.clone();
+    // 场景与「下一轮的账」共享同一份节点表：以前每帧 `nodes.clone()` 是两万个
+    // `SceneNode` 的整份复制（M12f），现在只加一次引用计数。
+    let memo_nodes = std::sync::Arc::new(nodes);
     let scene = Scene {
         ids,
         index,
-        nodes,
+        nodes: memo_nodes.clone(),
         draw_order,
         edges: scene_edges,
         spines: scene_spines,
@@ -2014,6 +2076,8 @@ pub fn build_scene_cached(
         SceneMemo {
             theme: theme.clone(),
             root: layout_root.to_string(),
+            content_rev: doc.content_rev,
+            settings_fp,
             style_fp,
             styles: styles.clone(),
             layout: layout_memo,
@@ -2798,7 +2862,64 @@ mod tests {
         assert_eq!(&*third, &["乙乙".to_string()]);
     }
 
-    /// 账本复用的前提是「除了文字什么都没变」：给一颗节点加备注必须让下一轮重新装配它，
+    /// 结构没变时，id 序列与 id→下标表整份沿用上一轮（只加引用计数）。
+    ///
+    /// 20k 打字的 collect / bounds 两段都在这里：两万个 String 克隆与两万次哈希插入
+    /// 以前每帧白付一次（M12 残账的 Arc 化）。
+    #[test]
+    fn an_unchanged_structure_reuses_the_scene_ids_and_index() {
+        let theme = snow();
+        let settings = settings("mindmap");
+        let cache = SceneCache::new();
+        let mut doc = Builder::root("中心")
+            .child("r", "a", "甲")
+            .child("r", "b", "乙")
+            .build();
+        let build = |doc: &Document, cache: &SceneCache| {
+            build_scene_cached(
+                doc,
+                &doc.root_id,
+                &settings,
+                &theme,
+                &MonoMeasurer,
+                None,
+                cache,
+            )
+        };
+        let first = build(&doc, &cache);
+        let ids = first.ids.clone();
+        let index = first.index.clone();
+
+        doc.apply(&crate::Command::SetText {
+            id: "a".into(),
+            text: "甲甲".into(),
+        })
+        .unwrap();
+        let second = build(&doc, &cache);
+        assert!(
+            std::sync::Arc::ptr_eq(&ids, &second.ids),
+            "只改字时 id 序列必须整份沿用"
+        );
+        assert!(
+            std::sync::Arc::ptr_eq(&index, &second.index),
+            "只改字时 id→下标表必须整份沿用"
+        );
+
+        doc.apply(&crate::Command::AddNode {
+            parent: "r".into(),
+            index: None,
+            text: "丙".into(),
+            style: None,
+        })
+        .unwrap();
+        let third = build(&doc, &cache);
+        assert!(
+            !std::sync::Arc::ptr_eq(&ids, &third.ids),
+            "结构变了必须换一份新的 id 序列"
+        );
+    }
+
+    /// 账本复用的前提是「除了文字什么都没变」：给一颗节点加备注必须让下一轮重新装配它，    /// 账本复用的前提是「除了文字什么都没变」：给一颗节点加备注必须让下一轮重新装配它，
     /// 否则会出现「点了备注、画布上不显示」——这类字段全在 `SceneNode` 里，不在盒子里。
     #[test]
     fn the_scene_memo_rebuilds_a_node_whose_flags_changed() {
@@ -3338,6 +3459,27 @@ mod tests {
         assert!(s.relationships.is_empty());
     }
 
+    /// X25 G-25-01：主题级内距要同时改盒子与标签落位，两处不能各算一套。
+    #[test]
+    fn a_theme_level_padding_widens_the_box_and_moves_labels() {
+        let d = Builder::root("根")
+            .child("r", "a", "甲甲甲甲")
+            .labels("a", &["标签"])
+            .build();
+        let base = scene(&d, &snow(), "logicRight");
+        let mut padded = snow();
+        padded.levels[1].pad = Some((30.0, 15.0));
+        let wide = scene(&d, &padded, "logicRight");
+        let a = base.node(base.find("a").unwrap());
+        let b = wide.node(wide.find("a").unwrap());
+        assert_eq!(b.geom.pad, (30.0, 15.0));
+        let dw = b.geom.rect.w - a.geom.rect.w;
+        let dh = b.geom.rect.h - a.geom.rect.h;
+        assert!((dw - 24.0).abs() < 0.01, "dw={dw}");
+        assert!((dh - 10.0).abs() < 0.01, "dh={dh}");
+        assert!((b.labels[0].rect.x - 30.0).abs() < 0.01);
+    }
+
     #[test]
     fn label_pills_extend_the_box_and_use_local_coords() {
         let d = Builder::root("根")
@@ -3348,12 +3490,39 @@ mod tests {
         let a = s.node(s.find("a").unwrap());
         assert_eq!(a.labels.len(), 2);
         assert!(a.geom.label_h > 0.0);
-        let (pad_x, pad_y) = crate::design::card_padding(a.geom.font_size);
+        let (pad_x, pad_y) = a.geom.pad;
         let text_h = text_height(a.geom.lines.len(), a.geom.line_height, pad_y);
         assert!(near(a.geom.rect.h, text_h + a.geom.label_h));
         assert!(near(a.labels[0].rect.x, pad_x));
         assert!(near(a.labels[1].rect.x, a.labels[0].rect.right() + 6.0));
         assert!(a.geom.rect.w >= a.labels[1].rect.right() + pad_x);
+    }
+
+    /// X23 G-3：思维导图的椭圆节点盒要围着同一个文字盒外扩，文字起点同步内缩。
+    #[test]
+    fn a_mindmap_ellipse_box_expands_around_the_same_text_box() {
+        let text = "甲甲甲甲";
+        let rounded = Builder::root("中心").child("r", "a", text).build();
+        let ellipse = Builder::root("中心")
+            .styled(
+                "r",
+                "a",
+                text,
+                StyleOverride {
+                    shape: Some("ellipse".into()),
+                    ..Default::default()
+                },
+            )
+            .build();
+        let a = scene(&rounded, &snow(), "mindmap");
+        let b = scene(&ellipse, &snow(), "mindmap");
+        let ra = a.node(a.find("a").unwrap());
+        let rb = b.node(b.find("a").unwrap());
+        let extra_w = (ELLIPSE_EXTRA_X * ra.geom.rect.w).min(ELLIPSE_EXTRA_MAX_X);
+        let extra_h = (ELLIPSE_EXTRA_Y * ra.geom.rect.h).min(ELLIPSE_EXTRA_MAX_Y);
+        assert!((rb.geom.rect.w - ra.geom.rect.w - extra_w).abs() < 0.01);
+        assert!((rb.geom.rect.h - ra.geom.rect.h - extra_h).abs() < 0.01);
+        assert!((rb.text_x - ra.text_x - extra_w * 0.5).abs() < 0.01);
     }
 
     /// 分支线两端都要离卡片有点缝：起点 0.5、终点 1.5（锥形末端最细，贴边会像粘住）。
@@ -3415,7 +3584,7 @@ mod tests {
         assert_eq!(a.icon.map(|i| i.glyph), Some("①"));
         assert!(b.geom.rect.w > MIN_NODE_W, "样本应宽到不受最小宽约束");
         assert!(near(a.geom.rect.w, b.geom.rect.w + a.icon.unwrap().width));
-        let (pad_x, _) = crate::design::card_padding(a.geom.font_size);
+        let (pad_x, _) = a.geom.pad;
         assert!(near(a.text_x, pad_x + a.icon.unwrap().width));
         assert!(near(b.text_x, pad_x));
     }
@@ -3457,9 +3626,7 @@ mod tests {
         let s = scene(&d, &snow(), "logicRight");
         let a = s.node(s.find("a").unwrap());
         assert!(a.geom.lines.len() > 1);
-        assert!(
-            a.geom.rect.w <= 300.0 + 2.0 * crate::design::card_padding(a.geom.font_size).0 + 1.0
-        );
+        assert!(a.geom.rect.w <= 300.0 + 2.0 * a.geom.pad.0 + 1.0);
     }
 
     #[test]
@@ -3581,7 +3748,10 @@ mod tests {
         let from = scene(&simple(), &snow(), "mindmap");
         let mut to = from.clone();
         let idx = to.find("a").unwrap();
-        to.nodes[idx as usize].geom.rect.x += 120.0;
+        std::sync::Arc::make_mut(&mut to.nodes)[idx as usize]
+            .geom
+            .rect
+            .x += 120.0;
         let mid = blend_scenes(&from, &to, 0.5);
         let a = mid.find("a").unwrap();
         assert!(near(mid.rect(a).x, from.rect(a).x + 60.0));

@@ -44,6 +44,8 @@ pub enum CoreError {
     Invalid(String),
     #[error("文档结构损坏：{0}")]
     Corrupt(String),
+    #[error("文档只读：先另存为可写文件再编辑")]
+    ReadOnly,
 }
 
 /// 跨 IPC 的增量变更：按 id 覆盖/新增 `upserted`，删除 `removed`。
@@ -258,6 +260,14 @@ pub struct Document {
     search: SearchIndex,
     /// 撤销栈上限。不进 `.zmind`、不影响 `FORMAT_VERSION`——这是用户偏好，不是文档内容。
     history_limit: usize,
+    /// 只读闸（X29 G-1）。**只在内存里**：壳层按标签的协作锁每帧灌进来，
+    /// 所有命令、撤销、重做在这里统一拒绝——画布/大纲/检查器不必各写一遍 if。
+    /// 不进 `.zmind`，打开新文件默认 `false`。
+    pub read_only: bool,
+    /// 样式/结构内容的修订号（**不含文字**）。场景缓存用它判断「内容指纹能不能沿用」：
+    /// 只改字时不必再遍历两万节点重算指纹（M12h）。撤销/重做一律 +1，保守但安全。
+    /// 不进 `.zmind`，打开新文件从 0 开始。
+    pub(crate) content_rev: u64,
 }
 
 impl Document {
@@ -281,6 +291,8 @@ impl Document {
             redo_stack: Vec::new(),
             search: SearchIndex::default(),
             history_limit: HISTORY_LIMIT,
+            read_only: false,
+            content_rev: 0,
         }
     }
 
@@ -328,6 +340,8 @@ impl Document {
             redo_stack: Vec::new(),
             search: SearchIndex::default(),
             history_limit: HISTORY_LIMIT,
+            read_only: false,
+            content_rev: 0,
         };
         doc.validate()?;
         Ok(doc)
@@ -938,11 +952,30 @@ impl Document {
         Ok(())
     }
 
+    /// 这条命令会不会改变「样式/结构内容」（`content_rev` 的判据）。
+    ///
+    /// 只放行两类**确定不影响样式表与盒子输入**的命令：`SetText` 与 `SetCollapsed`。
+    /// 其余一律保守 +1——漏判的后果是「样式表复用旧值」，比多算一次指纹严重得多。
+    /// `Batch` 递归：只要子命令有一条要算，就得算。
+    fn changes_style_content(cmd: &Command) -> bool {
+        match cmd {
+            Command::SetText { .. } | Command::SetCollapsed { .. } => false,
+            Command::Batch { commands } => commands.iter().any(Self::changes_style_content),
+            _ => true,
+        }
+    }
+
     /// 执行命令；产生非空变更时入历史栈。
     pub fn apply(&mut self, cmd: &Command) -> Result<ChangeSet, CoreError> {
+        if self.read_only {
+            return Err(CoreError::ReadOnly);
+        }
         let cs = self.apply_inner(cmd)?;
         if !cs.is_empty() {
             self.revision += 1;
+            if Self::changes_style_content(cmd) {
+                self.content_rev += 1;
+            }
             self.undo_stack.push(cs.clone());
             self.trim_undo_history();
             self.redo_stack.clear();
@@ -3085,11 +3118,17 @@ impl Document {
         cmd: &Command,
         merge: impl FnOnce(&ChangeSet) -> bool,
     ) -> Result<ChangeSet, CoreError> {
+        if self.read_only {
+            return Err(CoreError::ReadOnly);
+        }
         let cs = self.apply_inner(cmd)?;
         if cs.is_empty() {
             return Ok(cs);
         }
         self.revision += 1;
+        if Self::changes_style_content(cmd) {
+            self.content_rev += 1;
+        }
         let merged = match self.undo_stack.last_mut() {
             Some(prev) if merge(prev) => {
                 // `before` 留上一条的（建之前）；`after` 按 **id 合并**：这一条只覆盖它
@@ -3154,7 +3193,11 @@ impl Document {
 
     /// 撤销一步；返回被撤销的变更集（调用方用 backward_wire 广播）。
     pub fn undo(&mut self) -> Option<ChangeSet> {
+        if self.read_only {
+            return None;
+        }
         let cs = self.undo_stack.pop()?;
+        self.content_rev += 1;
         self.revert(&cs);
         self.redo_stack.push(cs.clone());
         self.revision += 1;
@@ -3163,7 +3206,11 @@ impl Document {
 
     /// 重做一步；返回变更集（调用方用 forward_wire 广播）。
     pub fn redo(&mut self) -> Option<ChangeSet> {
+        if self.read_only {
+            return None;
+        }
         let cs = self.redo_stack.pop()?;
+        self.content_rev += 1;
         self.reapply(&cs);
         self.undo_stack.push(cs.clone());
         self.trim_undo_history();
@@ -3287,6 +3334,94 @@ mod tests {
 
     fn doc() -> Document {
         Document::new("测试")
+    }
+
+    /// M12h：只改文字不动 `content_rev`，样式/结构命令与撤销/重做都要 +1。
+    #[test]
+    fn text_edits_do_not_bump_the_content_revision() {
+        let mut d = doc();
+        let root = d.root_id.clone();
+        let base = d.content_rev;
+        d.apply(&Command::SetText {
+            id: root.clone(),
+            text: "文字".into(),
+        })
+        .unwrap();
+        assert_eq!(d.content_rev, base, "SetText 不该让内容指纹失效");
+
+        let style = StyleOverride {
+            fill: Some("#123456".into()),
+            ..Default::default()
+        };
+        d.apply(&Command::SetStyle {
+            ids: vec![root.clone()],
+            style: Some(style),
+        })
+        .unwrap();
+        assert_eq!(d.content_rev, base + 1, "改样式必须让内容指纹失效");
+
+        d.undo();
+        assert_eq!(d.content_rev, base + 2, "撤销一律保守 +1");
+        d.redo();
+        assert_eq!(d.content_rev, base + 3, "重做一律保守 +1");
+    }
+
+    /// X29 G-1：只读闸在**唯一的命令入口**上，不靠各面板自己记得判断。    /// X29 G-1：只读闸在**唯一的命令入口**上，不靠各面板自己记得判断。
+    ///
+    /// 覆盖四条路径：`apply` / `apply_coalesced` / `undo` / `redo`；
+    /// 拒绝时 revision 与节点文本都不许动；解除只读后历史还能继续用。
+    #[test]
+    fn read_only_blocks_apply_undo_and_redo_until_cleared() {
+        let mut d = doc();
+        let root = d.root_id.clone();
+        d.apply(&Command::SetText {
+            id: root.clone(),
+            text: "甲".into(),
+        })
+        .unwrap();
+        d.apply(&Command::SetText {
+            id: root.clone(),
+            text: "乙".into(),
+        })
+        .unwrap();
+        // 先造一条可重做的历史，再进只读。
+        assert!(d.undo().is_some());
+        assert_eq!(d.node(&root).unwrap().text, "甲");
+        assert_eq!(d.redo_depth(), 1);
+
+        d.read_only = true;
+        let rev = d.revision;
+        assert!(matches!(
+            d.apply(&Command::SetText {
+                id: root.clone(),
+                text: "丙".into()
+            }),
+            Err(CoreError::ReadOnly)
+        ));
+        assert!(d
+            .apply_coalesced(
+                &Command::SetText {
+                    id: root.clone(),
+                    text: "丁".into()
+                },
+                |_| true
+            )
+            .is_err());
+        assert!(d.undo().is_none());
+        assert!(d.redo().is_none());
+        assert_eq!(d.revision, rev, "被拒绝的命令不能推进 revision");
+        assert_eq!(d.node(&root).unwrap().text, "甲");
+
+        // 解除只读后，撤/重做仍然接着原来的历史走。
+        d.read_only = false;
+        assert!(!d
+            .apply(&Command::SetText {
+                id: root.clone(),
+                text: "戊".into()
+            })
+            .unwrap()
+            .is_empty());
+        assert_eq!(d.node(&root).unwrap().text, "戊");
     }
 
     #[test]

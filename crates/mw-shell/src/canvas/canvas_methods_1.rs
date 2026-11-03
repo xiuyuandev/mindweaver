@@ -140,6 +140,12 @@ impl Canvas {
         &self.session
     }
 
+    /// X29 G-1：活动标签的只读态由壳层每帧灌进来；文档层在 `apply/undo/redo`
+    /// 统一拒绝，画布/大纲/检查器不用各写一遍闸。
+    pub fn set_read_only(&mut self, on: bool) {
+        self.session.doc.read_only = on;
+    }
+
     /// 撤销栈上限是进程级偏好：设置中心与每帧对账都从这里落到活动文档。
     pub fn set_history_limit(&mut self, limit: usize) {
         self.session.doc.set_history_limit(limit);
@@ -1338,6 +1344,8 @@ impl Canvas {
         if let Some(i) = self.scene.find(&new_id) {
             self.select_node_only(i, "floating");
             self.start_edit(i, self.last_viewport);
+            // X28 D2：新建 + 写名字合并成一条撤销，别让 Ctrl+Z 只撤字、留下空盒子。
+            self.mark_editor_fresh();
         }
         true
     }

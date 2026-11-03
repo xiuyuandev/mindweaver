@@ -1232,7 +1232,7 @@ mod tests {
             &mw_core::assets::Assets::new(),
             Options::default(),
         );
-        for n in &sc.nodes {
+        for n in sc.nodes.iter() {
             let expected = format!(
                 "<rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\"",
                 num(n.geom.rect.x),
@@ -1594,10 +1594,7 @@ mod tests {
         );
         let e = sc.edges[0];
         let tri = tree_edge_arrow(&e, 1.0).expect("箭头");
-        let tip = format!(
-            "<polygon points=\"{}",
-            format!("{},{}", num(tri[0].x), num(tri[0].y))
-        );
+        let tip = format!("<polygon points=\"{},{}", num(tri[0].x), num(tri[0].y));
         assert!(out.contains(&tip), "箭头尖端不在 SVG 里：{tip}");
     }
 }

@@ -604,7 +604,7 @@ impl Canvas {
                 continue;
             };
             let r = self.scene.rect(idx);
-            for other in &self.scene.ids {
+            for other in self.scene.ids.iter() {
                 if other == id {
                     continue;
                 }
@@ -1300,6 +1300,36 @@ impl Canvas {
     ///
     /// 只在真的写了问题时才画：没写的概念图**一个像素都不多**，现有 `cm-*` 基线
     /// 因此逐张不变。带子画在壳层、不进 `Scene`，几何/布局/导出都不受影响。
+    /// 空白新文档的一行引导语（X29 G-5）。
+    ///
+    /// 只在新文档、未落盘、只有根、零编辑、非只读时出现；画在合成纹理之上、
+    /// 不写进 `Frame`，所以导出不会带上它。视口太窄时不画，免得折行压住中心主题。
+    pub(crate) fn paint_empty_hint(&self, ui: &egui::Ui, rect: egui::Rect) {
+        if !self.session.is_pristine_new()
+            || self.editor.is_some()
+            || self.summary_edit.is_some()
+            || self.rel_edit.is_some()
+            || self.reading
+            || self.input_blocked
+            || rect.width() < 320.0
+        {
+            return;
+        }
+        let text = if self.session.doc.is_concept_map() {
+            "按 Tab 新建概念 · 双击空白新建概念"
+        } else {
+            "按 Tab 新建子主题 · 双击空白新建浮动主题"
+        };
+        // 往下让 64px：空白文档的根主题就在视口中心，压着它读不清。
+        ui.painter().text(
+            rect.center() + egui::vec2(0.0, 64.0),
+            egui::Align2::CENTER_CENTER,
+            text,
+            egui::FontId::proportional(mw_core::design::ui::BODY),
+            with_alpha(self.session.theme.ui.dim, 170),
+        );
+    }
+
     pub(crate) fn paint_focus_question(
         &mut self,
         ui: &egui::Ui,
@@ -2119,16 +2149,22 @@ impl Canvas {
         if let Some(i) = self.scene.find(&new_id) {
             self.select_node_only(i, "add-relative");
             self.start_edit(i, viewport);
-            // 记下「这枚是这次编辑建出来的」：`Esc` 取消时连它一起收回去。
-            // 同时记下此刻的撤销栈深，取消时据此判断「栈顶还是不是建它的那条命令」。
-            let depth = self.session.doc.undo_depth();
-            if let Some(ed) = self.editor.as_mut() {
-                ed.fresh = true;
-                ed.fresh_depth = Some(depth);
-            }
+            self.mark_editor_fresh();
             self.reveal_node(i);
         }
         true
+    }
+
+    /// 记下「这枚节点是这次编辑顺手建出来的」：`Esc` 取消时连它一起收回去；
+    /// 提交文字时 `commit_edit` 据此把 `SetText` 并进「新建节点」那条撤销（X28 D2）。
+    ///
+    /// 同时记下此刻的撤销栈深，取消时据此判断「栈顶还是不是建它的那条命令」。
+    pub(crate) fn mark_editor_fresh(&mut self) {
+        let depth = self.session.doc.undo_depth();
+        if let Some(ed) = self.editor.as_mut() {
+            ed.fresh = true;
+            ed.fresh_depth = Some(depth);
+        }
     }
 
     /// 大纲/面板入口：在指定节点下（或后面）加一个空节点，返回新节点 id。
@@ -3495,11 +3531,14 @@ impl Canvas {
             || self.drag.is_some()
             || self.moving.is_some()
             || self.link.is_some()
+            || self.reading
             || self.input_blocked
         {
             return None;
         }
-        let idx = self.hovered?;
+        // 指针在节点上：完整工具条（＋/⋯）；指针不在、节点是主选：只常显「＋」。
+        let compact = self.hovered.is_none();
+        let idx = self.hovered.or_else(|| self.sel.primary())?;
         let n = self.scene.nodes.get(idx as usize)?;
         let r = n.geom.rect;
         let a = self.camera.world_to_screen(Point::new(r.x, r.y), viewport);
@@ -3520,7 +3559,8 @@ impl Canvas {
             node: idx,
             node_rect,
             plus,
-            more,
+            more: if compact { egui::Rect::NOTHING } else { more },
+            compact,
         })
     }
 

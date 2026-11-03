@@ -110,13 +110,19 @@ pub(crate) struct HoverBar {
     node_rect: egui::Rect,
     /// 「＋」：加子主题。
     plus: egui::Rect,
-    /// 「⋯」：点开节点菜单。
+    /// 「⋯」：点开节点菜单。选中态常显时只画「＋」，此矩形为 `NOTHING`。
     more: egui::Rect,
+    /// 选中态常显（指针不在节点上）：只出「＋」，不出「⋯」。
+    compact: bool,
 }
 
 impl HoverBar {
     fn buttons(self) -> egui::Rect {
-        self.plus.union(self.more)
+        if self.compact {
+            self.plus
+        } else {
+            self.plus.union(self.more)
+        }
     }
 
     /// 悬停保持区：节点盒 + 缝隙 + 两枚按钮。只有「保持悬停」用它，命中仍按按钮算。
@@ -1466,7 +1472,12 @@ fn paint_hover_bar(
 ) {
     let u = &theme.ui;
     let painter = ui.painter();
-    for (r, hover, more) in [(bar.plus, plus_hover, false), (bar.more, more_hover, true)] {
+    let buttons: &[(egui::Rect, bool, bool)] = if bar.compact {
+        &[(bar.plus, plus_hover, false)]
+    } else {
+        &[(bar.plus, plus_hover, false), (bar.more, more_hover, true)]
+    };
+    for &(r, hover, more) in buttons {
         let fill = if hover {
             with_alpha(u.accent_soft, 255)
         } else {
@@ -2012,7 +2023,7 @@ fn editor_ui(
     let font_size = (n.geom.font_size * zoom).max(6.0);
     let font_id = FontId::new(font_size, family);
     let ink = color32(n.style.text);
-    let (pad_x, pad_y) = mw_core::design::card_padding(n.geom.font_size);
+    let (pad_x, pad_y) = n.geom.pad;
     let inner_w = (r.w - n.text_x - pad_x).max(8.0) * zoom;
     let rows = ed.text.split('\n').count().max(1);
     let lines = n.geom.lines.len().max(1);

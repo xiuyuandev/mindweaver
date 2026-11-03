@@ -493,6 +493,7 @@ fn hover_zone_covers_the_gap_between_the_node_and_its_buttons() {
         node_rect: node,
         plus,
         more,
+        compact: false,
     };
     let zone = bar.hover_zone();
     // 节点上缘与按钮下缘之间的正中点（工具条在节点上方，这一步是斜着走过去的）
@@ -500,6 +501,24 @@ fn hover_zone_covers_the_gap_between_the_node_and_its_buttons() {
     assert!(zone.contains(mid), "缝隙不在悬停区里：{mid:?}");
     assert!(zone.contains(more.center()));
     assert_eq!(bar.buttons(), plus.union(more));
+}
+
+/// 选中态常显只出「＋」：buttons 不包含「⋯」，点击区不会在不可见按钮上。
+#[test]
+fn compact_hover_bar_only_covers_the_plus_button() {
+    let node = egui::Rect::from_min_size(Pos2::new(100.0, 120.0), Vec2::new(160.0, 44.0));
+    let canvas = egui::Rect::from_min_size(Pos2::ZERO, Vec2::new(800.0, 600.0));
+    let (plus, more) = hover_bar_rects(node, canvas, true).unwrap();
+    let bar = HoverBar {
+        node: 0,
+        node_rect: node,
+        plus,
+        more: egui::Rect::NOTHING,
+        compact: true,
+    };
+    assert_eq!(bar.buttons(), plus);
+    assert!(bar.hover_zone().contains(plus.center()));
+    assert!(!bar.buttons().contains(more.center()));
 }
 
 #[test]

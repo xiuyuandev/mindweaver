@@ -74,6 +74,49 @@ impl SavePhase {
     }
 }
 
+/// 把写盘的原始错误换成一句人话（X29 G-8）。
+///
+/// 标题栏悬停、保存失败 toast、自动保存退避共用这一个映射；原始 `os error 5`
+/// 这类文案只留在 trace 里，不直接给用户看。
+pub(crate) fn human_save_error(raw: &str) -> String {
+    let text = raw.trim();
+    if text.is_empty() {
+        return "未知写入错误".to_string();
+    }
+    let lower = text.to_ascii_lowercase();
+    let says = |needles: &[&str]| {
+        needles
+            .iter()
+            .any(|n| text.contains(n) || lower.contains(n))
+    };
+    if says(&[
+        "os error 5",
+        "拒绝访问",
+        "access is denied",
+        "permission denied",
+    ]) {
+        "文件被占用或无权限（关掉其他程序后重试，或另存为）".to_string()
+    } else if says(&[
+        "os error 32",
+        "另一个程序正在使用",
+        "being used by another process",
+    ]) {
+        "文件正被其他程序占用（稍后重试，或另存为）".to_string()
+    } else if says(&["os error 112", "磁盘空间不足", "not enough space"]) {
+        "磁盘空间不足".to_string()
+    } else if says(&[
+        "os error 3",
+        "os error 2",
+        "找不到指定的路径",
+        "系统找不到",
+        "cannot find the path",
+    ]) {
+        "保存路径不存在（换一个文件夹）".to_string()
+    } else {
+        text.to_string()
+    }
+}
+
 /// 标题栏的保存状态。`Untitled` 与 `Saved` 必须分开：新建文档按“无改动”对待，
 /// 但它从未落盘，写成“已保存”会骗人。
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -1188,9 +1231,22 @@ pub(crate) fn apply_backdrop(frame: &mut eframe::Frame) -> Backdrop {
 #[cfg(test)]
 mod tests {
     use super::{
-        open_failed_action, open_failed_close_index, zmind_arg, OpenFailedAction, SavePhase,
-        SaveState,
+        human_save_error, open_failed_action, open_failed_close_index, zmind_arg, OpenFailedAction,
+        SavePhase, SaveState,
     };
+
+    #[test]
+    fn save_errors_are_turned_into_human_sentences() {
+        assert!(human_save_error("Os { code: 5, kind: PermissionDenied }").contains("占用或无权限"));
+        assert!(human_save_error("拒绝访问。 (os error 5)").contains("占用或无权限"));
+        assert!(human_save_error("The process cannot access the file because it is being used by another process. (os error 32)")
+            .contains("其他程序占用"));
+        assert!(human_save_error("磁盘空间不足 (os error 112)").contains("磁盘空间不足"));
+        assert!(human_save_error("系统找不到指定的路径。 (os error 3)").contains("路径不存在"));
+        // 不认识的原因原样保留，好歹比「未知」有用。
+        assert_eq!(human_save_error("自定义失败"), "自定义失败");
+        assert_eq!(human_save_error("   "), "未知写入错误");
+    }
 
     #[test]
     fn open_failed_actions_follow_the_visible_button_set() {

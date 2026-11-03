@@ -242,10 +242,10 @@ if ($SkipCapture) {
     } else {
         Say "- **有 $failures 项失败**，见上表。"
     }
-    Say "- 输入法逐款输入、跨屏候选窗位置等无法在本机自动化的项目：见 docs/19 人工验收清单。"
+    Say "- 输入法逐款输入、跨屏候选窗位置等无法在本机自动化的项目：见 STATUS.md 的实机验收清单。"
 }
 
-$reportPath = Join-Path $OutDir 'report.md'
+$reportPath = Join-Path $OutDir 'report.txt'
 New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 Set-Content -Path $reportPath -Value ($report -join "`r`n") -Encoding UTF8
 Write-Host ""

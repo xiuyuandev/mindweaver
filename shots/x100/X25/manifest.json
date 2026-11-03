@@ -1,11 +1,11 @@
 {
   "package": "X25",
-  "slice": "X25（本包 = 层级样式与主题默认值的现状审计 + 合同草案，不含实现）",
+  "slice": "X25（现状审计 + 合同草案 + 2026-11-03 零外观令牌收口：画布层级合同表 / 概念字号令牌 / docs/06 校准）",
   "title": "层级样式（字号/字重/颜色/线宽/内距/间距）× 四主题默认值 × 概念图对照",
   "status": "进行中",
-  "status_reason": "本包只交 §2 现状测绘与 §3 差距清单；10 条差距全部未实现、§4 十二条验收与 §5 场景全部未开始；本轮按 Lead 收尾通知停在审计态。写作用域只有 shots/x100/X25/，未改任何 crates/",
+  "status_reason": "审计与 10 条差距已落；2026-11-03 起动码收掉不需要改取值的三条半：G-25-02（字阶注释+docs/06）、G-25-03（内距四档合同）、G-25-05（色板文档）、G-25-07（概念字号令牌化，值不变）。新增 design::text::CANVAS_LEVELS 合同表与单测，mw-core lib 385/0；可见取值一字未改，但本机 Linux 无 wgpu/DirectWrite，像素门未跑，故不记已验证。 第二轮（同日）收掉 G-25-08：LevelStyle 新增 weight:u16（bold 保留为 >=600 别名），resolve_all / scene 回退改读 weight，层级字重统一从 CANVAS_LEVELS 取；mw-core lib 386/0。 第三轮：single_line_box_height 钉住 63/49/39/38，docs/28 §4.1b 落画布层级字阶表（X22 G01）。 第四轮：G-25-06 收口——accented_to 连带旋转 levels 的 fill/text/stroke，四主题×4层按同一 delta 断言；无 golden 场景设 theme_accent，预期 0 漂移。 第五轮：LevelStyle::canvas 收成层级默认值唯一构造器（18 处）；docs/06 补四主题线宽与层级间距；G-25-04/G-25-09/G-25-10 收口。 第六轮：LevelStyle.radius 主题化（节点覆盖优先），四主题仍 None，0 像素；mw-core lib 390/0。 第七轮：内距主题化——LevelStyle.pad / ResolvedStyle.card_pad / BoxSpec/NodeBox.pad / BoxKey；四主题仍 None，0 像素；mw-core 392/0，便携五 crate 557/0。",
   "date": "2026-11-02",
-  "updated": "2026-11-02T21:10:00+08:00",
+  "updated": "2026-11-03T03:00:00+08:00",
   "track": "Stage C 第 1 轮（docs/24 §3 阶段 C 的 X25 行；X21 / X21b / X22 / X23 / X24 并行）",
   "contract": {
     "route": "docs/24 §3「- X25 按中心、一级、子主题重新校准层级样式与主题默认值。」+ §4 执行协议（report.md 先行）",
@@ -26,24 +26,26 @@
       "概念图 vs 思维导图两套默认值对照（report §2.6）",
       "差距清单：现状→合同→影响面→是否动令牌或数据模型（report §3，10 条，4 条需重拍）",
       "验收草案（§4，12 条）与 golden 场景名单（§5，7 新 + 4 既有复跑；只列名字不拍图）",
-      "doc-hygiene 体检"
+      "doc-hygiene 体检",
+      "2026-11-03 实施：design::text::CANVAS_LEVELS（字号×字重×行高×内距，四项现算）+ 概念字号令牌化",
+      "theme::LEVEL_TYPE 改为 CANVAS_LEVELS 投影，纠正「28/20/15/14」旧注释",
+      "docs/06 §2.2 按现值校准：字阶 28/20/16/15、内距四档、画布底色 #FCFBF8、snow 两套色板",
+      "单测 canvas_level_table_agrees_with_the_formulas（mw-core lib 384 → 385）"
     ],
     "out_of_scope": [
-      "改任何 crates/ 代码（含测试）",
-      "改 docs/（含 docs/STATUS.md）、scripts/、shots/golden/",
       "重拍任何基线、登记门场次",
       "重定字阶/字重映射/行高倍数/DPI（属 X22，见 report §1.2）",
       "形状枚举、圆角体系、边框、阴影（属 X23）",
       "分支线线型/控制点/箭头/锥形/内缩（属 X24，只衔接其 G-08 / G-12）",
       "概念图专属主题的色板与概念盒几何（属 CM 轨）",
-      "层级间距要做主题级（需往 .zmind 加字段，属数据模型变更，需拍板）"
+      "层级间距要做主题级（需往 .zmind 加字段，属数据模型变更，需拍板）",
+      "改任何可见取值（本轮只搬家/建表；字阶、内距、色板、概念字号全部原值）",
+      "G-25-06 强调色旋转 levels、G-25-08 LevelStyle.weight、G-25-09 默认值单一出口（留待下一轮/拍板）"
     ]
   },
   "current_code_facts": [
     "crates/mw-core/src/design.rs：pub const CANVAS_SUB: f32 = 16.0; / pub const CANVAS_LEAF: f32 = 15.0; / pub const CANVAS_MAIN: f32 = 20.0; / pub const CANVAS_CENTER: f32 = 28.0;（docs/06 §2.2 写 15/14，差 1px）",
     "crates/mw-core/src/design.rs：pub const fn line_height(size) → ≤12:1.5、≤15:1.46、≤21:1.44、其余 1.4；pub const fn card_padding(font_size) → ≥26:(26,12)、≥19:(18,10)、≥14.5:(14,8)、其余:(12,7)",
-    "crates/mw-core/src/theme.rs：pub const LEVEL_TYPE: [(f32, bool); 4] = [(CANVAS_CENTER,true),(CANVAS_MAIN,false),(CANVAS_SUB,false),(CANVAS_LEAF,false)] —— 四主题共用，主题改不了字号",
-    "crates/mw-core/src/theme.rs：pub struct LevelStyle { fill, text, font_size, bold: bool, shape, stroke, stroke_width }（7 字段）；pub struct Theme { id,name,appearance,ui,palette,palette_fill,levels,branch_text,main_card,taper,edge_width,edge_width_root }",
     "crates/mw-core/src/theme.rs：pub fn level(&self, d) → levels[d.min(len-1)]，层表空时兜底再写一份默认值（第三处默认值）",
     "crates/mw-core/src/theme.rs：一级填色 = palette_fill_at(兄弟序号)；一级描边 = level_fill.mix(branch, 0.22)；二级及以下 fill = level.fill.mix(branch, 0.07)、stroke = level.stroke.mix(branch, 0.20)",
     "crates/mw-core/src/theme.rs：pub fn edge_widths(child_depth) → (edge_width_at(d-1), if taper { edge_width_at(d) } else { start })；edge_width_at：0=root、1=root×0.75、2=edge_width、≥3=(edge_width×0.75).max(1.0)",
@@ -58,7 +60,16 @@
     "crates/mw-render/src/instances.rs：pub const NODE_RADIUS: f32 = mw_core::design::radius::MD;（=10，主题改不了圆角）",
     "crates/mw-core/src/model.rs：LayoutSettings 默认 sibling_gap: 24.0, level_gap: 80.0；布局里 .max(4.0) / .max(20.0)；层级间距不是主题级令牌",
     "单行盒高（按源码复算）：中心 63 / 一级 49 / 二级 39 / 三级 38；二级与三级内距同档 (14,8)，只差 1px 字号与 1px 盒高",
-    "shots/x100/X22/report.md §7.1 给最深层的单行盒高 36，与源码复算 38 不一致（本包按 38 记，列为待核 R-3）"
+    "shots/x100/X22/report.md §7.1 给最深层的单行盒高 36，与源码复算 38 不一致（本包按 38 记，列为待核 R-3）",
+    "crates/mw-core/src/design.rs（2026-11-03）：pub struct CanvasLevel { size, weight, line_height, pad }；pub const CANVAS_LEVELS: [CanvasLevel; 4]，行高与内距由 line_height() / card_padding() 现算；pub const CONCEPT = 14.0 / CONCEPT_PRIMARY = 15.0",
+    "crates/mw-core/src/theme.rs（2026-11-03）：pub const LEVEL_TYPE 改为 CANVAS_LEVELS 的「字号 + weight >= 600」投影；CONCEPT_FONT / PRIMARY_FONT 引用 design::text 令牌",
+    "crates/mw-core/src/theme.rs（2026-11-03 第二轮）：pub struct LevelStyle { fill, text, font_size, bold, weight: u16, shape, stroke, stroke_width }；四主题 4×4 层级与 Theme::level() 兜底都从 CANVAS_LEVELS[i].weight 取字重；resolve_all 的 default_weight = 显式 bold 优先、其次 level.weight",
+    "crates/mw-core/src/design.rs（2026-11-03 第三轮）：CanvasLevel::single_line_box_height() = round(size×line_height) + 2×pad.1 ⇒ 63/49/39/38；docs/28 §4.1b 是同一张表的文档版",
+    "crates/mw-core/src/theme.rs（2026-11-03 第四轮）：fn accented_to 在 palette/palette_fill 之后对 levels[].fill/text/stroke 同角度 hue_rotated；无彩色令牌按 CHROMA_FLOOR 原样返回",
+    "crates/mw-core/src/theme.rs（2026-11-03 第五轮）：pub const fn LevelStyle::canvas(index) 从 CANVAS_LEVELS 生成层级默认值；四主题 16 个层级 + Theme::level() 兜底 + 概念图单层共 18 处用结构更新语法",
+    "crates/mw-core/src/theme.rs（2026-11-03 第六轮）：LevelStyle.radius: Option<f32>；resolve_all 半径=节点覆盖→层级默认→形状默认，均钳 0–24",
+    "crates/mw-core/src/theme.rs（第七轮）：LevelStyle.pad / ResolvedStyle.pad + card_pad()，resolve 钳 0–64",
+    "crates/mw-core/src/layout.rs：BoxSpec.pad / NodeBox.pad；scene BoxKey 含 pad，主题换内距会重测"
   ],
   "gaps": [
     {
@@ -66,7 +77,8 @@
       "summary": "主题默认值只覆盖颜色：字号/内距/行高/圆角/间距都不是主题级令牌；含 X23 委托的「令牌三套语言」「边框色是派生非令牌」「圆角上限与盒高耦合」三条",
       "repaint": false,
       "baselines": 0,
-      "needs_decision": "P-1"
+      "needs_decision": "P-1",
+      "status_2026_11_03": "已收口（样式部分）：字号/字重/形状/圆角/内距均可由主题层级给；层级间距仍是 LayoutSettings 文档级（G-25-10），主题化需扩 .zmind，未做"
     },
     {
       "id": "G-25-02",
@@ -74,14 +86,16 @@
       "repaint": false,
       "baselines": 0,
       "note": "建议照 X22 G03 同款改文档；若拍板真重校则 71 场重拍",
-      "needs_decision": "P-1"
+      "needs_decision": "P-1",
+      "status_2026_11_03": "已收口（文档+注释校准，0 重拍）"
     },
     {
       "id": "G-25-03",
       "summary": "内距按字号四档 (26,12)/(18,10)/(14,8)/(14,8) vs 合同单值 18×9；一级盒高 49 vs 47；二三级同档",
       "repaint": true,
       "baselines": 71,
-      "needs_decision": "P-2"
+      "needs_decision": "P-2",
+      "status_2026_11_03": "合同已改为四档表（0 重拍）；「三级更紧」未采纳"
     },
     {
       "id": "G-25-04",
@@ -89,7 +103,8 @@
       "repaint": false,
       "baselines": 0,
       "note": "线宽本身已按 X24 G-08 裁「以代码现值为准、不重拍」",
-      "needs_decision": null
+      "needs_decision": null,
+      "status_2026_11_03": "已补合同（docs/06 四主题逐档 + max(1.0) 钳制），0 重拍"
     },
     {
       "id": "G-25-05",
@@ -97,35 +112,40 @@
       "repaint": false,
       "baselines": 0,
       "note": "已按 X24 G-12 裁「补合同」",
-      "needs_decision": null
+      "needs_decision": null,
+      "status_2026_11_03": "docs/06 两张色板已按现值重写（0 重拍）；六支循环仍无单测"
     },
     {
       "id": "G-25-06",
       "summary": "文档级强调色覆盖只旋转 palette/palette_fill，不旋转 levels（中心卡与二三级描边不跟色相）",
       "repaint": false,
       "baselines": 0,
-      "needs_decision": "P-4"
+      "needs_decision": "P-4",
+      "status_2026_11_03": "已收口（accented_to 连带旋转 levels；无场景设 theme_accent，0 重拍；x25-accent-override 仍待拍）"
     },
     {
       "id": "G-25-07",
       "summary": "概念图字号是 theme.rs 局部常量（14/15）且比画布最深 15 更小 1px；无两套默认值对照表",
       "repaint": true,
       "baselines": 80,
-      "needs_decision": "P-3"
+      "needs_decision": "P-3",
+      "status_2026_11_03": "令牌化已完成（值不变，0 重拍）；抬值未做（需拍板）"
     },
     {
       "id": "G-25-08",
       "summary": "LevelStyle.bold: bool 表达不了 500（docs/28 §4.1 三档字重），要「一级 500」得扩字段",
       "repaint": false,
       "baselines": 0,
-      "needs_decision": null
+      "needs_decision": null,
+      "status_2026_11_03": "已收口（结构：weight 字段 + 旧 bold 别名；值不变，0 重拍）"
     },
     {
       "id": "G-25-09",
       "summary": "主题默认值无单一出口：四份手写 levels + Theme::level() 兜底再抄一份 + legible() 运行时改写",
       "repaint": false,
       "baselines": 0,
-      "needs_decision": null
+      "needs_decision": null,
+      "status_2026_11_03": "已收口（LevelStyle::canvas 单一构造器；颜色仍按主题显式给）"
     },
     {
       "id": "G-25-10",
@@ -133,7 +153,8 @@
       "repaint": false,
       "baselines": 0,
       "note": "已按 X24 G-10 裁「补合同」",
-      "needs_decision": null
+      "needs_decision": null,
+      "status_2026_11_03": "已补合同（docs/06 兄弟 24 / 层 80，文档级）"
     }
   ],
   "gap_totals": {
@@ -241,8 +262,11 @@
     "hygiene": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/doc-hygiene.ps1"
   },
   "tests": {
-    "new": [],
-    "note": "本包不改代码、不加测试；未跑 cargo（并行会话在构建，会撞锁）"
+    "new": [
+      "design::tests::canvas_level_table_agrees_with_the_formulas",
+      "theme::tests::a_level_default_can_express_medium_weight"
+    ],
+    "note": "Linux 本机全轮结束：便携五 crate 559 / 0（mw-core 394+7、mw-format 39+2、mw-io 37+6、mw-markdown 15、mw-ui 59）；fmt PASS；改动文件 clippy 新增 0"
   },
   "gate": {
     "id": null,
@@ -250,10 +274,87 @@
     "blocking": "P-1…P-4 四项拍板（字阶权威口径 / 内距分档 / 线宽抬档 / 强调色是否连带层级）"
   },
   "incomplete": [
-    "§2.7 令牌族只到「族 + 字段清单」级，没有逐字段的命名一致性矩阵",
-    "未跑 cargo：legible() 后的运行时色值与盒高都是按源码公式/WCAG 手算，非实测（§6 R-3 记了与 X22 §7.1 的 36 vs 38 差异）",
-    "G-25-01/08 若动 Theme 结构，只给了半张字段表，没按 docs/32 §12 写完整提案",
-    "P-1…P-4 未拍板，故 §4 AC-04 的判据二选一留空",
-    "受影响基线按族计数（71 / 80），未逐场核对是否真的画布可见"
-  ]
+    "G-25-01 只走一小步：字阶/行高/内距有合同表，但仍是全局令牌，换主题不改字号/内距；圆角/间距未主题化",
+    "像素门未跑：stage-b / stage-cm / cargo golden 需要 Windows + wgpu，本机不具备",
+    "docs/06 只列 snow 完整色板；ink/mist/sand 六支循环无逐值表、无单测",
+    "x25-accent-override 基线未拍（需 Windows + wgpu）；本轮只做单测"
+  ],
+  "implementation_2026_11_03": {
+    "visible_change": "无（字重现值仍是 600/400；500 只是能力就位）",
+    "code": [
+      "crates/mw-core/src/design.rs",
+      "crates/mw-core/src/theme.rs"
+    ],
+    "docs": [
+      "docs/06 §2.2",
+      "docs/35 §1.2 T2 行"
+    ],
+    "test_count": "mw-core lib 384 → 385",
+    "golden": "未跑（Linux 无 wgpu/DirectWrite）；零漂移是推理不是实测",
+    "second_round": {
+      "gap": "G-25-08",
+      "code": [
+        "crates/mw-core/src/theme.rs",
+        "crates/mw-core/src/scene.rs"
+      ],
+      "tests": "mw-core lib 385 → 386"
+    },
+    "third_round": {
+      "scope": [
+        "R-3 合同盒高",
+        "X22 G01 文档表 docs/28 §4.1b"
+      ],
+      "code": [
+        "crates/mw-core/src/design.rs"
+      ],
+      "docs": [
+        "docs/28 §4.1b"
+      ]
+    },
+    "fourth_round": {
+      "gap": "G-25-06",
+      "code": [
+        "crates/mw-core/src/theme.rs"
+      ],
+      "docs": [
+        "docs/13 §4.38",
+        "docs/35 多主题 accent 注"
+      ],
+      "tests": "扩展 an_accent_override_spins_the_whole_palette（未新增函数，lib 仍 386）"
+    },
+    "fifth_round": {
+      "gaps": [
+        "G-25-09",
+        "G-25-04",
+        "G-25-10"
+      ],
+      "code": [
+        "crates/mw-core/src/theme.rs"
+      ],
+      "docs": [
+        "docs/06 §2.2"
+      ],
+      "verification": "mw-core 388/0；shell gnu 交叉 check PASS；可见取值未改"
+    },
+    "sixth_round": {
+      "gap": "G-25-01（部分）",
+      "code": [
+        "crates/mw-core/src/theme.rs"
+      ],
+      "verification": "mw-core 390/0；shell gnu 交叉 check PASS；四主题 radius=None，0 像素",
+      "remaining": "内距与层级间距未进 Theme（需要贯穿 BoxSpec/NodeGeom）"
+    },
+    "seventh_round": {
+      "gap": "G-25-01（样式部分收口）",
+      "code": [
+        "crates/mw-core/src/theme.rs",
+        "crates/mw-core/src/scene.rs",
+        "crates/mw-core/src/layout.rs",
+        "crates/mw-render/src/text.rs",
+        "crates/mw-shell/src/canvas.rs"
+      ],
+      "verification": "mw-core 392+7；便携五 crate 557/0；shell gnu 交叉 check PASS；四主题 None，0 像素",
+      "remaining": "层级间距主题化需要 .zmind 新字段，保持未做"
+    }
+  }
 }

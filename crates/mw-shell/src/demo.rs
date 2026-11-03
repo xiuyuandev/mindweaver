@@ -191,7 +191,7 @@ fn path_of(scene: &Scene, idx: u32) -> HashSet<u32> {
 }
 
 fn paint_path(scene: &mut Scene, path: &HashSet<u32>) {
-    for n in &mut scene.nodes {
+    for n in std::sync::Arc::make_mut(&mut scene.nodes) {
         n.alpha = DIM_NODE;
     }
     for e in &mut scene.edges {
@@ -210,7 +210,7 @@ fn paint_path(scene: &mut Scene, path: &HashSet<u32>) {
         r.alpha = DIM_DECOR;
     }
     for &i in path {
-        if let Some(n) = scene.nodes.get_mut(i as usize) {
+        if let Some(n) = std::sync::Arc::make_mut(&mut scene.nodes).get_mut(i as usize) {
             n.alpha = 1.0;
         }
     }

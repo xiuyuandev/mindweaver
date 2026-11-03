@@ -47,5 +47,25 @@
     "tests": "未跑（本轮不执行构建与测试）",
     "gates": "未跑；门状态以 docs/STATUS.md §1 为准，本包不宣称任何门结论"
   },
-  "blocking": "G-1（节点是否做阴影）与 G-2（新增哪几个形状）需用户拍板；G-1 若做，需新增 elevation 字段并重拍所有含画布基线"
+  "blocking": "G-1（节点是否做阴影）与 G-2（新增哪几个形状）需用户拍板；G-1 若做，需新增 elevation 字段并重拍所有含画布基线",
+  "status_reason": "2026-11-03 动 G-8：命中与形状同源——mw-core 新增 rounded_rect_contains，mw-render::hit 新增 RoundedRect 分支，半径读 corner_style；圆角/胶囊四角不再按外接矩形吃点击。不改像素；mw-core lib 388/0，shell 交叉类型检查通过；golden 与 mw-render 单测仍待 Windows。",
+  "updated_2026_11_03": {
+    "implemented": [
+      "G-8 命中与形状同源（rounded_rect_contains + Shape::RoundedRect）"
+    ],
+    "verification": [
+      "cargo test -p mw-core → 388/0 + contrast 7/0",
+      "cargo check -p mw-shell --target x86_64-pc-windows-gnu --tests PASS"
+    ],
+    "not_run": [
+      "mw-render 单测",
+      "golden",
+      "实机点击手感"
+    ],
+    "remaining": [
+      "mw-ui 框选仍用外接矩形",
+      "G-3 椭圆盒外扩",
+      "G-1/G-2 未拍板"
+    ]
+  }
 }

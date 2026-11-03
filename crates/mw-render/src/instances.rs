@@ -27,13 +27,13 @@ pub const LAYERS: usize = 4;
 pub const NODE_RADIUS: f32 = mw_core::design::radius::MD;
 pub const BOUNDARY_RADIUS: f32 = mw_core::design::radius::PANEL;
 /// 铬件（CSS px）。
-pub const SELECT_RING_W: f32 = 2.0;
+pub const SELECT_RING_W: f32 = 1.5;
 pub const SELECT_RING_GAP: f32 = 2.5;
 /// 选中/悬停的底色（docs/30 §5.3：选中 8% 强调底、悬停 4%）。
 /// 环负责「边界」，底色负责「整块被拿起来」——只有环时，彩色节点上的选中态很弱。
 pub const SELECT_FILL: f32 = 0.08;
 pub const HOVER_FILL: f32 = 0.04;
-pub const HOVER_RING_W: f32 = 1.5;
+pub const HOVER_RING_W: f32 = 1.0;
 pub const TOGGLE_R: f32 = 8.0;
 pub const TOGGLE_W: f32 = 1.5;
 /// 折叠点底色的外扩（CSS px）：环外侧再垫一圈画布色，穿过来的连线才不会
@@ -1109,6 +1109,7 @@ mod dash_tests {
             stroke_width: 1.0,
             branch_color: Rgba::TRANSPARENT,
             radius,
+            pad: None,
             align: None,
             weight: mw_core::theme::WEIGHT_REGULAR,
         };

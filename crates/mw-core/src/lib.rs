@@ -32,7 +32,9 @@ pub use document::{
     Backlink, ChangeSet, CoreError, Document, WireChange, HISTORY_LIMIT, MAX_HISTORY_LIMIT,
     MIN_HISTORY_LIMIT,
 };
-pub use geom::{arrow_at_zoom, Path, PathSeg, Point, Rect, ARROW_MIN_CSS_LEN};
+pub use geom::{
+    arrow_at_zoom, rounded_rect_contains, Path, PathSeg, Point, Rect, ARROW_MIN_CSS_LEN,
+};
 pub use layout::{compute_layout, EdgeShape, Layout, LayoutKind, NodeBox, NodeMeasure};
 pub use model::{
     new_id, now_ms, Boundary, DocMeta, LayoutSettings, Node, Position, Relationship, StyleOverride,

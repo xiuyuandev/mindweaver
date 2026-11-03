@@ -1,0 +1,49 @@
+{
+  "package": "M12g",
+  "title": "20k 重建的 id 序列与索引共享（打磨轮续）",
+  "status": "已实现",
+  "date": "2026-11-03",
+  "track": "打磨轮 · 账本 §3 第 17 条「20k 端到端 Arc 化」第一刀",
+  "contract": {
+    "budget": "docs/07 §5 / docs/08：20k 打字 P7 ≤ 16ms（Windows 基准机）",
+    "execute": "docs/x100/polish-ledger.md §3 第 17 条；前作 M12b–M12f",
+    "invariant": "Scene 是几何与视觉唯一真相源；ids/index 的公开读取方式不变"
+  },
+  "code": [
+    "crates/mw-core/src/layout.rs（Layout.ids/index → Arc；LayoutMemo 复用 ids/index）",
+    "crates/mw-core/src/scene.rs（Scene.ids/index → Arc；Arc::make_mut 只在并自由主题/过渡追加节点时复制）"
+  ],
+  "scenes": [],
+  "evidence": {
+    "perf_before": "perf-before.txt",
+    "perf_after": "perf-after.txt",
+    "perf_stages": "perf-after-stages.txt",
+    "environment": "Linux x86_64 / Rust 1.99.1 / release thin-LTO；与 Windows 基准机不可横向比较"
+  },
+  "results": {
+    "20k_cached_median": "32.5ms → 24.3ms",
+    "20k_cached_p95": "37.3ms → 29.4ms",
+    "20k_undo_cached_median": "30.2ms → 24.9ms",
+    "20k_redo_cached_median": "29.6ms → 23.4ms",
+    "20k_structural_undo_cached_median": "28.8ms → 24.1ms",
+    "layout_bounds": "2.5ms → 0.06ms",
+    "layout_collect": "6.6ms → 4.8ms"
+  },
+  "tests": {
+    "new": [
+      "scene::tests::an_unchanged_structure_reuses_the_scene_ids_and_index"
+    ],
+    "portable": "558 / 0（mw-core 393+7、mw-format 39+2、mw-io 37+6、mw-markdown 15、mw-ui 59）",
+    "cross_check": "cargo check -p mw-shell --target x86_64-pc-windows-gnu --tests PASS"
+  },
+  "gates": {
+    "windows_perf": "待复跑（本机 Linux 不能替代）",
+    "stage_b": "未跑",
+    "stage_cm": "未跑"
+  },
+  "open": [
+    "Scene.nodes / SceneMemo.nodes 的整份共享（M12f）未做",
+    "resolve 段的 4.8ms 内容指纹遍历未优化（需 Document 样式修订号）",
+    "Windows 官方 P7 与两道门未复跑"
+  ]
+}

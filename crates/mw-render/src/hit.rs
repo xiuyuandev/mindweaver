@@ -11,7 +11,7 @@
 use std::collections::HashMap;
 
 use mw_core::layout::toggle_pos;
-use mw_core::{arrow_at_zoom, Path, Point, Rect, Scene};
+use mw_core::{arrow_at_zoom, rounded_rect_contains, Path, Point, Rect, Scene};
 
 use crate::camera::Camera;
 use crate::flatten::flatten;
@@ -32,6 +32,8 @@ pub const BOUNDARY_HIT_CSS: f32 = 5.0;
 pub const TOGGLE_HIT_CSS: f32 = TOGGLE_R + 2.0;
 /// 视觉半径不能超过命中半径，否则「看得见却点不中」。
 const _: () = assert!(TOGGLE_HIT_CSS >= TOGGLE_R + TOGGLE_HALO);
+/// 命中也不许比视觉大出 2px 以上（X28 D7）：圆点优先级高于节点，太胖会误折子树。
+const _: () = assert!(TOGGLE_HIT_CSS <= TOGGLE_R + TOGGLE_HALO + 2.0);
 
 /// 命中的对象。所有下标都是 [`Scene`] 的密集索引。
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -92,6 +94,12 @@ struct Rank {
 
 enum Shape {
     Rect(Rect),
+    /// 圆角矩形 / 胶囊：四角按圆弧判定（X23 G-8）。半径由 `corner_style` 给出，
+    /// 与 wgpu/SVG/PDF/编辑环同源；圆角或胶囊的节点不再把四角外接矩形算成命中。
+    RoundedRect {
+        rect: Rect,
+        radius: f32,
+    },
     /// 椭圆（概念图的默认节点形状）。按外接矩形建，但判定要落进椭圆方程里：
     /// 四个角在矩形内、在椭圆外，那些像素**不该**算命中——概念图是自由布局，
     /// 两颗概念可以挨得很近，拿外接矩形当命中会抢走别人角落上的点击。
@@ -119,6 +127,7 @@ impl Shape {
     fn bounds(&self) -> Rect {
         match self {
             Self::Rect(r) | Self::Ellipse(r) => *r,
+            Self::RoundedRect { rect, .. } => *rect,
             Self::Circle {
                 center,
                 radius_css,
@@ -137,6 +146,7 @@ impl Shape {
     fn hit(&self, p: Point, cam: Camera) -> bool {
         match self {
             Self::Rect(r) => r.contains(p),
+            Self::RoundedRect { rect, radius } => rounded_rect_contains(*rect, *radius, p),
             Self::Ellipse(r) => {
                 let (a, b) = (r.w * 0.5, r.h * 0.5);
                 if a <= 0.0 || b <= 0.0 {
@@ -285,7 +295,16 @@ impl HitIndex {
                 if n.style.shape.is_ellipse() {
                     Shape::Ellipse(n.geom.rect)
                 } else {
-                    Shape::Rect(n.geom.rect)
+                    // 圆角/胶囊与绘制同源：半径读 `corner_style`，四角按圆弧命中。
+                    let radius = crate::instances::corner_style(&n.style, n.geom.rect);
+                    if radius > 0.0 {
+                        Shape::RoundedRect {
+                            rect: n.geom.rect,
+                            radius,
+                        }
+                    } else {
+                        Shape::Rect(n.geom.rect)
+                    }
                 },
             );
             for (li, p) in n.labels.iter().enumerate() {

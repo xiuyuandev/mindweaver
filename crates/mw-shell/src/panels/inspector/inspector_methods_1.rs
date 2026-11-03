@@ -404,7 +404,7 @@ impl Inspector {
         // 组内行间距 6（`docs/30` §4.1）：`group_list` 进来先把全局 8 压成 6。
         group_list(ui, |ui| {
             let a = match self.tab {
-                Tab::Style => self.style_body(ui, theme, focus, doc),
+                Tab::Style => self.style_body(ui, theme, focus, doc, extras.boxes),
                 Tab::Note => self.note_body(ui, focus, doc),
                 Tab::Mark => self.mark_body(ui, focus, &anns, &spans),
                 Tab::Concept => self.concept_body(ui, focus, doc, selected, extras, theme),
@@ -530,10 +530,28 @@ impl Inspector {
         theme: &Theme,
         focus: &mut FocusMemory,
         doc: &Document,
+        boxes: &[Option<Rect>],
     ) -> Option<Action> {
         let mut action = None;
         let ink = self.ink;
         ui.add_space(2.0);
+
+        // 恢复默认：把选中节点（或子树）的 StyleOverride 整份清空，一次撤销。
+        if self
+            .items
+            .iter()
+            .any(|i| i.style != StyleOverride::default())
+        {
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                if ui
+                    .small_button(egui::RichText::new("恢复默认样式").size(11.5))
+                    .on_hover_text("清除选中对象的全部样式覆盖")
+                    .clicked()
+                {
+                    action = self.style_cmd(|s| *s = StyleOverride::default());
+                }
+            });
+        }
 
         // 作用域（§4.2「作用域」）：**分组标题右侧**两段「本节点 / 含子树」，不再单独占一行。
         // 它只对样式类属性生效——颜色/字号/边框/形状都走 `style_cmd`，备注/标签/链接不吃。
@@ -981,11 +999,19 @@ impl Inspector {
                 // 没覆盖时显示形状自带的默认值（圆角矩形 = 令牌 MD、直角 = 0）；
                 // 这里不持有节点矩形，所以不复用 `corner()`——胶囊/椭圆已经被
                 // `roundable` 挡在外面，剩下这两种的默认值就是常数。
+                //
+                // 上限跟着**实际盒子**走（V1-02 G-4）：渲染层把半径钳到 `min(w,h)/2`，
+                // 盒子 36 高时 24 与 18 画出来一模一样。控件这里也压到同一个上限，
+                // 并把已存但画不出来的值显示成实际生效的那个——控件与像素说同一句话。
+                let ceiling = radius_ceiling(boxes);
                 let radius = same(self.items.iter().map(|i| {
-                    i.resolved.radius.unwrap_or(match i.resolved.shape {
-                        Shape::Rect => 0.0,
-                        _ => mw_core::design::radius::MD,
-                    })
+                    i.resolved
+                        .radius
+                        .unwrap_or(match i.resolved.shape {
+                            Shape::Rect => 0.0,
+                            _ => mw_core::design::radius::MD,
+                        })
+                        .min(ceiling)
                 }));
                 ui.horizontal(|ui| {
                     ui.add_space(GUTTER);
@@ -998,7 +1024,7 @@ impl Inspector {
                         Some(v) => format!("{}", v.round() as i32),
                         None => "混合".to_string(),
                     };
-                    let base = radius.unwrap_or(mw_core::design::radius::MD);
+                    let base = radius.unwrap_or(mw_core::design::radius::MD.min(ceiling));
                     if let Some(v) = stepper(
                         ui,
                         ink,
@@ -1006,7 +1032,7 @@ impl Inspector {
                         StepperRow {
                             text: &label,
                             value: base,
-                            range: (0.0, 24.0),
+                            range: (0.0, ceiling),
                             step: 2.0,
                         },
                         focus,

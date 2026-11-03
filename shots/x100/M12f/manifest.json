@@ -1,7 +1,7 @@
 {
   "package": "M12f",
   "title": "20k 端到端的最后一毫秒（打磨轮 31 · 场景账本共享持有）",
-  "status": "进行中",
+  "status": "已实现",
   "date": "2026-10-30",
   "track": "打磨轮 · 账本 §3 第 7 条「20k 增量布局」的最后一格",
   "contract": {
@@ -15,14 +15,31 @@
   ],
   "scenes": [],
   "evidence": {
-    "perf": "待测",
-    "gates": "待跑"
+    "perf_before": "perf-after-arc.txt（M12g 后基线）",
+    "perf_after": "perf-after-nodes.txt",
+    "perf_stages": "perf-nodes-stages.txt"
   },
   "tests": {
     "new": [],
-    "total": "待跑"
+    "portable": "559 / 0",
+    "cross_check": "cargo check -p mw-shell --target x86_64-pc-windows-gnu --tests PASS"
   },
   "open": {
-    "实机键盘节拍": "无头 harness 只能量探针，真实打字节拍未核"
+    "blend_copy": "过渡帧一次 COW 复制",
+    "windows": "Windows 官方口径与两道门未复跑"
+  },
+  "updated": "2026-11-03",
+  "results": {
+    "20k_cached_median": "24.3ms → 20.3ms",
+    "20k_cached_p95": "29.4ms → 24.5ms",
+    "20k_undo_cached_median": "24.9ms → 19.8ms",
+    "20k_redo_cached_median": "23.4ms → 19.9ms",
+    "20k_structural_undo_cached_median": "24.1ms → 21.0ms",
+    "note": "Linux 同机；Windows 基准机待复跑"
+  },
+  "gates": {
+    "windows_perf": "待复跑",
+    "stage_b": "未跑",
+    "stage_cm": "未跑"
   }
 }

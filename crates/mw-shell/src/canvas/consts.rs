@@ -201,6 +201,10 @@ pub(crate) const ANCHOR_HIT: f32 = 7.0;
 /// 注解跨度手柄：屏幕空间的小圆点，命中半径比视觉半径宽 4.5px。
 pub(crate) const SPAN_HANDLE_R: f32 = 4.5;
 pub(crate) const SPAN_HANDLE_HIT: f32 = 9.0;
+/// 关系线终点手柄（重连）。**与注解手柄是两组常量**（X28 D9）：数值暂按现值抄，
+/// 但改注解手柄的视觉/命中不会再顺带改关系线，反之亦然。
+pub(crate) const REL_HANDLE_R: f32 = 4.5;
+pub(crate) const REL_HANDLE_HIT: f32 = 9.0;
 /// 悬停工具条的按钮边长（CSS px，屏幕空间恒定）。24 与缩放控件的图标节奏一致，
 /// 22 在 150% 以上的画布上显得像误触留下的小点。
 pub(crate) const HOVER_BTN: f32 = design::control::HIT;

@@ -29,6 +29,10 @@ pub struct Session {
     /// 模板/新建文档的显示名（如「鱼骨图」）。只在落盘前顶替"未命名.zmind"，
     /// **不是**文件名——Ctrl+S 仍走另存为。
     untitled_name: Option<String>,
+    /// 新文档标记：空白画布引导语只对「新建且一次编辑都没有」的文档出现（X29 G-5）。
+    fresh: bool,
+    /// 新建那一刻的修订号；任何编辑都会让它变，引导语随即消失。
+    fresh_rev: u64,
 }
 
 impl Session {
@@ -198,6 +202,8 @@ impl Session {
             saved_revision: None,
             import_name: None,
             untitled_name: None,
+            fresh: false,
+            fresh_rev: 0,
         }
     }
 
@@ -238,7 +244,18 @@ impl Session {
     pub fn fresh(doc: Document) -> Self {
         let mut s = Self::from_doc(doc, None);
         s.saved_revision = Some(s.doc.revision);
+        s.fresh = true;
+        s.fresh_rev = s.doc.revision;
         s
+    }
+
+    /// 空白画布引导语（X29 G-5）的判据：新建、未落盘、只有根、一次编辑都没有、非只读。
+    pub fn is_pristine_new(&self) -> bool {
+        self.fresh
+            && self.path.is_none()
+            && !self.doc.read_only
+            && self.doc.revision == self.fresh_rev
+            && self.doc.nodes.len() == 1
     }
 
     /// 带显示名的新文档（模板用）：标签写作「鱼骨图」，但还没有文件路径。
@@ -493,7 +510,29 @@ mod tests {
         assert!(s.path.is_none());
     }
 
-    /// 大纲实拍夹具：三种行尾角标各自的来源都在，且不顶「未保存」圆点。
+    /// X29 G-5：空白画布引导语只对「新建且零编辑」的文档出现。
+    #[test]
+    fn the_empty_hint_only_shows_on_a_pristine_new_document() {
+        assert!(Session::blank().is_pristine_new());
+        assert!(!Session::sample().is_pristine_new(), "夹具不是新文档");
+
+        let mut edited = Session::blank();
+        let root = edited.doc.root_id.clone();
+        edited
+            .doc
+            .apply(&Command::SetText {
+                id: root,
+                text: "改过".into(),
+            })
+            .unwrap();
+        assert!(!edited.is_pristine_new(), "一次编辑后引导语就该消失");
+
+        let mut locked = Session::blank();
+        locked.doc.read_only = true;
+        assert!(!locked.is_pristine_new(), "只读文档不显示编辑引导");
+    }
+
+    /// 大纲实拍夹具：三种行尾角标各自的来源都在，且不顶「未保存」圆点。    /// 大纲实拍夹具：三种行尾角标各自的来源都在，且不顶「未保存」圆点。
     #[test]
     fn outline_fixture_carries_marks_without_a_dirty_dot() {
         let s = Session::sample_with_marks();

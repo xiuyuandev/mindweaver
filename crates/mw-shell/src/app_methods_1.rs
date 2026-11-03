@@ -268,6 +268,7 @@ impl Shell {
             knowledge: None,
             stats_open: false,
             focus_prev_focused: false,
+            file_focus_prev: false,
             window_state,
             geometry_restored: false,
             // 启动后 700ms 再写第一次：给默认尺寸/恢复命令留出落地时间。
@@ -1938,6 +1939,12 @@ fn main() {
         // 以前这三项挂在窗口上、这里只重置 `save_phase`，于是切回 A 时 `Ctrl+S`
         // 拿的是 B 的指纹，弹假冲突（SR-02 问题 1）。
         self.arm_active_guard();
+        // 切页当帧就把只读态灌进文档，别等到下一帧 `Shell::ui` 的同步——
+        // 否则新页的第一下输入会落在「还没只读」的一帧里（X29 G-1）。
+        let read_only = self.active_read_only();
+        if let Some(canvas) = self.canvas.as_mut() {
+            canvas.set_read_only(read_only);
+        }
         // 修订号是每份文档各自的；基线归零，脏的文档下一轮就能写恢复点。
         self.note_session_rev(0);
         // 保存阶段的失败只属于上一份文档；换页后不能把红点带到新文档上。

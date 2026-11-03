@@ -563,7 +563,8 @@ mod tests {
         let mut pseudo = big.clone();
         // SceneNode 只 Clone 不 Copy：cycle+take 凑 6006 颗（>5k）。
         // draw_order 仍指前 1001 个合法下标，sample/blocks_for 都只看这两个字段。
-        pseudo.nodes = pseudo.nodes.iter().cloned().cycle().take(6006).collect();
+        pseudo.nodes =
+            std::sync::Arc::new(pseudo.nodes.iter().cloned().cycle().take(6006).collect());
         assert_eq!(
             blocks_for(&pseudo).len(),
             MAX_BLOCKS,

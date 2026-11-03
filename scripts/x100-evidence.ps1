@@ -10,7 +10,6 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $roundDir = Join-Path $root "shots/x100/$Round"
 $manifestPath = Join-Path $roundDir 'manifest.json'
-$reportPath = Join-Path $roundDir 'report.md'
 
 function Fail([string]$message) {
     Write-Host "X100 EVIDENCE FAIL $Round :: $message" -ForegroundColor Red
@@ -34,28 +33,12 @@ if ($Init) {
         }
         $manifest | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $manifestPath -Encoding UTF8
     }
-    if (-not (Test-Path -LiteralPath $reportPath)) {
-        $template = @"
-# $Round
-
-## Scope
-
-## Changes
-
-## Verification
-
-## Known gaps
-
-"@
-        Set-Content -LiteralPath $reportPath -Value $template -Encoding UTF8
-    }
     Write-Host "initialized $roundDir"
 }
 
 if (-not $Check) { exit 0 }
 
 if (-not (Test-Path -LiteralPath $manifestPath)) { Fail 'manifest.json is missing' }
-if (-not (Test-Path -LiteralPath $reportPath)) { Fail 'report.md is missing' }
 
 try {
     $manifest = Get-Content -Raw -Encoding UTF8 -LiteralPath $manifestPath | ConvertFrom-Json

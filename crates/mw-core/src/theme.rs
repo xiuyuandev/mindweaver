@@ -253,21 +253,40 @@ pub enum Appearance {
     Dark,
 }
 
-/// 四级字号阶梯（DIP）：中心主题 28 / 一级 20 / 二级 15 / 三级及以下 14。
+/// 四级字号阶梯（DIP）：中心主题 28 / 一级 20 / 二级 16 / 三级及以下 15。
 ///
 /// v6 起四套主题共用这一处：XMind 144 DPI 截图实测中心主题 ≈32 CSS px、一级主题
 /// ≈18.7 CSS px，且只有中心主题加粗、分支是常规体（docs/13 §4.41）。调字号只改这里，
 /// 不要让四份 `levels` 各自漂移。
 ///
 /// （上面那句「实测 ≈32/≈18.7」是当年量 XMind 的原始读数；实际落地的令牌是
-/// `design::text::CANVAS_*` 的 28/20/15/14——截图口径与 DIP 口径差着一点换算，
-/// 别再拿 32/18/16/14 去对代码，那是这段注释漂移之前的旧值。）
-pub const LEVEL_TYPE: [(f32, bool); 4] = [
-    (crate::design::text::CANVAS_CENTER, true),
-    (crate::design::text::CANVAS_MAIN, false),
-    (crate::design::text::CANVAS_SUB, false),
-    (crate::design::text::CANVAS_LEAF, false),
-];
+/// `design::text::CANVAS_*` 的 **28/20/16/15**——截图口径与 DIP 口径差着一点换算，
+/// 别再拿 32/18/16/14 去对代码。旧注释写的是 28/20/15/14，那是 16/15 两档定稿前的
+/// 漂移值，2026-11-03 按 `CANVAS_LEVELS` 校准。）
+///
+/// 本表只是 [`crate::design::text::CANVAS_LEVELS`] 的「字号 + 是否半粗」投影；
+/// 行高与内距也从那张合同表出，别在这里再写第二份数字。
+pub const LEVEL_TYPE: [(f32, bool); 4] = {
+    use crate::design::text::{CANVAS_LEVELS, WEIGHT_SEMIBOLD};
+    [
+        (
+            CANVAS_LEVELS[0].size,
+            CANVAS_LEVELS[0].weight >= WEIGHT_SEMIBOLD,
+        ),
+        (
+            CANVAS_LEVELS[1].size,
+            CANVAS_LEVELS[1].weight >= WEIGHT_SEMIBOLD,
+        ),
+        (
+            CANVAS_LEVELS[2].size,
+            CANVAS_LEVELS[2].weight >= WEIGHT_SEMIBOLD,
+        ),
+        (
+            CANVAS_LEVELS[3].size,
+            CANVAS_LEVELS[3].weight >= WEIGHT_SEMIBOLD,
+        ),
+    ]
+};
 
 /// 一个层级的默认样式。
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -275,12 +294,47 @@ pub struct LevelStyle {
     pub fill: Rgba,
     pub text: Rgba,
     pub font_size: f32,
-    /// 字重：true = Bold，false = Regular。
+    /// 字重：true = 半粗（600），false = 常规（400）。
+    ///
+    /// **兼容别名**：ResolvedStyle 与渲染/导出只认 `weight`，本字段保留给旧调用方与
+    /// 「是否加粗」的二值判断。新建层级时两份必须一致（`bold == weight >= 600`），
+    /// 单测 `every_theme_shares_one_type_ladder` 会拦住漂移。
     pub bold: bool,
+    /// 层级默认字重（400 / 500 / 600）。X25 G-25-08：`bold` 的 bool 表达不了 500，
+    /// 所以层级默认值改成 u16；旧字段仍同步写，老调用方不受影响。
+    pub weight: u16,
     pub shape: Shape,
+    /// 层级默认圆角覆盖（0–24）；`None` = 按 `Shape` 的默认值（圆角 10 / 胶囊半高 / 椭圆哨兵）。
+    /// X25 G-25-01：圆角以前是渲染层常量，主题只能改形状、不能改圆角。
+    pub radius: Option<f32>,
+    /// 层级默认内距 `(x, y)`；`None` = 按字号走 `design::card_padding`。
+    /// X25 G-25-01：内距以前只由字号分档，主题改不了。
+    pub pad: Option<(f32, f32)>,
     /// 层级默认描边；一级主题通常不描边（靠实色填充区分）。
     pub stroke: Rgba,
     pub stroke_width: f32,
+}
+
+impl LevelStyle {
+    /// 从画布层级合同表生成一层默认值；颜色、形状由主题用结构更新语法覆盖。
+    ///
+    /// X25 G-25-09：四套主题与 `Theme::level()` 兜底以前各写一遍 `font_size` /
+    /// `bold` / `weight` / `shape`。现在这几项只从 `CANVAS_LEVELS` 出，改档不会漏。
+    pub const fn canvas(index: usize) -> Self {
+        let level = crate::design::text::CANVAS_LEVELS[index];
+        Self {
+            fill: Rgba::TRANSPARENT,
+            text: Rgba::TRANSPARENT,
+            font_size: level.size,
+            bold: level.weight >= WEIGHT_SEMIBOLD,
+            weight: level.weight,
+            shape: Shape::Rounded,
+            radius: None,
+            pad: None,
+            stroke: Rgba::TRANSPARENT,
+            stroke_width: 0.0,
+        }
+    }
 }
 
 /// 界面令牌（面板、边框、强调色、画布底色与点阵）。
@@ -397,11 +451,9 @@ impl Theme {
             0 => LevelStyle {
                 fill: self.ui.panel,
                 text: self.ui.text,
-                font_size: LEVEL_TYPE[3].0,
-                bold: LEVEL_TYPE[3].1,
-                shape: Shape::Rounded,
                 stroke: self.ui.border,
                 stroke_width: 1.0,
+                ..LevelStyle::canvas(3)
             },
             len => self.levels[d.min(len - 1)],
         }
@@ -471,8 +523,8 @@ impl Theme {
         }
     }
 
-    /// 自定义强调色：只取用户挑的那支颜色的**色相**，把强调色、软强调色与两张分支色表
-    /// 一起沿色相环**刚体旋转**到那个色相。
+    /// 自定义强调色：只取用户挑的那支颜色的**色相**，把强调色、软强调色、两张分支色表
+    /// 与层级默认色（`levels`）一起沿色相环**刚体旋转**到那个色相。
     ///
     /// 为什么只认色相：逐令牌保住自己的彩度与感知明度，等于卡片文字与底色的对比度**基本没动**
     /// ——挑到 `#ffff00` 也不会得到一堆读不清的黄卡片；而且切主题时同一份覆盖自动落到新主题
@@ -557,6 +609,11 @@ impl Theme {
     }
 
     /// 把整套配色刚体旋转到色相 `hue`（旋转量由强调色自己定，其余令牌跟着走同样的角度）。
+    ///
+    /// **2026-11-03（X25 G-25-06）**：层级默认色（`levels[].fill/text/stroke`）也一起旋转。
+    /// 以前只转强调色与两张分支色表，设了 `<meta.theme_accent>` 后会出现
+    /// 「红色分支线 + 绿色中心卡 + 旧色系描边」的断口；现在整棵层级色阶与分支色同色相。
+    /// 无彩色令牌（白字、近灰描边）彩度低于 `CHROMA_FLOOR`，`hue_rotated` 原样返回，不会冒彩。
     fn accented_to(&self, hue: f32) -> Theme {
         let delta = hue_delta(self.ui.accent.hue(), hue);
         if delta.abs() < 1e-3 {
@@ -570,6 +627,11 @@ impl Theme {
         }
         for c in &mut out.palette_fill {
             *c = c.hue_rotated(delta);
+        }
+        for level in &mut out.levels {
+            level.fill = level.fill.hue_rotated(delta);
+            level.text = level.text.hue_rotated(delta);
+            level.stroke = level.stroke.hue_rotated(delta);
         }
         out
     }
@@ -643,38 +705,30 @@ fn snow() -> Theme {
             LevelStyle {
                 fill: Rgba::rgb(0x2c, 0x66, 0x58),
                 text: Rgba::rgb(0xff, 0xff, 0xff),
-                font_size: LEVEL_TYPE[0].0,
-                bold: LEVEL_TYPE[0].1,
-                shape: Shape::Rounded,
                 stroke: Rgba::TRANSPARENT,
                 stroke_width: 0.0,
+                ..LevelStyle::canvas(0)
             },
             LevelStyle {
                 fill: Rgba::rgb(0xff, 0xff, 0xff),
                 text: Rgba::rgb(0x2a, 0x2e, 0x33),
-                font_size: LEVEL_TYPE[1].0,
-                bold: LEVEL_TYPE[1].1,
-                shape: Shape::Rounded,
                 stroke: Rgba::rgb(0xeb, 0xe6, 0xdd),
                 stroke_width: 1.0,
+                ..LevelStyle::canvas(1)
             },
             LevelStyle {
                 fill: Rgba::rgb(0xfd, 0xfc, 0xf9),
                 text: Rgba::rgb(0x3a, 0x3f, 0x45),
-                font_size: LEVEL_TYPE[2].0,
-                bold: LEVEL_TYPE[2].1,
-                shape: Shape::Rounded,
                 stroke: Rgba::rgb(0xef, 0xea, 0xe1),
                 stroke_width: 1.0,
+                ..LevelStyle::canvas(2)
             },
             LevelStyle {
                 fill: Rgba::rgb(0xfd, 0xfc, 0xf9),
                 text: Rgba::rgb(0x45, 0x4a, 0x50),
-                font_size: LEVEL_TYPE[3].0,
-                bold: LEVEL_TYPE[3].1,
-                shape: Shape::Rounded,
                 stroke: Rgba::rgb(0xef, 0xea, 0xe1),
                 stroke_width: 1.0,
+                ..LevelStyle::canvas(3)
             },
         ],
         branch_text: false,
@@ -792,38 +846,30 @@ fn ink() -> Theme {
             LevelStyle {
                 fill: Rgba::rgb(0xd8, 0xa7, 0x5b),
                 text: Rgba::rgb(0x1a, 0x1a, 0x1a),
-                font_size: LEVEL_TYPE[0].0,
-                bold: LEVEL_TYPE[0].1,
-                shape: Shape::Rounded,
                 stroke: Rgba::TRANSPARENT,
                 stroke_width: 0.0,
+                ..LevelStyle::canvas(0)
             },
             LevelStyle {
                 fill: Rgba::rgb(0x24, 0x28, 0x2e),
                 text: Rgba::rgb(0xf2, 0xef, 0xe9),
-                font_size: LEVEL_TYPE[1].0,
-                bold: LEVEL_TYPE[1].1,
-                shape: Shape::Rounded,
                 stroke: Rgba::rgb(0x39, 0x40, 0x49),
                 stroke_width: 1.0,
+                ..LevelStyle::canvas(1)
             },
             LevelStyle {
                 fill: Rgba::rgb(0x1e, 0x22, 0x27),
                 text: Rgba::rgb(0xdd, 0xd9, 0xd2),
-                font_size: LEVEL_TYPE[2].0,
-                bold: LEVEL_TYPE[2].1,
-                shape: Shape::Rounded,
                 stroke: Rgba::rgb(0x30, 0x36, 0x3e),
                 stroke_width: 1.0,
+                ..LevelStyle::canvas(2)
             },
             LevelStyle {
                 fill: Rgba::rgb(0x1a, 0x1e, 0x22),
                 text: Rgba::rgb(0xcb, 0xc7, 0xc0),
-                font_size: LEVEL_TYPE[3].0,
-                bold: LEVEL_TYPE[3].1,
-                shape: Shape::Rounded,
                 stroke: Rgba::rgb(0x2c, 0x32, 0x39),
                 stroke_width: 1.0,
+                ..LevelStyle::canvas(3)
             },
         ],
         branch_text: false,
@@ -876,38 +922,30 @@ fn mist() -> Theme {
             LevelStyle {
                 fill: Rgba::rgb(0x2f, 0x6f, 0x68),
                 text: Rgba::rgb(0xff, 0xff, 0xff),
-                font_size: LEVEL_TYPE[0].0,
-                bold: LEVEL_TYPE[0].1,
-                shape: Shape::Rounded,
                 stroke: Rgba::TRANSPARENT,
                 stroke_width: 0.0,
+                ..LevelStyle::canvas(0)
             },
             LevelStyle {
                 fill: Rgba::rgb(0xfd, 0xff, 0xfe),
                 text: Rgba::rgb(0x24, 0x30, 0x2d),
-                font_size: LEVEL_TYPE[1].0,
-                bold: LEVEL_TYPE[1].1,
-                shape: Shape::Rounded,
                 stroke: Rgba::rgb(0xdc, 0xe6, 0xe2),
                 stroke_width: 1.0,
+                ..LevelStyle::canvas(1)
             },
             LevelStyle {
                 fill: Rgba::rgb(0xf9, 0xfc, 0xfa),
                 text: Rgba::rgb(0x34, 0x41, 0x3d),
-                font_size: LEVEL_TYPE[2].0,
-                bold: LEVEL_TYPE[2].1,
-                shape: Shape::Rounded,
                 stroke: Rgba::rgb(0xe2, 0xeb, 0xe7),
                 stroke_width: 1.0,
+                ..LevelStyle::canvas(2)
             },
             LevelStyle {
                 fill: Rgba::rgb(0xf7, 0xfb, 0xf9),
                 text: Rgba::rgb(0x3d, 0x49, 0x45),
-                font_size: LEVEL_TYPE[3].0,
-                bold: LEVEL_TYPE[3].1,
-                shape: Shape::Rounded,
                 stroke: Rgba::rgb(0xe5, 0xed, 0xe9),
                 stroke_width: 1.0,
+                ..LevelStyle::canvas(3)
             },
         ],
         branch_text: false,
@@ -962,38 +1000,30 @@ fn sand() -> Theme {
             LevelStyle {
                 fill: Rgba::rgb(0x8e, 0x4f, 0x38),
                 text: Rgba::rgb(0xff, 0xf8, 0xf1),
-                font_size: LEVEL_TYPE[0].0,
-                bold: LEVEL_TYPE[0].1,
-                shape: Shape::Rounded,
                 stroke: Rgba::TRANSPARENT,
                 stroke_width: 0.0,
+                ..LevelStyle::canvas(0)
             },
             LevelStyle {
                 fill: Rgba::rgb(0xff, 0xfb, 0xf6),
                 text: Rgba::rgb(0x35, 0x2b, 0x24),
-                font_size: LEVEL_TYPE[1].0,
-                bold: LEVEL_TYPE[1].1,
-                shape: Shape::Rounded,
                 stroke: Rgba::rgb(0xe6, 0xd8, 0xc7),
                 stroke_width: 1.0,
+                ..LevelStyle::canvas(1)
             },
             LevelStyle {
                 fill: Rgba::rgb(0xfc, 0xf7, 0xef),
                 text: Rgba::rgb(0x4a, 0x3b, 0x31),
-                font_size: LEVEL_TYPE[2].0,
-                bold: LEVEL_TYPE[2].1,
-                shape: Shape::Rounded,
                 stroke: Rgba::rgb(0xec, 0xe0, 0xd0),
                 stroke_width: 1.0,
+                ..LevelStyle::canvas(2)
             },
             LevelStyle {
                 fill: Rgba::rgb(0xfa, 0xf4, 0xeb),
                 text: Rgba::rgb(0x53, 0x43, 0x38),
-                font_size: LEVEL_TYPE[3].0,
-                bold: LEVEL_TYPE[3].1,
-                shape: Shape::Rounded,
                 stroke: Rgba::rgb(0xef, 0xe3, 0xd4),
                 stroke_width: 1.0,
+                ..LevelStyle::canvas(3)
             },
         ],
         branch_text: false,
@@ -1096,11 +1126,10 @@ impl ConceptSpec {
             levels: vec![LevelStyle {
                 fill: panel,
                 text,
-                font_size: LEVEL_TYPE[3].0,
-                bold: false,
                 shape: self.shape,
                 stroke: border,
                 stroke_width: 1.0,
+                ..LevelStyle::canvas(3)
             }],
             branch_text: false,
             main_card: true,
@@ -1238,11 +1267,25 @@ pub struct ResolvedStyle {
     pub branch_color: Rgba,
     /// 圆角半径覆盖（0–24）；`None` 按 `Shape` 的默认值（SE-13）。
     pub radius: Option<f32>,
+    /// 层级内距覆盖 `(x, y)`；`None` 时按字号走 `design::card_padding`
+    /// （X25 G-25-01，主题级内距）。
+    pub pad: Option<(f32, f32)>,
     /// 文本水平对齐覆盖；`None` 表示左对齐（概念图另由 `center_text` 居中）。
     pub align: Option<TextAlign>,
     /// 生效字重：`weight` 覆盖优先，否则 `bold ? 600 : 400`（SE-13；`bold` 是 600 的别名，
     /// 理由见 `shots/x100/SE-13/report.md` §3.1——TYPO-01 的粗体字面本来就是 Semibold 600）。
     pub weight: u16,
+}
+
+impl ResolvedStyle {
+    /// 内距：主题层级给了就用它，否则按字号走 `design::card_padding`。
+    ///
+    /// 测量、标签落位、渲染文字锚点、画布编辑器必须**都读这一个出口**，
+    /// 否则主题级内距会让盒宽与文字位置各算一套（X25 G-25-01）。
+    pub fn card_pad(&self) -> (f32, f32) {
+        self.pad
+            .unwrap_or_else(|| crate::design::card_padding(self.font_size))
+    }
 }
 
 /// 节点文字的水平对齐（SE-13）。
@@ -1393,7 +1436,14 @@ pub fn resolve_all(
         } else {
             level.stroke
         };
-        let effective_bold = bold.unwrap_or(level.bold);
+        // 字重默认值：显式 `bold`（老文件）优先，其次层级的 `weight`（可表达 500）。
+        // `bold` 仍为 `weight >= 600` 的二值投影，供只认布尔的大纲/导出分支使用。
+        let default_weight = match bold {
+            Some(true) => WEIGHT_BOLD_ALIAS,
+            Some(false) => WEIGHT_REGULAR,
+            None => level.weight,
+        };
+        let effective_bold = default_weight >= WEIGHT_SEMIBOLD;
         out.insert(
             id.to_string(),
             ResolvedStyle {
@@ -1409,15 +1459,17 @@ pub fn resolve_all(
                 stroke: Rgba::parse_opt(stroke).unwrap_or(level_stroke),
                 stroke_width: stroke_width.unwrap_or(level.stroke_width),
                 branch_color: branch,
-                radius: radius.map(|r| r.clamp(0.0, 24.0)),
+                // 节点显式覆盖优先；没写才看层级默认（X25 G-25-01）。
+                radius: radius
+                    .map(|r| r.clamp(0.0, 24.0))
+                    .or(level.radius.map(|r| r.clamp(0.0, 24.0))),
+                pad: level
+                    .pad
+                    .map(|(x, y)| (x.clamp(0.0, 64.0), y.clamp(0.0, 64.0))),
                 align: align.as_deref().and_then(TextAlign::from_name),
                 weight: weight
                     .map(|w| w.clamp(WEIGHT_REGULAR, 700))
-                    .unwrap_or(if effective_bold {
-                        WEIGHT_BOLD_ALIAS
-                    } else {
-                        WEIGHT_REGULAR
-                    }),
+                    .unwrap_or(default_weight),
             },
         );
 
@@ -1449,10 +1501,10 @@ fn apply_concept_defaults(
     theme: &Theme,
     out: &mut std::collections::HashMap<String, ResolvedStyle>,
 ) {
-    /// 概念文字：14/20。
-    const CONCEPT_FONT: f32 = 14.0;
-    /// 主概念文字：15/22。
-    const PRIMARY_FONT: f32 = 15.0;
+    /// 概念文字：14/20（令牌在 `design::text::CONCEPT`，X25 G-25-07 收起第二处）。
+    const CONCEPT_FONT: f32 = crate::design::text::CONCEPT;
+    /// 主概念文字：15/22（令牌在 `design::text::CONCEPT_PRIMARY`）。
+    const PRIMARY_FONT: f32 = crate::design::text::CONCEPT_PRIMARY;
     let own_look = is_concept_theme(theme);
     for (id, style) in out.iter_mut() {
         let override_ = doc.node(id).and_then(|n| n.style.as_ref());
@@ -1692,6 +1744,20 @@ mod tests {
                     "{} 第 {i} 层偏离 LEVEL_TYPE",
                     t.id
                 );
+                // X25 G-25-08：`bold` 是 `weight >= 600` 的兼容别名，两份必须同步；
+                // 否则旧调用方读到的是「常规」，渲染/导出拿到的是 600。
+                assert_eq!(
+                    level.bold,
+                    level.weight >= WEIGHT_SEMIBOLD,
+                    "{} 第 {i} 层的 bold 与 weight 打架",
+                    t.id
+                );
+                assert_eq!(
+                    level.weight,
+                    crate::design::text::CANVAS_LEVELS[i].weight,
+                    "{} 第 {i} 层字重偏离画布合同表",
+                    t.id
+                );
             }
         }
         assert!(LEVEL_TYPE[0].1, "中心主题必须加粗");
@@ -1699,6 +1765,72 @@ mod tests {
             LEVEL_TYPE[1..].iter().all(|(_, bold)| !bold),
             "一级及以下必须是常规体"
         );
+    }
+
+    /// X25 G-25-01：圆角也能由主题层级给默认值，节点覆盖仍然优先。
+    #[test]
+    fn a_level_default_can_carry_a_radius() {
+        let mut theme = snow();
+        theme.levels[1].radius = Some(4.0);
+        let d = Builder::root("根").child("r", "a", "甲").build();
+        assert_eq!(resolve_all(&d, &theme)["a"].radius, Some(4.0));
+        // 节点显式覆盖压过层级默认。
+        let over = Builder::root("根")
+            .styled(
+                "r",
+                "a",
+                "甲",
+                StyleOverride {
+                    radius: Some(12.0),
+                    ..Default::default()
+                },
+            )
+            .build();
+        assert_eq!(resolve_all(&over, &theme)["a"].radius, Some(12.0));
+        // 越界值在解析层钳到 0–24。
+        theme.levels[1].radius = Some(99.0);
+        assert_eq!(resolve_all(&d, &theme)["a"].radius, Some(24.0));
+    }
+
+    /// X25 G-25-01：主题级内距进 `ResolvedStyle.pad`，并钳在 0–64。
+    #[test]
+    fn a_level_default_can_carry_padding() {
+        let mut theme = snow();
+        theme.levels[1].pad = Some((30.0, 15.0));
+        let d = Builder::root("根").child("r", "a", "甲").build();
+        let st = resolve_all(&d, &theme)["a"];
+        assert_eq!(st.pad, Some((30.0, 15.0)));
+        assert_eq!(st.card_pad(), (30.0, 15.0));
+        theme.levels[1].pad = Some((-5.0, 999.0));
+        assert_eq!(resolve_all(&d, &theme)["a"].pad, Some((0.0, 64.0)));
+    }
+
+    /// X25 G-25-08：层级默认字重现在能表达 500，且显式 `bold` 仍按老语义覆盖。
+    #[test]
+    fn a_level_default_can_express_medium_weight() {
+        let mut medium = snow();
+        medium.levels[1].weight = WEIGHT_MEDIUM;
+        medium.levels[1].bold = false;
+        let d = Builder::root("根").child("r", "a", "甲").build();
+        let styles = resolve_all(&d, &medium);
+        assert_eq!(styles["a"].weight, WEIGHT_MEDIUM, "一级应落到 500");
+        assert!(!styles["a"].bold, "500 不是半粗，`bold` 仍为 false");
+
+        // 老文件里的 `bold: true` 仍然等价 600（不被层级 500 吃掉）。
+        let bolded = Builder::root("根")
+            .styled(
+                "r",
+                "a",
+                "甲",
+                StyleOverride {
+                    bold: Some(true),
+                    ..Default::default()
+                },
+            )
+            .build();
+        let styles = resolve_all(&bolded, &medium);
+        assert_eq!(styles["a"].weight, WEIGHT_BOLD_ALIAS);
+        assert!(styles["a"].bold);
     }
 
     #[test]
@@ -1905,12 +2037,23 @@ mod tests {
             for (i, (b, a)) in base.palette_fill.iter().zip(&spun.palette_fill).enumerate() {
                 check(*b, *a, &format!("palette_fill[{i}]"));
             }
+            // X25 G-25-06：层级默认色也属于「整套配色」，换强调色必须一起走；
+            // 否则「红色分支线 + 绿色中心卡」会同时出现。
+            for (i, (b, a)) in base.levels.iter().zip(&spun.levels).enumerate() {
+                check(b.fill, a.fill, &format!("levels[{i}].fill"));
+                check(b.text, a.text, &format!("levels[{i}].text"));
+                check(b.stroke, a.stroke, &format!("levels[{i}].stroke"));
+            }
+            assert_ne!(
+                base.levels[0].fill, spun.levels[0].fill,
+                "{} 的中心卡必须跟着强调色换色相",
+                base.id
+            );
             check(base.ui.accent_soft, spun.ui.accent_soft, "accent_soft");
             // 中性令牌一律不跟着跑：素白的冷灰底不该因为一个红强调色变成粉底。
             assert_eq!(base.ui.text, spun.ui.text);
             assert_eq!(base.ui.canvas_bg, spun.ui.canvas_bg);
             assert_eq!(base.ui.panel, spun.ui.panel);
-            assert_eq!(base.levels[1].text, spun.levels[1].text);
         }
     }
 

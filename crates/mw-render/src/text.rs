@@ -472,9 +472,7 @@ fn node_text_align(n: &mw_core::scene::SceneNode, ox: f32) -> TextAlign {
         Some(NodeAlign::Center) => TextAlign::Center(ox + n.geom.rect.w * 0.5),
         // 右锚点用**内距**而不是 `text_x`：`text_x = pad_x + 图标宽`，有图标的节点若拿它
         // 当右内距，文字会被图标那一截挤左（右内距比左内距多出一个图标宽）。
-        Some(NodeAlign::Right) => {
-            TextAlign::Right(ox + n.geom.rect.w - mw_core::design::card_padding(n.geom.font_size).0)
-        }
+        Some(NodeAlign::Right) => TextAlign::Right(ox + n.geom.rect.w - n.geom.pad.0),
         Some(NodeAlign::Left) => TextAlign::Left(ox + n.text_x),
         None if n.center_text => TextAlign::Center(ox + n.geom.rect.w * 0.5),
         None => TextAlign::Left(ox + n.text_x),
@@ -598,9 +596,7 @@ fn collect_jobs<'a>(f: &Frame<'a>, jobs: &mut Vec<TextJob<'a>>) {
                             rgba(Rgba::parse(icon.color).unwrap_or(n.style.text)),
                             origin_alpha(*idx),
                         ),
-                        align: TextAlign::Left(
-                            ox + mw_core::design::card_padding(n.geom.font_size).0,
-                        ),
+                        align: TextAlign::Left(ox + n.geom.pad.0),
                         baseline: base(0),
                         layer: L_NODES,
                     });

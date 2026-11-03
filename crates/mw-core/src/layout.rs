@@ -7,12 +7,14 @@
 //! 渲染层要的是可以当数组下标用的句柄，不是每帧哈希 UUID。
 
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use crate::geom::{Enclosing, Path, Point, Rect};
 use crate::model::{LayoutSettings, Node};
 use crate::Document;
 
-// 节点内距**不在这里**：文字盒的内距由 `design::card_padding(font_size)` 按字号分档给出
+// 节点内距**不在这里**：文字盒的内距由 `ResolvedStyle::card_pad()` 给出（主题层级可覆盖，
+// 否则按 `design::card_padding(font_size)` 分档），随 `BoxSpec.pad` 进 `NodeBox`
 // （中心 26/12、一级 18/10、二级 14/8、深层 12/7）。这里以前挂着 PAD_X = 18 / PAD_Y = 9
 // 两个常量，全仓没有一处读它们——却让读代码的人以为内距是一个全局常数，
 // 于是「间距为什么不是令牌」这类问题被反复提出来。删掉，只留这一行指向真正的出口。
@@ -83,6 +85,8 @@ pub struct BoxSpec {
     pub lines: std::sync::Arc<[String]>,
     pub font_size: f32,
     pub line_height: f32,
+    /// 生效内距 `(x, y)`：主题层级覆盖优先，否则按字号分档（X25 G-25-01）。
+    pub pad: (f32, f32),
     pub bold: bool,
     /// 底部留给标签胶囊的高度；文字在其上方的区域里垂直居中
     pub label_h: f32,
@@ -105,6 +109,7 @@ pub struct NodeBox {
     pub lines: std::sync::Arc<[String]>,
     pub font_size: f32,
     pub line_height: f32,
+    pub pad: (f32, f32),
     pub bold: bool,
     pub label_h: f32,
     pub image_h: f32,
@@ -137,9 +142,13 @@ pub struct Edge {
 /// 一次布局的结果。
 #[derive(Clone, Debug)]
 pub struct Layout {
-    /// 密集索引 → 节点 id（前序，主根在 0）
-    pub ids: Vec<String>,
-    pub index: HashMap<String, u32>,
+    /// 密集索引 → 节点 id（前序，主根在 0）。
+    ///
+    /// `Arc<Vec<String>>`：结构没变时整份沿上一轮的账搬过来，20k 打字不再克隆两万个 String
+    /// （X25/M12 残账；`Arc::make_mut` 只在真的并进自由主题时才复制）。
+    pub ids: Arc<Vec<String>>,
+    /// id → 密集下标。`Arc` 的理由同 `ids`：结构不变时整份沿用。
+    pub index: Arc<HashMap<String, u32>>,
     pub boxes: Vec<NodeBox>,
     pub edges: Vec<Edge>,
     /// 装饰性轴线：鱼骨脊线 / 时间轴（不参与点击判定）
@@ -159,8 +168,8 @@ impl Layout {
 
     fn empty() -> Self {
         Self {
-            ids: Vec::new(),
-            index: HashMap::new(),
+            ids: Arc::new(Vec::new()),
+            index: Arc::new(HashMap::new()),
             boxes: Vec::new(),
             edges: Vec::new(),
             spines: Vec::new(),
@@ -186,6 +195,10 @@ pub type Editing<'a> = Option<(&'a str, &'a str)>;
 pub struct LayoutMemo {
     pub n: usize,
     ids_fp: u64,
+    /// 上一轮的 id 序列；指纹对得上就整份搬走。
+    ids: Arc<Vec<String>>,
+    /// 上一轮的 id → 下标表；与 `ids` 同生同灭。
+    index: Arc<HashMap<String, u32>>,
     depth: Vec<u32>,
     text_fp: Vec<u64>,
     boxes: Vec<NodeBox>,
@@ -284,7 +297,6 @@ pub fn compute_layout_memo_with_reach(
     let editing_id = editing.map(|(i, _)| i);
 
     // ---- 1) 收集可见节点（前序，折叠节点不下探） ----
-    let mut ids: Vec<String> = Vec::new();
     let mut refs: Vec<&Node> = Vec::new();
     let mut depth: Vec<u32> = Vec::new();
     let mut parent: Vec<Option<usize>> = Vec::new();
@@ -300,12 +312,11 @@ pub fn compute_layout_memo_with_reach(
     while let Some((n, d, p)) = stack.pop() {
         ids_fp = fnv1a(ids_fp, n.id.as_bytes());
         ids_fp = fnv1a(ids_fp, &d.to_le_bytes());
-        let idx = ids.len();
-        ids.push(n.id.clone());
+        let idx = refs.len();
         refs.push(n);
         depth.push(d);
         parent.push(p);
-        let hidden = n.collapsed && Some(ids[idx].as_str()) != editing_id;
+        let hidden = n.collapsed && Some(n.id.as_str()) != editing_id;
         if !hidden {
             // 逆序入栈 → 弹出即文档顺序
             for c in n.children.iter().rev() {
@@ -315,7 +326,7 @@ pub fn compute_layout_memo_with_reach(
             }
         }
     }
-    let n = ids.len();
+    let n = refs.len();
     if n == 0 {
         return (Layout::empty(), LayoutMemo::default(), 0);
     }
@@ -363,6 +374,11 @@ pub fn compute_layout_memo_with_reach(
             None
         }
     };
+    // 结构指纹对得上就沿用上一轮的 id 序列（只加引用计数）；对不上才现场克隆。
+    let ids: Arc<Vec<String>> = match reuse {
+        Some(m) => m.ids.clone(),
+        None => Arc::new(refs.iter().map(|n| n.id.clone()).collect()),
+    };
     let mut boxes: Vec<NodeBox> = Vec::with_capacity(n);
     let mut text_fp: Vec<u64> = Vec::with_capacity(n);
     let mut reused = 0usize;
@@ -392,6 +408,7 @@ pub fn compute_layout_memo_with_reach(
             lines: spec.lines,
             font_size: spec.font_size,
             line_height: spec.line_height,
+            pad: spec.pad,
             bold: spec.bold,
             label_h: spec.label_h,
             image_h: spec.image_h,
@@ -774,11 +791,15 @@ pub fn compute_layout_memo_with_reach(
     for b in boxes.iter() {
         enc.add(b.rect);
     }
-    let index: HashMap<String, u32> = ids
-        .iter()
-        .enumerate()
-        .map(|(i, id)| (id.clone(), i as u32))
-        .collect();
+    let index: Arc<HashMap<String, u32>> = match reuse {
+        Some(m) => m.index.clone(),
+        None => Arc::new(
+            ids.iter()
+                .enumerate()
+                .map(|(i, id)| (id.clone(), i as u32))
+                .collect(),
+        ),
+    };
     let bounds = enc
         .rect()
         .unwrap_or(Rect::new(-10.0, -10.0, 20.0, 20.0))
@@ -804,6 +825,8 @@ pub fn compute_layout_memo_with_reach(
     let account = LayoutMemo {
         n,
         ids_fp,
+        ids: ids.clone(),
+        index: index.clone(),
         depth: depth.clone(),
         text_fp,
         boxes: boxes.clone(),
@@ -975,6 +998,7 @@ mod tests {
                 lines: std::sync::Arc::from(vec![text.to_string()]),
                 font_size: 14.0,
                 line_height: 20.0,
+                pad: crate::design::card_padding(14.0),
                 bold: false,
                 label_h: 0.0,
                 image_h: 0.0,
@@ -1410,6 +1434,7 @@ mod tests {
             lines: std::sync::Arc::from(vec!["一".to_string(), "二".to_string()]),
             font_size: 14.0,
             line_height: 20.0,
+            pad: crate::design::card_padding(14.0),
             bold: false,
             label_h: 0.0,
             image_h: 40.0,
@@ -1428,6 +1453,7 @@ mod tests {
             lines: std::sync::Arc::from(vec!["一".to_string(), "二".to_string()]),
             font_size: 14.0,
             line_height: 20.0,
+            pad: crate::design::card_padding(14.0),
             bold: false,
             label_h: 10.0,
             image_h: 0.0,
@@ -1467,6 +1493,7 @@ mod tests {
                     lines: std::sync::Arc::from(m.lines),
                     font_size: 14.0,
                     line_height: m.line_height,
+                    pad: crate::design::card_padding(14.0),
                     bold: false,
                     label_h: 0.0,
                     image_h: 0.0,

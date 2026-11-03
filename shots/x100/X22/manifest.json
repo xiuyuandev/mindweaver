@@ -118,5 +118,6 @@
       }
     },
     "conclusion": "画布与内容面 400/500/600 落面完全一致；500 = 拉丁600+中文400（非对称档）；CJK 600 实测落雅黑 700 面"
-  }
+  },
+  "status_2026_11_03": "G01 已落地：design::text::CANVAS_LEVELS + docs/28 §4.1b（字号/字重/行高/内距/单行盒高/四档 DPI），单测 canvas_level_table_agrees_with_the_formulas；可见取值未改，0 重拍。证据 shots/x100/X25/ §10。"
 }

@@ -574,7 +574,9 @@ impl Canvas {
         let plus_id = egui::Id::unique("mw-canvas-node-plus");
         let more_id = egui::Id::unique("mw-canvas-node-more");
         let plus_response = bar.map(|b| ui.interact(b.plus, plus_id, Sense::click()));
-        let more_response = bar.map(|b| ui.interact(b.more, more_id, Sense::click()));
+        let more_response = bar
+            .filter(|b| !b.compact)
+            .map(|b| ui.interact(b.more, more_id, Sense::click()));
         if bar.is_some() {
             // 语义名挂在控件自己的 id 上，`MW_TRACE` 的焦点轨迹里就能直接认出它们；
             // 点击再补一条 `event`，因为鼠标点击不一定抢焦点。
@@ -1012,6 +1014,8 @@ impl Canvas {
             if self.show_grid || self.show_rulers {
                 self.paint_grid_rulers(ui, rect, viewport);
             }
+            // X29 G-5：空白新文档的一行引导语。只对「新建且一次编辑都没有」的文档出现。
+            self.paint_empty_hint(ui, rect);
             // 聚焦问题在卡片角标之前画：它是「这张图在回答什么」，压在所有装饰下面。
             self.paint_focus_question(ui, rect, viewport);
             self.paint_card_badges(ui, rect, viewport);
@@ -1422,7 +1426,12 @@ impl Canvas {
         // Esc 取消进行中的手势（拖拽的重排、框选、平移）。必须在这里把键吃掉：
         // 否则同一次按键会继续走到 shortcuts，把选择也一并清掉——用户按 Esc 是想
         // 「这一下不算」，不是想「什么都不选」。
-        if self.drag.is_some() && ui.input_mut(|i| i.consume_key(Modifiers::NONE, Key::Escape)) {
+        // X28 D5：只拖注解/关系线手柄时 `self.drag` 是 `None`，但 `span_drag` /
+        // `relink_drag` 非空；Esc 也必须能把这两种手势取消掉。
+        let handle_drag = self.span_drag.is_some() || self.relink_drag.is_some();
+        if (self.drag.is_some() || handle_drag)
+            && ui.input_mut(|i| i.consume_key(Modifiers::NONE, Key::Escape))
+        {
             self.drag = None;
             self.lasso = None;
             self.moving = None;
@@ -2146,7 +2155,7 @@ impl Canvas {
             .iter()
             .find(|r| r.id == rel.id && self.scene.ids[r.from as usize] == rel.from)?;
         let world = self.camera.screen_to_world(local?, viewport);
-        let hit = self.camera.css_to_world(SPAN_HANDLE_HIT);
+        let hit = self.camera.css_to_world(REL_HANDLE_HIT);
         let end = sr.path.end();
         let d = ((world.x - end.x).powi(2) + (world.y - end.y).powi(2)).sqrt();
         (d <= hit).then_some(rel)
@@ -2504,6 +2513,13 @@ impl Canvas {
             // 拖到空白：概念图里就地长出一个新概念，把这条线改指到它。
             // 与「从概念拖到空白」（CM-10 ①）同一语义——同一个手势族，落空不该静默取消。
             if !self.concept_map() {
+                // X28 D4：思维导图里拖到空白不能静默取消——用户已经拖了一路，
+                // 至少要告诉他一件事：端点必须落在另一个主题上。
+                crate::trace::event("relink_cancel reason=blank_tree");
+                self.notice = Some((
+                    "改端点要落在另一个主题上；在概念图里拖到空白会新建概念".to_string(),
+                    true,
+                ));
                 return false;
             }
             let before = self.session.doc.doc_order();
@@ -2735,9 +2751,9 @@ impl Canvas {
         painter.circle_filled(Pos2::new(origin.x + s.x, origin.y + s.y), 2.6, accent);
         let e = self.camera.world_to_screen(sr.path.end(), viewport);
         let c = Pos2::new(origin.x + e.x, origin.y + e.y);
-        painter.circle_filled(c, SPAN_HANDLE_R + 1.5, halo);
-        painter.circle_filled(c, SPAN_HANDLE_R, fill);
-        painter.circle_stroke(c, SPAN_HANDLE_R, Stroke::new(1.5, accent));
+        painter.circle_filled(c, REL_HANDLE_R + 1.5, halo);
+        painter.circle_filled(c, REL_HANDLE_R, fill);
+        painter.circle_stroke(c, REL_HANDLE_R, Stroke::new(1.5, accent));
     }
 
     /// 拖终点时的橡皮筋 + 目标节点高亮。

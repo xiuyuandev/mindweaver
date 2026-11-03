@@ -227,6 +227,24 @@ impl Path {
     }
 }
 
+/// 圆角矩形命中：点在矩形内，且不落在四角圆弧之外。
+///
+/// `radius` 会被钳到 `0..=min(w,h)/2`（胶囊就是 `h/2`）。这是画布命中与绘制同源的
+/// 唯一判定：`mw-render` 的 `corner_style` 给出半径，这里给几何（X23 G-8）。
+pub fn rounded_rect_contains(rect: Rect, radius: f32, p: Point) -> bool {
+    if p.x < rect.x || p.x > rect.right() || p.y < rect.y || p.y > rect.bottom() {
+        return false;
+    }
+    let r = radius.max(0.0).min(rect.w * 0.5).min(rect.h * 0.5);
+    if r <= f32::EPSILON {
+        return true;
+    }
+    // 内缩矩形里一定命中；四角只比「到内缩矩形最近点」的距离。
+    let cx = p.x.clamp(rect.x + r, rect.right() - r);
+    let cy = p.y.clamp(rect.y + r, rect.bottom() - r);
+    (p.x - cx).powi(2) + (p.y - cy).powi(2) <= r * r
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -341,5 +359,29 @@ mod tests {
         let out = arrow_at_zoom(base_tri(), f32::NAN);
         assert!(out.iter().all(|p| p.x.is_finite() && p.y.is_finite()));
         assert!((tri_len(out) - ARROW_MIN_CSS_LEN).abs() < 1e-4);
+    }
+    #[test]
+    fn rounded_rect_hit_follows_the_corner_arc() {
+        let r = Rect::new(0.0, 0.0, 100.0, 40.0);
+        // 内部与边上都命中。
+        assert!(rounded_rect_contains(r, 10.0, Point::new(50.0, 20.0)));
+        assert!(rounded_rect_contains(r, 10.0, Point::new(0.0, 20.0)));
+        // 角落：圆弧圆心 (10,10)、半径 10；(5,5) 距离 7.07 命中，(1,1) 距离 12.73 不命中。
+        assert!(rounded_rect_contains(r, 10.0, Point::new(5.0, 5.0)));
+        assert!(!rounded_rect_contains(r, 10.0, Point::new(1.0, 1.0)));
+        // 矩形外永远不命中。
+        assert!(!rounded_rect_contains(r, 10.0, Point::new(-0.1, 20.0)));
+        assert!(!rounded_rect_contains(r, 10.0, Point::new(50.0, 40.1)));
+    }
+
+    #[test]
+    fn rounded_rect_radius_is_clamped_and_zero_is_a_plain_rect() {
+        let r = Rect::new(0.0, 0.0, 100.0, 40.0);
+        // 半径超过半高时按半高算（胶囊）。
+        assert!(rounded_rect_contains(r, 999.0, Point::new(1.0, 20.0)));
+        assert!(!rounded_rect_contains(r, 999.0, Point::new(1.0, 1.0)));
+        // 半径 0 = 普通矩形，四角都命中。
+        assert!(rounded_rect_contains(r, 0.0, Point::new(0.0, 0.0)));
+        assert!(rounded_rect_contains(r, -5.0, Point::new(0.0, 0.0)));
     }
 }

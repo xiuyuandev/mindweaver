@@ -2,7 +2,7 @@
   "package": "X28",
   "title": "折叠圆点 / 快速加子按钮 / 关系线手柄 / 注解手柄（现状审计 + 验收底稿）",
   "status": "进行中",
-  "status_reason": "本轮只做文档与只读审计：代码零改动、金样未拍、门未跑；按 AGENTS §3.6 只能写「进行中」",
+  "status_reason": "2026-11-03 部分动码：D5（Esc 取消手柄拖拽）、D9（关系线手柄常量拆分）、D2（自由主题新建+命名合并一条撤销）、D7（圆点命中上界断言）、D4（思维导图端点拖空白改红提示）已落地，均为零像素；D1/D3/D6/D8 会改可见外观或需跨缩放证据，待 Windows 机器随基线重拍；shell 单测与 golden 仍未跑。",
   "date": "2026-11-02",
   "track": "Stage C（docs/24 §3 X28 行）；上一包 X27 交互状态表（shots/x100/X27/report.md）",
   "contract": {
@@ -52,19 +52,76 @@
   },
   "gaps": {
     "count": 9,
-    "high": ["D5"],
-    "medium": ["D1", "D2", "D3", "D6", "D9"],
-    "low": ["D4", "D7", "D8"],
+    "high": [
+      "D5"
+    ],
+    "medium": [
+      "D1",
+      "D2",
+      "D3",
+      "D6",
+      "D9"
+    ],
+    "low": [
+      "D4",
+      "D7",
+      "D8"
+    ],
     "items": [
-      { "id": "D1", "what": "快速加子按钮只在悬停出现，选中态不出现（docs/28 §4.3 说悬停/选中都出现）", "severity": "中", "needs_decision": true },
-      { "id": "D2", "what": "加子后提交是两条撤销（AddNode + SetText），只有 Esc 取消会合成一步", "severity": "中", "needs_decision": true },
-      { "id": "D3", "what": "关系线只有终点可拖，起点画成实心点不可拖，两端视觉像同类", "severity": "中", "needs_decision": true },
-      { "id": "D4", "what": "关系线落空在思维导图里静默取消，无提示", "severity": "低", "needs_decision": false },
-      { "id": "D5", "what": "Esc 取消被 self.drag.is_some() 门住，只拖注解/关系线手柄时可能取消不掉", "severity": "高", "needs_decision": false },
-      { "id": "D6", "what": "注解键盘路径只有新建；关系线手柄无键盘路径", "severity": "中", "needs_decision": false },
-      { "id": "D7", "what": "圆点命中 10 比视觉 9.5 大且优先级高于节点，边缘易误触", "severity": "低", "needs_decision": false },
-      { "id": "D8", "what": "手柄视觉 4.5 / 命中 9 / 目标吸附 12 三个半径无跨缩放像素证据", "severity": "低", "needs_decision": false },
-      { "id": "D9", "what": "关系线端点手柄串用注解的 SPAN_HANDLE_R/HIT；ANCHOR_R/HIT 实际服务连线锚点", "severity": "中", "needs_decision": false }
+      {
+        "id": "D1",
+        "what": "快速加子按钮只在悬停出现，选中态不出现（docs/28 §4.3 说悬停/选中都出现）",
+        "severity": "中",
+        "needs_decision": true
+      },
+      {
+        "id": "D2",
+        "what": "加子后提交是两条撤销（AddNode + SetText），只有 Esc 取消会合成一步",
+        "severity": "中",
+        "needs_decision": true
+      },
+      {
+        "id": "D3",
+        "what": "关系线只有终点可拖，起点画成实心点不可拖，两端视觉像同类",
+        "severity": "中",
+        "needs_decision": true
+      },
+      {
+        "id": "D4",
+        "what": "关系线落空在思维导图里静默取消，无提示",
+        "severity": "低",
+        "needs_decision": false
+      },
+      {
+        "id": "D5",
+        "what": "Esc 取消被 self.drag.is_some() 门住，只拖注解/关系线手柄时可能取消不掉",
+        "severity": "高",
+        "needs_decision": false
+      },
+      {
+        "id": "D6",
+        "what": "注解键盘路径只有新建；关系线手柄无键盘路径",
+        "severity": "中",
+        "needs_decision": false
+      },
+      {
+        "id": "D7",
+        "what": "圆点命中 10 比视觉 9.5 大且优先级高于节点，边缘易误触",
+        "severity": "低",
+        "needs_decision": false
+      },
+      {
+        "id": "D8",
+        "what": "手柄视觉 4.5 / 命中 9 / 目标吸附 12 三个半径无跨缩放像素证据",
+        "severity": "低",
+        "needs_decision": false
+      },
+      {
+        "id": "D9",
+        "what": "关系线端点手柄串用注解的 SPAN_HANDLE_R/HIT；ANCHOR_R/HIT 实际服务连线锚点",
+        "severity": "中",
+        "needs_decision": false
+      }
     ]
   },
   "data_model": {
@@ -118,11 +175,36 @@
     ]
   },
   "risks": [
-    { "id": "R1", "level": "高", "what": "并行会话在改 crates/，行号与常量会漂", "fix": "每格带「那一行的字面」；动码前重 grep TOGGLE_R / SPAN_HANDLE_* / ANCHOR_*" },
-    { "id": "R2", "level": "中", "what": "D1/D2/D3 任一要落地都会推高 stage-b 场次", "fix": "优先零像素方案（轨迹 + toast）" },
-    { "id": "R3", "level": "中", "what": "D5 若确认是 bug，改它要重跑所有拖拽类基线", "fix": "先补 mm-span-esc 红灯基线当证据再改" },
-    { "id": "R4", "level": "低", "what": "双击下钻依赖 egui 时间；脚本帧数不够会把双击拍成两次单击", "fix": "两次点击之间 wait <= 2 帧，轨迹断言只有一条 toggle_drill" },
-    { "id": "R5", "level": "低", "what": "圆点命中与工具条避让几何耦合（HOVER_GAP_V 要避开 r8+1.5）", "fix": "已有单测 hover_bar_sits_outside_the_node_and_clears_the_fold_toggle 守着" }
+    {
+      "id": "R1",
+      "level": "高",
+      "what": "并行会话在改 crates/，行号与常量会漂",
+      "fix": "每格带「那一行的字面」；动码前重 grep TOGGLE_R / SPAN_HANDLE_* / ANCHOR_*"
+    },
+    {
+      "id": "R2",
+      "level": "中",
+      "what": "D1/D2/D3 任一要落地都会推高 stage-b 场次",
+      "fix": "优先零像素方案（轨迹 + toast）"
+    },
+    {
+      "id": "R3",
+      "level": "中",
+      "what": "D5 若确认是 bug，改它要重跑所有拖拽类基线",
+      "fix": "先补 mm-span-esc 红灯基线当证据再改"
+    },
+    {
+      "id": "R4",
+      "level": "低",
+      "what": "双击下钻依赖 egui 时间；脚本帧数不够会把双击拍成两次单击",
+      "fix": "两次点击之间 wait <= 2 帧，轨迹断言只有一条 toggle_drill"
+    },
+    {
+      "id": "R5",
+      "level": "低",
+      "what": "圆点命中与工具条避让几何耦合（HOVER_GAP_V 要避开 r8+1.5）",
+      "fix": "已有单测 hover_bar_sits_outside_the_node_and_clears_the_fold_toggle 守着"
+    }
   ],
   "not_done": [
     "代码零改动（crates/ 归其他 owner）",
@@ -141,6 +223,21 @@
       "按 §4 量化判据补跨缩放对照",
       "D9 拆常量（SPAN_HANDLE_* 与 ANCHOR_* 各自使用）",
       "回填本目录证据与 manifest.evidence.collected=true"
+    ]
+  },
+  "updated_2026_11_03": {
+    "implemented": {
+      "D5": "Esc 分支放宽到 span_drag/relink_drag",
+      "D9": "REL_HANDLE_R/HIT 拆分",
+      "D2": "mark_editor_fresh + add_floating_world",
+      "D7": "TOGGLE_HIT_CSS 上界断言",
+      "D4": "思维导图端点拖到空白：relink_cancel 轨迹 + 红提示，不再静默取消"
+    },
+    "verification": "cargo check -p mw-shell --target x86_64-pc-windows-gnu --tests PASS（Linux 交叉类型检查）",
+    "not_run": [
+      "shell 单测",
+      "golden",
+      "mm-span-esc 等新基线"
     ]
   }
 }

@@ -215,6 +215,9 @@ pub struct Extras<'a> {
     pub relationships: &'a [crate::canvas::RelationshipSel],
     /// 用户记过的分组开合（`window_state.inspector_groups`，每条 `键=0/1`）。
     pub groups: &'a [String],
+    /// 与 `selected` 同序的节点盒（世界坐标）。只给圆角 stepper 算「盒高能容纳的上限」——
+    /// 渲染层把半径再钳到 `min(w,h)/2`，控件不想谎报一个拖了没变化的 24（V1-02 G-4）。
+    pub boxes: &'a [Option<Rect>],
 }
 
 /// 概要在父节点下的跨度：每个直接子节点一格 (id, 是否命中, 显示用的两字标签)。
@@ -1076,6 +1079,19 @@ fn stepped(value: f32, dir: f32, range: (f32, f32), step: f32) -> f32 {
     (value + dir * step).clamp(range.0, range.1)
 }
 
+/// 圆角 stepper 的可见上限（V1-02 G-4）：渲染层把半径钳到 `min(w,h)/2`，
+/// 盒子高 36 时上限就是 18——控件再摆一个 24 只是骗人。合同上限 24 仍保留，
+/// 这里只按**实际盒子**把它压到能看出差异的那个值；拿不到盒子时退回 24。
+pub(crate) fn radius_ceiling(boxes: &[Option<Rect>]) -> f32 {
+    let mut ceil = 24.0_f32;
+    for r in boxes.iter().flatten() {
+        ceil = ceil.min(r.width().min(r.height()) * 0.5);
+    }
+    // 控件显示整数、步进 2，上限也取整：19.5 这种东西只在像素里存在，
+    // 摆进 stepper 会让「显示 20、实际 19.5」。合同值本身也是整数。
+    ceil.clamp(0.0, 24.0).floor()
+}
+
 /// 分段按钮（形状/页签/布局都用它）：选中态用主题强调色，而不是 egui 默认蓝。
 ///
 /// `key` 为 `Some` 时给按钮一个稳定身份并纳入焦点记忆；为 `None` 时沿用自动 id。
@@ -1817,6 +1833,27 @@ mod tests {
         assert_eq!(stepped(8.0, 1.0, (0.0, 8.0), 1.0), 8.0, "边宽 8 是顶");
     }
 
+    /// 圆角上限跟着实际盒子走（V1-02 G-4）：渲染层钳 `min(w,h)/2`，控件也照这个压，
+    /// 免得用户把 24 拖满却看不出和 18 的差别。
+    #[test]
+    fn radius_ceiling_follows_the_tallest_short_side() {
+        let at = |w: f32, h: f32| Some(Rect::from_min_size(Pos2::ZERO, Vec2::new(w, h)));
+        assert_eq!(radius_ceiling(&[]), 24.0, "没盒子时退回合同上限");
+        assert_eq!(radius_ceiling(&[None]), 24.0, "找不到节点时也是上限");
+        assert_eq!(radius_ceiling(&[at(200.0, 36.0)]), 18.0, "盒高 36 → 18");
+        assert_eq!(
+            radius_ceiling(&[at(200.0, 49.0)]),
+            24.0,
+            "盒高 49 → 24 封顶"
+        );
+        assert_eq!(
+            radius_ceiling(&[at(200.0, 52.0), at(120.0, 30.0)]),
+            15.0,
+            "多选取最小"
+        );
+        assert_eq!(radius_ceiling(&[at(200.0, 0.0)]), 0.0, "退化盒不上报负数");
+    }
+
     /// 键入的文本 → 新值：空/非数字/非有限一律不要，越界夹进区间（§4.2 的两条值域）。
     #[test]
     fn typed_numbers_are_clamped_and_garbage_is_ignored() {
@@ -2410,6 +2447,7 @@ mod tests {
                         relationship: None,
                         relationships: &[],
                         groups: &[],
+                        boxes: &[],
                     },
                 );
             },
@@ -2546,6 +2584,7 @@ mod tests {
                     relationship: None,
                     relationships: &[],
                     groups: &[],
+                    boxes: &[],
                 },
             );
         });
@@ -2658,6 +2697,7 @@ mod tests {
                     relationship: None,
                     relationships: &[],
                     groups: &[],
+                    boxes: &[],
                 },
             );
         });
@@ -2711,6 +2751,7 @@ mod tests {
                     relationship: None,
                     relationships: &[],
                     groups: &[],
+                    boxes: &[],
                 },
             );
         });
@@ -3150,6 +3191,7 @@ mod tests {
                             relationship: Some(&sel),
                             relationships: &[],
                             groups: &[],
+                            boxes: &[],
                         },
                     );
                 },
@@ -3225,6 +3267,7 @@ mod tests {
                     relationship: None,
                     relationships: &[],
                     groups: &[],
+                    boxes: &[],
                 },
             );
         });
@@ -3256,6 +3299,7 @@ mod tests {
                     relationship: None,
                     relationships: &[],
                     groups: &[],
+                    boxes: &[],
                 },
             );
         });
@@ -3287,6 +3331,7 @@ mod tests {
                     relationship: None,
                     relationships: &[],
                     groups: &[],
+                    boxes: &[],
                 },
             );
         });
@@ -3326,6 +3371,7 @@ mod tests {
                     relationship: None,
                     relationships: &[],
                     groups: &[],
+                    boxes: &[],
                 },
             );
         });
